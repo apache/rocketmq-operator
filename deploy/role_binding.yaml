@@ -1,0 +1,11 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rocketmq-operator
+subjects:
+- kind: ServiceAccount
+  name: rocketmq-operator
+roleRef:
+  kind: Role
+  name: rocketmq-operator
+  apiGroup: rbac.authorization.k8s.io

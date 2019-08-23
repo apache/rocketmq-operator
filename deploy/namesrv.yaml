@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocketmq-namesrv
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: rocketmq-namesrv
+  template:
+    metadata:
+      labels:
+        name: rocketmq-namesrv
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: namesrv
+          image: 2019liurui/rocketmq-namesrv:4.5.0-alpine
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9876
+          volumeMounts:
+            - mountPath: /home/rocketmq/logs
+              name: namesrvlogs
+            - mountPath: /home/rocketmq/store
+              name: namesrvstore
+      volumes:
+        - name: namesrvlogs
+          hostPath:
+            path: /data/namesrv/logs
+        - name: namesrvstore
+          hostPath:
+            path: /data/namesrv/store
+              #nodeSelector:
+            #rocketmq-operator: "on"
