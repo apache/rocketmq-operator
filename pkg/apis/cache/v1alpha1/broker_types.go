@@ -11,6 +11,8 @@ import (
 // +k8s:openapi-gen=true
 type BrokerSpec struct {
 	Size int32 `json:"size"`
+	// NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
+	NameServers string `json:"nameServers,omitempty"`
 }
 
 // BrokerStatus defines the observed state of Broker
