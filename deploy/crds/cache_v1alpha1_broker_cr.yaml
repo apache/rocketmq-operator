@@ -1,7 +1,9 @@
 apiVersion: cache.example.com/v1alpha1
 kind: Broker
 metadata:
-  name: example-broker
+  name: broker
 spec:
   # Add fields here
   size: 1
+  nameServers: "192.168.130.33:9876;192.168.130.34:9876"
+
