@@ -17,7 +17,7 @@
 
 set -eux;
 
-DOCKERHUB_REPO="2019liurui/rocketmq-operator:v0.0.1"
+DOCKERHUB_REPO="2019liurui/rocketmq-operator:v0.0.1-snapshot"
 
 export GO111MODULE=on
 go mod vendor
