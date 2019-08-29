@@ -16,6 +16,7 @@
 # limitations under the License.
 
 echo "Stopping RocketMQ-Operator..."
+kubectl delete -f deploy/crds/cache_v1alpha1_broker_cr.yaml
 
 kubectl delete -f deploy/operator.yaml
 kubectl delete -f deploy/role_binding.yaml
