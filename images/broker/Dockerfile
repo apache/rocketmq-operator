@@ -21,10 +21,10 @@ RUN apk add --no-cache bash gettext nmap-ncat openssl busybox-extras
 
 ARG user=rocketmq
 ARG group=rocketmq
-ARG uid=3000
-ARG gid=3000
+ARG uid=1001
+ARG gid=1001
 
-# RocketMQ is run with user `rocketmq`, uid = 3000
+# RocketMQ is run with user `rocketmq`, uid = 1001
 # If you bind mount a volume from the host or a data container,
 # ensure you use the same uid
 RUN addgroup --gid ${gid} ${group} \
@@ -79,11 +79,11 @@ RUN sed -i 's/${JAVA_HOME}\/jre\/lib\/ext/${JAVA_HOME}\/jre\/lib\/ext:${JAVA_HOM
 
 COPY brokerGenConfig.sh brokerStart.sh ${ROCKETMQ_HOME}/bin/
 
-RUN chmod +x ${ROCKETMQ_HOME}/bin/brokerGenConfig.sh \
- && chmod +x ${ROCKETMQ_HOME}/bin/brokerStart.sh
+RUN chmod a+x ${ROCKETMQ_HOME}/bin/brokerGenConfig.sh \
+ && chmod a+x ${ROCKETMQ_HOME}/bin/brokerStart.sh
 
 USER ${user}
 
 WORKDIR ${ROCKETMQ_HOME}/bin
 
-CMD ["/bin/bash", "mqbroker"]
+CMD ["/bin/bash", "./brokerStart.sh"]

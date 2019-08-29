@@ -39,4 +39,4 @@ checkVersion $ROCKETMQ_VERSION
 
 docker build -t ${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine --build-arg version=${ROCKETMQ_VERSION} .
 
-# docker push ${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine
+docker push ${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine
