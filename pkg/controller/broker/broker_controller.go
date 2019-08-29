@@ -184,6 +184,7 @@ func (r *ReconcileBroker) deploymentForBroker(m *cachev1alpha1.Broker) *appsv1.D
 					Containers: []corev1.Container{{
 						Image:   "2019liurui/rocketmq-broker:4.5.0-alpine",
 						Name:    "broker",
+						ImagePullPolicy: "Always",
 						Env: []corev1.EnvVar{{
 							Name: "NAMESRV_ADDRESS",
 							Value: m.Spec.NameServers,
