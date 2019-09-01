@@ -188,6 +188,9 @@ func (r *ReconcileBroker) deploymentForBroker(m *cachev1alpha1.Broker) *appsv1.D
 						Env: []corev1.EnvVar{{
 							Name: "NAMESRV_ADDRESS",
 							Value: m.Spec.NameServers,
+						},{
+							Name: "REPLICATION_MODE",
+							Value: "ASYNC",
 						}},
 						//Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{

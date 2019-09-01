@@ -18,7 +18,7 @@
 BROKER_CONFIG_FILE="/opt/rocketmq-$ROCKETMQ_VERSION/conf/broker.conf"
 echo $BROKER_CONFIG_FILE
 
-BROKER_ID=$(cat /etc/hostname | grep -o '[^-]*$')
+BROKER_ID=0
 
 BROKER_ROLE="SLAVE"
 
@@ -29,6 +29,11 @@ if [ $BROKER_ID = 0 ];then
       BROKER_ROLE="ASYNC_MASTER"
     fi
 fi
+
+BROKER_NAME=$(cat /etc/hostname | grep -o '[^-]*$')
+DELETE_WHEN="04"
+FILE_RESERVED_TIME="48"
+FLUSH_DISK_TYPE="ASYNC"
 
 function create_config() {
     rm -f $BROKER_CONFIG_FILE
