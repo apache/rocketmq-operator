@@ -1,7 +1,7 @@
 apiVersion: rocketmq.operator.com/v1alpha1
 kind: MetaService
 metadata:
-  name: metaservice
+  name: meta-service
 spec:
   # Add fields here
   size: 2

@@ -158,7 +158,7 @@ func getMetaServers(pods []corev1.Pod) []string {
 }
 
 func labelsForMetaService(name string) map[string]string {
-	return map[string]string{"app": "metaService", "metaService_cr": name}
+	return map[string]string{"app": "meta_service", "meta_service_cr": name}
 }
 
 func (r *ReconcileMetaService) deploymentForMetaService(m *rocketmqv1alpha1.MetaService) *appsv1.Deployment {

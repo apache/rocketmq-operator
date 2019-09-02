@@ -2,8 +2,6 @@ package broker
 
 import (
 	"context"
-	"k8s.io/apimachinery/pkg/labels"
-	"reflect"
 	"strconv"
 
 	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
@@ -159,28 +157,29 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 
 	// Update the Broker status with the pod names
 	// List the pods for this broker's deployment
-	podList := &corev1.PodList{}
-	labelSelector := labels.SelectorFromSet(labelsForBroker(broker.Name))
-	listOps := &client.ListOptions{
-		Namespace:     broker.Namespace,
-		LabelSelector: labelSelector,
-	}
-	err = r.client.List(context.TODO(), listOps, podList)
-	if err != nil {
-		reqLogger.Error(err, "Failed to list pods.", "Broker.Namespace", broker.Namespace, "Broker.Name", broker.Name)
-		return reconcile.Result{}, err
-	}
-	podNames := getPodNames(podList.Items)
 
-	// Update status.Nodes if needed
-	if !reflect.DeepEqual(podNames, broker.Status.Nodes) {
-		broker.Status.Nodes = podNames
-		err := r.client.Status().Update(context.TODO(), broker)
-		if err != nil {
-			reqLogger.Error(err, "Failed to update Broker status.")
-			return reconcile.Result{}, err
-		}
-	}
+	//podList := &corev1.PodList{}
+	//labelSelector := labels.SelectorFromSet(labelsForBroker(broker.Name))
+	//listOps := &client.ListOptions{
+	//	Namespace:     broker.Namespace,
+	//	LabelSelector: labelSelector,
+	//}
+	//err = r.client.List(context.TODO(), listOps, podList)
+	//if err != nil {
+	//	reqLogger.Error(err, "Failed to list pods.", "Broker.Namespace", broker.Namespace, "Broker.Name", broker.Name)
+	//	return reconcile.Result{}, err
+	//}
+	//podNames := getPodNames(podList.Items)
+	//
+	//// Update status.Nodes if needed
+	//if !reflect.DeepEqual(podNames, broker.Status.Nodes) {
+	//	broker.Status.Nodes = podNames
+	//	err := r.client.Status().Update(context.TODO(), broker)
+	//	if err != nil {
+	//		reqLogger.Error(err, "Failed to update Broker status.")
+	//		return reconcile.Result{}, err
+	//	}
+	//}
 
 	return reconcile.Result{}, nil
 }
