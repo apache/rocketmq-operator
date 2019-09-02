@@ -86,8 +86,29 @@ func schema_pkg_apis_cache_v1alpha1_BrokerSpec(ref common.ReferenceCallback) com
 							Format:      "",
 						},
 					},
+					"slavePerGroup": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SlavePerGroup is the number of slave brokers in each broker group",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"brokerImage": {
+						SchemaProps: spec.SchemaProps{
+							Description: "BaseImage is the broker container image to use for the Pods.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"imagePullPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ImagePullPolicy defines how the image is pulled.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
-				Required: []string{"size"},
+				Required: []string{"size", "slavePerGroup", "brokerImage", "imagePullPolicy"},
 			},
 		},
 		Dependencies: []string{},

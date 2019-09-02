@@ -5,6 +5,8 @@ metadata:
 spec:
   # Add fields here
   size: 2
-  nameServers: "192.168.130.33:9876;192.168.130.34:9876"
-  replicationMode: "ASYNC"
+  nameServers: 192.168.130.33:9876;192.168.130.34:9876
+  replicationMode: ASYNC
   slavePerGroup: 2
+  brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
+  imagePullPolicy: Always

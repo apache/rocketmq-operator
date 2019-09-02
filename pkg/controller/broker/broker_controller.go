@@ -104,41 +104,36 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	found := &appsv1.Deployment{}
 
 	brokerGroupNum := int(broker.Spec.Size)
+	slavePerGroup := broker.Spec.SlavePerGroup
+	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(brokerGroupNum) + ", slavePerGroup=" + strconv.Itoa(slavePerGroup))
 
 	for brokerClusterIndex := 0; brokerClusterIndex < brokerGroupNum; brokerClusterIndex++ {
-		reqLogger.Info("Create Broker cluster " + strconv.Itoa(brokerClusterIndex + 1) + "/" + strconv.Itoa(brokerGroupNum))
+		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerClusterIndex + 1) + "/" + strconv.Itoa(brokerGroupNum))
 		dep := r.deploymentForMasterBroker(broker, brokerClusterIndex)
-
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
 		if err != nil && errors.IsNotFound(err) {
 			reqLogger.Info("Creating a new Master Broker Deployment.", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 			err = r.client.Create(context.TODO(), dep)
-			for slaveIndex := 0; slaveIndex < broker.Spec.SlavePerGroup; slaveIndex++ {
-				err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
+			for slaveIndex := 0; slaveIndex < slavePerGroup; slaveIndex++ {
+				reqLogger.Info("Check Slave Broker of cluster-" + strconv.Itoa(brokerClusterIndex) + " " + strconv.Itoa(slaveIndex) + "/" + strconv.Itoa(slavePerGroup))
+				slaveDep := r.deploymentForSlaveBroker(broker, brokerClusterIndex, slaveIndex)
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: slaveDep.Name, Namespace: slaveDep.Namespace}, found)
 				if err != nil && errors.IsNotFound(err) {
-					slaveDep := r.deploymentForSlaveBroker(broker, brokerClusterIndex, slaveIndex)
-					reqLogger.Info("Creating a new Slave Broker Deployment.", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+					reqLogger.Info("Creating a new Slave Broker Deployment.", "Deployment.Namespace", slaveDep.Namespace, "Deployment.Name", slaveDep.Name)
 					err = r.client.Create(context.TODO(), slaveDep)
 					if err != nil {
-						reqLogger.Error(err, "Failed to create new Deployment of broker-"+strconv.Itoa(brokerClusterIndex)+"-"+strconv.Itoa(slaveIndex), "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-						return reconcile.Result{}, err
+						reqLogger.Error(err, "Failed to create new Deployment of broker-"+strconv.Itoa(brokerClusterIndex)+"-"+strconv.Itoa(slaveIndex), "Deployment.Namespace", slaveDep.Namespace, "Deployment.Name", slaveDep.Name)
 					}
 				} else if err != nil {
 					reqLogger.Error(err, "Failed to get broker slave Deployment.")
-					return reconcile.Result{}, err
 				}
 			}
 			if err != nil {
 				reqLogger.Error(err, "Failed to create new Deployment of broker-cluster-"+strconv.Itoa(brokerClusterIndex), "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-				return reconcile.Result{}, err
 			}
-			//// Deployment created successfully - return and requeue
-			//return reconcile.Result{Requeue: true}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "Failed to get broker master Deployment.")
-			return reconcile.Result{}, err
 		}
-
 	}
 
 
@@ -195,7 +190,7 @@ func (r *ReconcileBroker) deploymentForMasterBroker(m *cachev1alpha1.Broker, bro
 	var c = &a
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-0",
+			Name:      m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-master",
 			Namespace: m.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -209,9 +204,9 @@ func (r *ReconcileBroker) deploymentForMasterBroker(m *cachev1alpha1.Broker, bro
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           "2019liurui/rocketmq-broker:4.5.0-alpine",
-						Name:            "broker-master",
-						ImagePullPolicy: "Always",
+						Image:           m.Spec.BrokerImage,
+						Name:            "broker-master" + strconv.Itoa(brokerClusterIndex),
+						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
 							Name:  "NAMESRV_ADDRESS",
 							Value: m.Spec.NameServers,
@@ -255,7 +250,7 @@ func (r *ReconcileBroker) deploymentForSlaveBroker(m *cachev1alpha1.Broker, brok
 	var c = &a
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-" + strconv.Itoa(slaveIndex),
+			Name:      m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-slave-" + strconv.Itoa(slaveIndex),
 			Namespace: m.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -269,9 +264,9 @@ func (r *ReconcileBroker) deploymentForSlaveBroker(m *cachev1alpha1.Broker, brok
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           "2019liurui/rocketmq-broker:4.5.0-alpine",
-						Name:            "broker-slave",
-						ImagePullPolicy: "Always",
+						Image:           m.Spec.BrokerImage,
+						Name:            "broker-slave" + strconv.Itoa(brokerClusterIndex),
+						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
 							Name:  "NAMESRV_ADDRESS",
 							Value: m.Spec.NameServers,

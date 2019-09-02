@@ -27,6 +27,13 @@ spec:
           type: object
         spec:
           properties:
+            brokerImage:
+              description: BaseImage is the broker container image to use for the
+                Pods.
+              type: string
+            imagePullPolicy:
+              description: ImagePullPolicy defines how the image is pulled.
+              type: string
             nameServers:
               description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
               type: string
@@ -36,8 +43,16 @@ spec:
             size:
               format: int32
               type: integer
+            slavePerGroup:
+              description: SlavePerGroup is the number of slave brokers in each broker
+                group
+              format: int64
+              type: integer
           required:
           - size
+          - slavePerGroup
+          - brokerImage
+          - imagePullPolicy
           type: object
         status:
           properties:

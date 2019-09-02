@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -17,6 +18,10 @@ type BrokerSpec struct {
 	ReplicationMode string `json:"replicationMode,omitempty"`
 	// SlavePerGroup is the number of slave brokers in each broker group
 	SlavePerGroup int `json:"slavePerGroup"`
+	// BaseImage is the broker container image to use for the Pods.
+	BrokerImage string `json:"brokerImage"`
+	// ImagePullPolicy defines how the image is pulled.
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
 }
 
 // BrokerStatus defines the observed state of Broker
