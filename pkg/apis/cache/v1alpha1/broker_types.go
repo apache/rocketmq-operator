@@ -15,6 +15,8 @@ type BrokerSpec struct {
 	NameServers string `json:"nameServers,omitempty"`
 	// ReplicationMode is SYNC or ASYNC
 	ReplicationMode string `json:"replicationMode,omitempty"`
+	// SlavePerGroup is the number of slave brokers in each broker group
+	SlavePerGroup int `json:"slavePerGroup"`
 }
 
 // BrokerStatus defines the observed state of Broker

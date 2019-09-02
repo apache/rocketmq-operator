@@ -2,7 +2,6 @@ package broker
 
 import (
 	"context"
-	"reflect"
 	"strconv"
 
 	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
@@ -11,7 +10,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -104,67 +102,88 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 
 	// Check if the deployment already exists, if not create a new one
 	found := &appsv1.Deployment{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: broker.Name, Namespace: broker.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		replicas := int(broker.Spec.Size)
 
-		for brokerClusterIndex := 0; brokerClusterIndex < replicas; brokerClusterIndex++ {
-			reqLogger.Info("Create Broker cluster " + strconv.Itoa(brokerClusterIndex) + "/" + strconv.Itoa(replicas))
-			dep := r.deploymentForMasterBroker(broker, brokerClusterIndex)
-			reqLogger.Info("Creating a new MasterBroker Deployment.", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+	brokerGroupNum := int(broker.Spec.Size)
+
+	for brokerClusterIndex := 0; brokerClusterIndex < brokerGroupNum; brokerClusterIndex++ {
+		reqLogger.Info("Create Broker cluster " + strconv.Itoa(brokerClusterIndex + 1) + "/" + strconv.Itoa(brokerGroupNum))
+		dep := r.deploymentForMasterBroker(broker, brokerClusterIndex)
+
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
+		if err != nil && errors.IsNotFound(err) {
+			reqLogger.Info("Creating a new Master Broker Deployment.", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 			err = r.client.Create(context.TODO(), dep)
+			for slaveIndex := 0; slaveIndex < broker.Spec.SlavePerGroup; slaveIndex++ {
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
+				if err != nil && errors.IsNotFound(err) {
+					slaveDep := r.deploymentForSlaveBroker(broker, brokerClusterIndex, slaveIndex)
+					reqLogger.Info("Creating a new Slave Broker Deployment.", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+					err = r.client.Create(context.TODO(), slaveDep)
+					if err != nil {
+						reqLogger.Error(err, "Failed to create new Deployment of broker-"+strconv.Itoa(brokerClusterIndex)+"-"+strconv.Itoa(slaveIndex), "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+						return reconcile.Result{}, err
+					}
+				} else if err != nil {
+					reqLogger.Error(err, "Failed to get broker slave Deployment.")
+					return reconcile.Result{}, err
+				}
+			}
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new Deployment of broker-cluster-" + strconv.Itoa(brokerClusterIndex), "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+				reqLogger.Error(err, "Failed to create new Deployment of broker-cluster-"+strconv.Itoa(brokerClusterIndex), "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 				return reconcile.Result{}, err
 			}
+			//// Deployment created successfully - return and requeue
+			//return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get broker master Deployment.")
+			return reconcile.Result{}, err
 		}
 
-		// Deployment created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-
-
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get Deployment.")
-		return reconcile.Result{}, err
 	}
+
+
+
+
+
 
 	// Ensure the deployment size is the same as the spec
-	size := broker.Spec.Size
-	if *found.Spec.Replicas != size {
-		found.Spec.Replicas = &size
-		err = r.client.Update(context.TODO(), found)
-		if err != nil {
-			reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
-			return reconcile.Result{}, err
-		}
-		// Spec updated - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	}
+	//size := broker.Spec.Size
+	//if *found.Spec.Replicas != size {
+	//	found.Spec.Replicas = &size
+	//	err = r.client.Update(context.TODO(), found)
+	//	if err != nil {
+	//		reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+	//		return reconcile.Result{}, err
+	//	}
+	//	// Spec updated - return and requeue
+	//	return reconcile.Result{Requeue: true}, nil
+	//}
 
-	// Update the Broker status with the pod names
-	// List the pods for this broker's deployment
-	podList := &corev1.PodList{}
-	labelSelector := labels.SelectorFromSet(labelsForBroker(broker.Name))
-	listOps := &client.ListOptions{
-		Namespace:     broker.Namespace,
-		LabelSelector: labelSelector,
-	}
-	err = r.client.List(context.TODO(), listOps, podList)
-	if err != nil {
-		reqLogger.Error(err, "Failed to list pods.", "Broker.Namespace", broker.Namespace, "Broker.Name", broker.Name)
-		return reconcile.Result{}, err
-	}
-	podNames := getPodNames(podList.Items)
 
-	// Update status.Nodes if needed
-	if !reflect.DeepEqual(podNames, broker.Status.Nodes) {
-		broker.Status.Nodes = podNames
-		err := r.client.Status().Update(context.TODO(), broker)
-		if err != nil {
-			reqLogger.Error(err, "Failed to update Broker status.")
-			return reconcile.Result{}, err
-		}
-	}
+	//// Update the Broker status with the pod names
+	//// List the pods for this broker's deployment
+	//podList := &corev1.PodList{}
+	//labelSelector := labels.SelectorFromSet(labelsForBroker(broker.Name))
+	//listOps := &client.ListOptions{
+	//	Namespace:     broker.Namespace,
+	//	LabelSelector: labelSelector,
+	//}
+	//err = r.client.List(context.TODO(), listOps, podList)
+	//if err != nil {
+	//	reqLogger.Error(err, "Failed to list pods.", "Broker.Namespace", broker.Namespace, "Broker.Name", broker.Name)
+	//	return reconcile.Result{}, err
+	//}
+	//podNames := getPodNames(podList.Items)
+	//
+	//// Update status.Nodes if needed
+	//if !reflect.DeepEqual(podNames, broker.Status.Nodes) {
+	//	broker.Status.Nodes = podNames
+	//	err := r.client.Status().Update(context.TODO(), broker)
+	//	if err != nil {
+	//		reqLogger.Error(err, "Failed to update Broker status.")
+	//		return reconcile.Result{}, err
+	//	}
+	//}
 
 	return reconcile.Result{}, nil
 }
