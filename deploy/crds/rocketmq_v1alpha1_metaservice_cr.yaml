@@ -1,0 +1,9 @@
+apiVersion: rocketmq.operator.com/v1alpha1
+kind: MetaService
+metadata:
+  name: metaservice
+spec:
+  # Add fields here
+  size: 2
+  metaServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
+  imagePullPolicy: Always

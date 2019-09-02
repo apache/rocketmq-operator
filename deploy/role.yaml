@@ -52,3 +52,9 @@ rules:
   - '*'
   verbs:
   - '*'
+- apiGroups:
+  - rocketmq.operator.com
+  resources:
+  - '*'
+  verbs:
+  - '*'
