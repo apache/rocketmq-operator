@@ -75,14 +75,14 @@ func schema_pkg_apis_rocketmq_v1alpha1_MetaServiceSpec(ref common.ReferenceCallb
 					},
 					"metaServiceImage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MetaServiceImage is the RocketMQ name service container image to use for the Pods",
+							Description: "MetaServiceImage is the namesrv container image",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"imagePullPolicy": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ImagePullPolicy defines how the image is pulled.",
+							Description: "ImagePullPolicy defines how the image is pulled",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -103,7 +103,7 @@ func schema_pkg_apis_rocketmq_v1alpha1_MetaServiceStatus(ref common.ReferenceCal
 				Properties: map[string]spec.Schema{
 					"metaServers": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MetaServers is the name service ip list like [192.168.1.1,192.168.1.2]",
+							Description: "MetaServers is the name service ip list",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
