@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BROKER_CONFIG_FILE="/opt/rocketmq-$ROCKETMQ_VERSION/conf/broker.conf"
+BROKER_CONFIG_FILE="$ROCKETMQ_HOME/conf/broker.conf"
 echo $BROKER_CONFIG_FILE
 
 BROKER_ID=0

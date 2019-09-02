@@ -22,5 +22,5 @@ kubectl create -f deploy/role_binding.yaml
 kubectl create -f deploy/operator.yaml
 
 echo "Wait for operator being ready..."
-sleep 5
+sleep 2
 kubectl create -f deploy/crds/cache_v1alpha1_broker_cr.yaml

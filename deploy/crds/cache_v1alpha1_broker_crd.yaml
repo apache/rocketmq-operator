@@ -30,6 +30,9 @@ spec:
             nameServers:
               description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
               type: string
+            replicationMode:
+              description: ReplicationMode is SYNC or ASYNC
+              type: string
             size:
               format: int32
               type: integer
