@@ -33,7 +33,7 @@ spec:
               description: ImagePullPolicy defines how the image is pulled.
               type: string
             metaServiceImage:
-              description: MetaServiceImage is the RocketMQ name service container
+              description: MetaServiceImage is the name service image
               type: string
             size:
               description: Size is the number of the name service Pod
@@ -47,7 +47,7 @@ spec:
         status:
           properties:
             metaServers:
-              description: MetaServers is the name service ip list like [192.168.1.1,192.168.1.2]
+              description: MetaServers is the name service ip list
               items:
                 type: string
               type: array

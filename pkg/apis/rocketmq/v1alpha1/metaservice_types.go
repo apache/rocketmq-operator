@@ -13,9 +13,9 @@ import (
 type MetaServiceSpec struct {
 	// Size is the number of the name service Pod
 	Size int32 `json:"size"`
-	//MetaServiceImage is the namesrv container image
+	//MetaServiceImage is the name service image
 	MetaServiceImage string `json:"metaServiceImage"`
-	// ImagePullPolicy defines how the image is pulled
+	// ImagePullPolicy defines how the image is pulled.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
 }
 
@@ -38,6 +38,8 @@ type MetaService struct {
 	Spec   MetaServiceSpec   `json:"spec,omitempty"`
 	Status MetaServiceStatus `json:"status,omitempty"`
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // MetaServiceList contains a list of MetaService
 type MetaServiceList struct {

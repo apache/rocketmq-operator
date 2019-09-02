@@ -75,14 +75,14 @@ func schema_pkg_apis_rocketmq_v1alpha1_MetaServiceSpec(ref common.ReferenceCallb
 					},
 					"metaServiceImage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MetaServiceImage is the namesrv container image",
+							Description: "MetaServiceImage is the name service image",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"imagePullPolicy": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ImagePullPolicy defines how the image is pulled",
+							Description: "ImagePullPolicy defines how the image is pulled.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
