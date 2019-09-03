@@ -117,6 +117,19 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 		reqLogger.Error(err, "Failed to get MetaService Deployment.")
 	}
 
+	// Ensure the deployment size is the same as the spec
+	size := instance.Spec.Size
+	if *found.Spec.Replicas != size {
+		found.Spec.Replicas = &size
+		err = r.client.Update(context.TODO(), found)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+			return reconcile.Result{}, err
+		}
+		// Spec updated - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	}
+
 	// Update the status with the pod names
 	// List the pods for this broker's deployment
 	podList := &corev1.PodList{}
