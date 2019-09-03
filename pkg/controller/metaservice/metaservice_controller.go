@@ -182,7 +182,8 @@ func (r *ReconcileMetaService) deploymentForMetaService(m *rocketmqv1alpha1.Meta
 					DNSPolicy: "ClusterFirstWithHostNet",
 					Containers: []corev1.Container{{
 						Image:           m.Spec.MetaServiceImage,
-						Name:            "MetaService",
+						// Name must be lower case !
+						Name:            "meta-service",
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 9876,
