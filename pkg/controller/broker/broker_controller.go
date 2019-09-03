@@ -3,9 +3,10 @@ package broker
 import (
 	"context"
 	"strconv"
+	"reflect"
 
 	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
-
+	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -136,7 +137,17 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 	}
 
-
+	// Fetch the Broker instance
+	metaService := &rocketmqv1alpha1.MetaService{}
+	metaServers := metaService.Status.MetaServers
+	metaServerListStr := ""
+	for _, value := range metaServers {
+		metaServerListStr = metaServerListStr + value + ":9876;"
+	}
+	//if !reflect.DeepEqual(metaServerListStr, oldMetaServerListStr) {
+	//	oldMetaServerListStr = metaServerListStr
+	//	found.Status
+	//}
 
 
 

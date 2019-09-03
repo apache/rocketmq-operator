@@ -2,6 +2,8 @@ package metaservice
 
 import (
 	"context"
+	"reflect"
+
 	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -10,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -20,6 +21,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strconv"
+	"time"
 )
 
 var log = logf.Log.WithName("controller_metaservice")
@@ -113,6 +115,8 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 		if err != nil {
 			reqLogger.Error(err, "Failed to create new Deployment of MetaService", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 		}
+		// Deployment created successfully - return and requeue
+		// return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get MetaService Deployment.")
 	}
@@ -122,23 +126,31 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 	if *found.Spec.Replicas != size {
 		found.Spec.Replicas = &size
 		err = r.client.Update(context.TODO(), found)
+		reqLogger.Info("MetaService Updated")
 		if err != nil {
 			reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
 			return reconcile.Result{}, err
 		}
-		// Spec updated - return and requeue
-		return reconcile.Result{Requeue: true}, nil
+		time.Sleep(time.Duration(20)*time.Second)
+		return r.updateMetaServiceStatus(instance, request, true)
+
 	}
 
-	// Update the status with the pod names
-	// List the pods for this broker's deployment
+	return r.updateMetaServiceStatus(instance, request, false)
+
+}
+
+func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha1.MetaService, request reconcile.Request, updated bool) (reconcile.Result, error){
+	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger.Info("Check the MetaServers status")
+	// List the pods for this metaService's deployment
 	podList := &corev1.PodList{}
 	labelSelector := labels.SelectorFromSet(labelsForMetaService(instance.Name))
 	listOps := &client.ListOptions{
 		Namespace:     instance.Namespace,
 		LabelSelector: labelSelector,
 	}
-	err = r.client.List(context.TODO(), listOps, podList)
+	err := r.client.List(context.TODO(), listOps, podList)
 	if err != nil {
 		reqLogger.Error(err, "Failed to list pods.", "MetaService.Namespace", instance.Namespace, "MetaService.Name", instance.Name)
 		return reconcile.Result{}, err
@@ -149,17 +161,23 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 	if !reflect.DeepEqual(hostIps, instance.Status.MetaServers) {
 		instance.Status.MetaServers = hostIps
 		err := r.client.Status().Update(context.TODO(), instance)
+		// Update the MetaServers status with the host ips
+		reqLogger.Info("Updated the MetaServers status with the host IP")
 		if err != nil {
 			reqLogger.Error(err, "Failed to update MetaServers status of MetaService.")
 			return reconcile.Result{}, err
 		}
 	}
-
+	// Print MetaServers IP
 	for i, value := range instance.Status.MetaServers {
 		reqLogger.Info("MetaServers IP " + strconv.Itoa(i) + ": " + value)
 	}
 
-	return reconcile.Result{}, nil
+	if updated {
+		return reconcile.Result{Requeue: true}, nil
+	} else {
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(3)*time.Second}, nil
+	}
 }
 
 func getMetaServers(pods []corev1.Pod) []string {
