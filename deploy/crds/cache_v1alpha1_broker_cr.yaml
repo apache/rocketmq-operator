@@ -27,6 +27,6 @@ spec:
   # slavePerGroup is the number of each broker cluster
   slavePerGroup: 2
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: rocketmqinc/rocketmq-broker:4.5.0-alpine
+  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always

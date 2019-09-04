@@ -31,7 +31,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: namesrv
-          image: rocketmqinc/rocketmq-namesrv:4.5.0-alpine
+          image: docker.io/library/rocketmq-namesrv:4.5.0-alpine
           imagePullPolicy: Always
           ports:
             - containerPort: 9876

@@ -18,7 +18,7 @@
 set -eux;
 
 # Change the DOCKERHUB_REPO to your docker repo
-DOCKERHUB_REPO="rocketmqinc/rocketmq-operator:v0.0.1-snapshot"
+DOCKERHUB_REPO="docker.io/library/rocketmq-operator:v0.0.1-snapshot"
 
 export GO111MODULE=on
 
