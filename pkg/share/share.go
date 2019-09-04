@@ -19,3 +19,5 @@ package share
 
 // Broker cluster number
 var GroupNum = 0
+var MetaServersStr = ""
+var IsMetaServersStrUpdated = false

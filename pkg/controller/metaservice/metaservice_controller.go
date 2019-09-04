@@ -170,27 +170,40 @@ func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha
 	err := r.client.List(context.TODO(), listOps, podList)
 	if err != nil {
 		reqLogger.Error(err, "Failed to list pods.", "MetaService.Namespace", instance.Namespace, "MetaService.Name", instance.Name)
-		return reconcile.Result{}, err
+		return reconcile.Result{Requeue: true}, err
 	}
 	hostIps := getMetaServers(podList.Items)
 
 	// Update status.MetaServers if needed
 	if !reflect.DeepEqual(hostIps, instance.Status.MetaServers) {
+		oldMetaServerListStr := ""
+		for _, value := range instance.Status.MetaServers {
+			oldMetaServerListStr = oldMetaServerListStr + value + ":9876;"
+		}
+
+		metaServerListStr := ""
+		for _, value := range hostIps {
+			metaServerListStr = metaServerListStr + value + ":9876;"
+		}
+		share.MetaServersStr = metaServerListStr[:len(metaServerListStr)-1]
+		reqLogger.Info("share.MetaServersStr:" + share.MetaServersStr)
+
+		if len(oldMetaServerListStr) < 2 {
+			oldMetaServerListStr = share.MetaServersStr
+		} else {
+			oldMetaServerListStr = oldMetaServerListStr[:len(oldMetaServerListStr)-1]
+			share.IsMetaServersStrUpdated = true
+		}
+		reqLogger.Info("oldMetaServerListStr:" + oldMetaServerListStr)
+
 		instance.Status.MetaServers = hostIps
 		err := r.client.Status().Update(context.TODO(), instance)
 		// Update the MetaServers status with the host ips
 		reqLogger.Info("Updated the MetaServers status with the host IP")
 		if err != nil {
 			reqLogger.Error(err, "Failed to update MetaServers status of MetaService.")
-			return reconcile.Result{}, err
+			return reconcile.Result{Requeue: true}, err
 		}
-
-		metaServerListStr := ""
-		for _, value := range instance.Status.MetaServers {
-			metaServerListStr = metaServerListStr + value + ":9876;"
-		}
-		metaServerListStr = metaServerListStr[:len(metaServerListStr)-1]
-		reqLogger.Info("metaServerListStr:" + metaServerListStr)
 
 		mqAdmin := cons.MqAdminDir
 		subCmd := cons.UpdateBrokerConfig
@@ -200,10 +213,11 @@ func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha
 		for i := 0 ;i < share.GroupNum; i++{
 			clusterName := cons.BrokerClusterPrefix + strconv.Itoa(i)
 			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
-			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", metaServerListStr, "-v", metaServerListStr)
+			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldMetaServerListStr, "-v", share.MetaServersStr)
 			output, err := cmd.Output()
 			if err != nil {
 				reqLogger.Error(err, "Update Broker config " + key + " failed of cluster " + clusterName)
+				return reconcile.Result{Requeue: true}, err
 			}
 			reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + " with output:\n" + string(output))
 		}

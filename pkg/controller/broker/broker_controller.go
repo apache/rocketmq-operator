@@ -130,6 +130,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerClusterIndex+1) + "/" + strconv.Itoa(share.GroupNum))
 		dep := r.deploymentForMasterBroker(broker, brokerClusterIndex)
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
+
 		if err != nil && errors.IsNotFound(err) {
 			reqLogger.Info("Creating a new Master Broker Deployment.", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 			err = r.client.Create(context.TODO(), dep)
@@ -153,7 +154,28 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		} else if err != nil {
 			reqLogger.Error(err, "Failed to get broker master Deployment.")
 		}
+
+		// The following code will restart all brokers to update NAMESRV_ADDR env
+		/*if share.IsMetaServersStrUpdated {
+			reqLogger.Info("Update Master Broker NAMESRV_ADDR of "+cons.BrokerClusterPrefix+strconv.Itoa(brokerClusterIndex))
+			found.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
+			err = r.client.Update(context.TODO(), found)
+			if err != nil {
+				reqLogger.Error(err, "Failed to update NAMESRV_ADDR of master broker in "+cons.BrokerClusterPrefix+strconv.Itoa(brokerClusterIndex), "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+			}
+			for slaveIndex := 1; slaveIndex <= slavePerGroup; slaveIndex++ {
+				reqLogger.Info("Update Slave Broker NAMESRV_ADDR of cluster-" + strconv.Itoa(brokerClusterIndex) + " " + strconv.Itoa(slaveIndex) + "/" + strconv.Itoa(slavePerGroup))
+				slaveDep := r.deploymentForSlaveBroker(broker, brokerClusterIndex, slaveIndex)
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: slaveDep.Name, Namespace: slaveDep.Namespace}, found)
+				found.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
+				err = r.client.Update(context.TODO(), found)
+				if err != nil {
+					reqLogger.Error(err, "Failed to update NAMESRV_ADDR of broker-"+strconv.Itoa(brokerClusterIndex)+"-slave-"+strconv.Itoa(slaveIndex), "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+				}
+			}
+		}*/
 	}
+	share.IsMetaServersStrUpdated = false
 
 	// Ensure the deployment size is the same as the spec
 	//size := broker.Spec.Size
@@ -222,16 +244,16 @@ func (r *ReconcileBroker) deploymentForMasterBroker(m *cachev1alpha1.Broker, bro
 						Name:            cons.MasterBrokerContainerNamePrefix + strconv.Itoa(brokerClusterIndex),
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
-							Name:  "NAMESRV_ADDRESS",
+							Name:  cons.EnvNamesrvAddr,
 							Value: m.Spec.NameServers,
 						}, {
-							Name:  "REPLICATION_MODE",
+							Name:  cons.EnvReplicationMode,
 							Value: m.Spec.ReplicationMode,
 						}, {
-							Name:  "BROKER_ID",
+							Name:  cons.EnvBrokerId,
 							Value: "0",
 						}, {
-							Name:  "BROKER_CLUSTER_NAME",
+							Name:  cons.EnvBrokerClusterName,
 							Value: cons.BrokerClusterPrefix + strconv.Itoa(brokerClusterIndex),
 						}},
 						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
@@ -282,16 +304,16 @@ func (r *ReconcileBroker) deploymentForSlaveBroker(m *cachev1alpha1.Broker, brok
 						Name:            cons.SlaveBrokerContainerNamePrefix + strconv.Itoa(brokerClusterIndex),
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
-							Name:  "NAMESRV_ADDRESS",
+							Name:  cons.EnvNamesrvAddr,
 							Value: m.Spec.NameServers,
 						}, {
-							Name:  "REPLICATION_MODE",
+							Name:  cons.EnvReplicationMode,
 							Value: m.Spec.ReplicationMode,
 						}, {
-							Name:  "BROKER_ID",
+							Name:  cons.EnvBrokerId,
 							Value: strconv.Itoa(slaveIndex),
 						}, {
-							Name:  "BROKER_CLUSTER_NAME",
+							Name:  cons.EnvBrokerClusterName,
 							Value: cons.BrokerClusterPrefix + strconv.Itoa(brokerClusterIndex),
 						}},
 						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
