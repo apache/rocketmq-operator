@@ -20,9 +20,9 @@ package broker
 import (
 	"context"
 
-	share "github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
 	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
 	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
+	"github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

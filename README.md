@@ -54,7 +54,7 @@ which defines the RocketMQ broker cluster scale, the [ip:port] list of name serv
 
 ### Deploy RocketMQ Operator & Create RocketMQ Cluster
 
-To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following script:
+1. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following script:
 
 ```
 $ ./install-operator.sh
@@ -68,7 +68,7 @@ rocketmq-operator-564b5d75d-rls5n   1/1     Running   0          13s
 ```
 Now you can use the CRDs provide by RocketMQ Operator to deploy your RocketMQ cluster.
  
-Deploy the RocketMQ name service cluster by running:
+2. Deploy the RocketMQ name service cluster by running:
 
 ``` 
 $ kubectl apply -f deploy/crds/rocketmq_v1alpha1_metaservice_cr.yaml 
@@ -87,7 +87,7 @@ rocketmq-operator-564b5d75d-qnpts   1/1     Running   1          3m33s   10.244.
 
 We can see that there are 2 name service Pods running on 2 nodes and their IP addresses. Modify the ```nameServers``` field in the ```cache_v1alpha1_broker_cr.yaml``` file using the IP addresses.
 
-Deploy the RocketMQ broker clusters by running:
+3. Deploy the RocketMQ broker clusters by running:
 ```
 $ kubectl apply -f deploy/crds/cache_v1alpha1_broker_cr.yaml 
 broker.cache.example.com/broker created 

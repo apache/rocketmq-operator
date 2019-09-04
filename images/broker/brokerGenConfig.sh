@@ -31,7 +31,7 @@ fi
 BROKER_NAME=$(cat /etc/hostname | grep -o '[^-]*$')
 DELETE_WHEN="04"
 FILE_RESERVED_TIME="48"
-FLUSH_DISK_TYPE="ASYNC"
+FLUSH_DISK_TYPE="ASYNC_FLUSH"
 
 function create_config() {
     rm -f $BROKER_CONFIG_FILE

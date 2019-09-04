@@ -21,11 +21,10 @@ import (
 	"context"
 	"os/exec"
 	"reflect"
-	"strings"
 
 	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
-	share "github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
+	"github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -190,14 +189,14 @@ func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha
 		for _, value := range instance.Status.MetaServers {
 			metaServerListStr = metaServerListStr + value + ":9876;"
 		}
-		metaServerListStr = strings.TrimLeft(metaServerListStr, ";")
+		metaServerListStr = metaServerListStr[:len(metaServerListStr)-1]
 		reqLogger.Info("metaServerListStr:" + metaServerListStr)
 
 		mqAdmin := cons.MqAdminDir
 		subCmd := cons.UpdateBrokerConfig
 		key := cons.NamesrvAddr
 
-		reqLogger.Info("broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
+		reqLogger.Info("share.GroupNum=broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
 		for i := 0 ;i < share.GroupNum; i++{
 			clusterName := cons.BrokerClusterPrefix + strconv.Itoa(i)
 			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
