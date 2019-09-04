@@ -6,9 +6,7 @@
 RocketMQ Operator is  to manage RocketMQ service instances deployed on the Kubernetes cluster.
 It is built using the [Operator SDK](https://github.com/operator-framework/operator-sdk), which is part of the [Operator Framework](https://github.com/operator-framework/).
 
-## Usage
-
-The first step is to deploy a pvc backed by a persisten volume where the InfluxDB data will be stored. Next you will deploy one file that will install the Operator, and install the manifest for InfluxDB.
+## Quick Start
 
 ### Define Your RocketMQ Cluster
 
@@ -112,3 +110,23 @@ rocketmq-operator-564b5d75d-qnpts   1/1     Running   1          10m     10.244.
 ```
 
 Congratulations! You have successfully deployed your RocketMQ cluster by RocketMQ Operator.
+
+### Clean the Environment
+If you want to tear down the RocketMQ cluster, run
+```
+$ kubectl delete -f deploy/crds/cache_v1alpha1_broker_cr.yaml 
+```
+
+to remove the broker clusters
+
+```
+$ kubectl delete -f deploy/crds/rocketmq_v1alpha1_metaservice_cr.yaml
+```
+
+to remove the name service clusters
+
+```
+$ ./purge-operator.sh
+```
+
+to remove the RocketMQ Operator.
