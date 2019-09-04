@@ -28,8 +28,7 @@ spec:
         spec:
           properties:
             brokerImage:
-              description: BaseImage is the broker container image to use for the
-                Pods.
+              description: BaseImage is the broker image to use for the Pods.
               type: string
             imagePullPolicy:
               description: ImagePullPolicy defines how the image is pulled.
@@ -44,15 +43,20 @@ spec:
               format: int32
               type: integer
             slavePerGroup:
-              description: SlavePerGroup is the number of slave brokers in each broker
-                group
+              description: SlavePerGroup each broker cluster's slave number
               format: int64
               type: integer
+            volumeClaimTemplates:
+              description: VolumeClaimTemplates defines the StorageClass
+              items:
+                type: object
+              type: array
           required:
           - size
           - slavePerGroup
           - brokerImage
           - imagePullPolicy
+          - volumeClaimTemplates
           type: object
         status:
           properties:

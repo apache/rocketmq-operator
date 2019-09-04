@@ -267,9 +267,17 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, br
 							ContainerPort: 10912,
 							Name:          "10912port",
 						}},
+						VolumeMounts: []corev1.VolumeMount{{
+							MountPath: cons.LogMountPath,
+							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-master-logs",
+						},{
+							MountPath: cons.StoreMountPath,
+							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-master-store",
+						}},
 					}},
 				},
 			},
+			VolumeClaimTemplates: m.Spec.VolumeClaimTemplates,
 		},
 	}
 	// Set Broker instance as the owner and controller
@@ -327,9 +335,17 @@ func (r *ReconcileBroker) statefulSetForSlaveBroker(m *cachev1alpha1.Broker, bro
 							ContainerPort: 10912,
 							Name:          "10912port",
 						}},
+						VolumeMounts: []corev1.VolumeMount{{
+							MountPath: cons.LogMountPath,
+							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-slave-" + strconv.Itoa(slaveIndex) + "-logs",
+						},{
+							MountPath: cons.StoreMountPath,
+							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-slave-" + strconv.Itoa(slaveIndex) + "-store",
+						}},
 					}},
 				},
 			},
+			VolumeClaimTemplates: m.Spec.VolumeClaimTemplates,
 		},
 	}
 	// Set Broker instance as the owner and controller

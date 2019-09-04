@@ -33,12 +33,14 @@ type BrokerSpec struct {
 	NameServers string `json:"nameServers,omitempty"`
 	// ReplicationMode is SYNC or ASYNC
 	ReplicationMode string `json:"replicationMode,omitempty"`
-	// SlavePerGroup is the number of slave brokers in each broker group
+	// SlavePerGroup each broker cluster's slave number
 	SlavePerGroup int `json:"slavePerGroup"`
-	// BaseImage is the broker container image to use for the Pods.
+	// BaseImage is the broker image to use for the Pods.
 	BrokerImage string `json:"brokerImage"`
 	// ImagePullPolicy defines how the image is pulled.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
+	// VolumeClaimTemplates defines the StorageClass
+	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 }
 
 // BrokerStatus defines the observed state of Broker
