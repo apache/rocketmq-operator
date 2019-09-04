@@ -25,7 +25,7 @@ spec:
   # replicationMode is the broker slave sync mode, can be ASYNC or SYNC
   replicationMode: ASYNC
   # slavePerGroup is the number of each broker cluster
-  slavePerGroup: 2
+  slavePerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
   brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy

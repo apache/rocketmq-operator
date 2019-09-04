@@ -19,7 +19,7 @@ metadata:
   name: meta-service
 spec:
   # size is the the name service instance number of the name service cluster
-  size: 2
+  size: 1
   # metaServiceImage is the customized docker image repo of the RocketMQ name service
   metaServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
