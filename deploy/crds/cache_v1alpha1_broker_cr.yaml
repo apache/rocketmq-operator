@@ -3,10 +3,15 @@ kind: Broker
 metadata:
   name: broker
 spec:
-  # Add fields here
+  # size is the number of the broker cluster, each broker cluster contains a master broker and [slavePerGroup] slave brokers.
   size: 2
+  # nameServers is the [ip:port] list of name service
   nameServers: 192.168.130.33:9876;192.168.130.34:9876
+  # replicationMode is the broker slave sync mode, can be ASYNC or SYNC
   replicationMode: ASYNC
+  # slavePerGroup is the number of each broker cluster
   slavePerGroup: 2
+  # brokerImage is the customized docker image repo of the RocketMQ broker
   brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
+  # imagePullPolicy is the image pull policy
   imagePullPolicy: Always

@@ -2,9 +2,13 @@ package metaservice
 
 import (
 	"context"
+	"os/exec"
 	"reflect"
+	"strings"
 
+	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
 	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -131,16 +135,13 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 			reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
 			return reconcile.Result{}, err
 		}
-		time.Sleep(time.Duration(20)*time.Second)
-		return r.updateMetaServiceStatus(instance, request, true)
-
 	}
 
-	return r.updateMetaServiceStatus(instance, request, false)
+	return r.updateMetaServiceStatus(instance, request, true)
 
 }
 
-func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha1.MetaService, request reconcile.Request, updated bool) (reconcile.Result, error){
+func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha1.MetaService, request reconcile.Request, requeue bool) (reconcile.Result, error){
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Check the MetaServers status")
 	// List the pods for this metaService's deployment
@@ -167,16 +168,41 @@ func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha
 			reqLogger.Error(err, "Failed to update MetaServers status of MetaService.")
 			return reconcile.Result{}, err
 		}
+
+		metaServerListStr := ""
+		for _, value := range instance.Status.MetaServers {
+			metaServerListStr = metaServerListStr + value + ":9876;"
+		}
+		metaServerListStr = strings.TrimLeft(metaServerListStr, ";")
+		reqLogger.Info("metaServerListStr:" + metaServerListStr)
+
+		// update namesrvAddr of all brokers
+		mqAdmin := cons.MqAdminDir
+		subCmd := cons.UpdateBrokerConfig
+		key := cons.NamesrvAddr
+		broker := &cachev1alpha1.Broker{}
+		reqLogger.Info("broker.Spec.Size=" + strconv.Itoa(int(broker.Spec.Size)))
+		for i := 0 ;i < int(broker.Spec.Size); i++{
+			clusterName := cons.BrokerClusterPrefix + strconv.Itoa(i)
+			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
+			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", metaServerListStr, "-v", metaServerListStr)
+			output, err := cmd.Output()
+			if err != nil {
+				reqLogger.Error(err, "Update Broker config " + key + " failed of cluster " + clusterName)
+			}
+			reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + " with output:\n" + string(output))
+		}
+
 	}
 	// Print MetaServers IP
 	for i, value := range instance.Status.MetaServers {
 		reqLogger.Info("MetaServers IP " + strconv.Itoa(i) + ": " + value)
 	}
 
-	if updated {
-		return reconcile.Result{Requeue: true}, nil
-	} else {
+	if requeue {
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(3)*time.Second}, nil
+	} else {
+		return reconcile.Result{}, nil
 	}
 }
 

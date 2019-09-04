@@ -17,12 +17,14 @@
 
 set -eux;
 
+# Change the DOCKERHUB_REPO to your docker repo
 DOCKERHUB_REPO="2019liurui/rocketmq-operator:v0.0.1-snapshot"
 
 export GO111MODULE=on
 
-operator-sdk generate k8s
-operator-sdk generate openapi
+# uncomment the following 2 lines if you have updated the [kind]_type.go file
+#operator-sdk generate k8s
+#operator-sdk generate openapi
 
 go mod vendor
 

@@ -2,11 +2,8 @@ package broker
 
 import (
 	"context"
-	"strconv"
-	"reflect"
-
 	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
-	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -21,6 +18,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strconv"
+	"time"
 )
 
 var log = logf.Log.WithName("controller_broker")
@@ -109,7 +108,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(brokerGroupNum) + ", slavePerGroup=" + strconv.Itoa(slavePerGroup))
 
 	for brokerClusterIndex := 0; brokerClusterIndex < brokerGroupNum; brokerClusterIndex++ {
-		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerClusterIndex + 1) + "/" + strconv.Itoa(brokerGroupNum))
+		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerClusterIndex+1) + "/" + strconv.Itoa(brokerGroupNum))
 		dep := r.deploymentForMasterBroker(broker, brokerClusterIndex)
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
 		if err != nil && errors.IsNotFound(err) {
@@ -130,27 +129,12 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 				}
 			}
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new Deployment of broker-cluster-"+strconv.Itoa(brokerClusterIndex), "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+				reqLogger.Error(err, "Failed to create new Deployment of "+cons.BrokerClusterPrefix+strconv.Itoa(brokerClusterIndex), "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 			}
 		} else if err != nil {
 			reqLogger.Error(err, "Failed to get broker master Deployment.")
 		}
 	}
-
-	// Fetch the Broker instance
-	metaService := &rocketmqv1alpha1.MetaService{}
-	metaServers := metaService.Status.MetaServers
-	metaServerListStr := ""
-	for _, value := range metaServers {
-		metaServerListStr = metaServerListStr + value + ":9876;"
-	}
-	//if !reflect.DeepEqual(metaServerListStr, oldMetaServerListStr) {
-	//	oldMetaServerListStr = metaServerListStr
-	//	found.Status
-	//}
-
-
-
 
 	// Ensure the deployment size is the same as the spec
 	//size := broker.Spec.Size
@@ -164,7 +148,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	//	// Spec updated - return and requeue
 	//	return reconcile.Result{Requeue: true}, nil
 	//}
-
 
 	// Update the Broker status with the pod names
 	// List the pods for this broker's deployment
@@ -192,7 +175,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	//	}
 	//}
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{true, time.Duration(3) * time.Second}, nil
 }
 
 // deploymentForBroker returns a master broker Deployment object
@@ -217,7 +200,7 @@ func (r *ReconcileBroker) deploymentForMasterBroker(m *cachev1alpha1.Broker, bro
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Image:           m.Spec.BrokerImage,
-						Name:            "broker-master" + strconv.Itoa(brokerClusterIndex),
+						Name:            cons.MasterBrokerContainerNamePrefix + strconv.Itoa(brokerClusterIndex),
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
 							Name:  "NAMESRV_ADDRESS",
@@ -230,7 +213,7 @@ func (r *ReconcileBroker) deploymentForMasterBroker(m *cachev1alpha1.Broker, bro
 							Value: "0",
 						}, {
 							Name:  "BROKER_CLUSTER_NAME",
-							Value: "broker-cluster-" + strconv.Itoa(brokerClusterIndex),
+							Value: cons.BrokerClusterPrefix + strconv.Itoa(brokerClusterIndex),
 						}},
 						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
@@ -277,7 +260,7 @@ func (r *ReconcileBroker) deploymentForSlaveBroker(m *cachev1alpha1.Broker, brok
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Image:           m.Spec.BrokerImage,
-						Name:            "broker-slave" + strconv.Itoa(brokerClusterIndex),
+						Name:            cons.SlaveBrokerContainerNamePrefix + strconv.Itoa(brokerClusterIndex),
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
 							Name:  "NAMESRV_ADDRESS",
@@ -290,7 +273,7 @@ func (r *ReconcileBroker) deploymentForSlaveBroker(m *cachev1alpha1.Broker, brok
 							Value: strconv.Itoa(slaveIndex),
 						}, {
 							Name:  "BROKER_CLUSTER_NAME",
-							Value: "broker-cluster-" + strconv.Itoa(brokerClusterIndex),
+							Value: cons.BrokerClusterPrefix + strconv.Itoa(brokerClusterIndex),
 						}},
 						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
