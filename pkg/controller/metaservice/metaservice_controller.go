@@ -219,7 +219,7 @@ func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha
 				reqLogger.Error(err, "Update Broker config " + key + " failed of cluster " + clusterName)
 				return reconcile.Result{Requeue: true}, err
 			}
-			reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + " with output:\n" + string(output))
+			reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + " with output: " + string(output))
 		}
 
 	}
