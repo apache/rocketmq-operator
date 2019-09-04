@@ -19,6 +19,8 @@ package broker
 
 import (
 	"context"
+
+	share "github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
 	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
 	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
 	appsv1 "k8s.io/api/apps/v1"
@@ -120,12 +122,12 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	// Check if the deployment already exists, if not create a new one
 	found := &appsv1.Deployment{}
 
-	brokerGroupNum := int(broker.Spec.Size)
+	share.GroupNum = int(broker.Spec.Size)
 	slavePerGroup := broker.Spec.SlavePerGroup
-	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(brokerGroupNum) + ", slavePerGroup=" + strconv.Itoa(slavePerGroup))
+	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(share.GroupNum) + ", slavePerGroup=" + strconv.Itoa(slavePerGroup))
 
-	for brokerClusterIndex := 0; brokerClusterIndex < brokerGroupNum; brokerClusterIndex++ {
-		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerClusterIndex+1) + "/" + strconv.Itoa(brokerGroupNum))
+	for brokerClusterIndex := 0; brokerClusterIndex < share.GroupNum; brokerClusterIndex++ {
+		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerClusterIndex+1) + "/" + strconv.Itoa(share.GroupNum))
 		dep := r.deploymentForMasterBroker(broker, brokerClusterIndex)
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
 		if err != nil && errors.IsNotFound(err) {

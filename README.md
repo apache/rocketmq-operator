@@ -23,7 +23,7 @@ spec:
   # size is the the name service instance number of the name service cluster
   size: 2
   # metaServiceImage is the customized docker image repo of the RocketMQ name service
-  metaServiceImage: docker.io/library/rocketmq-namesrv:4.5.0-alpine
+  metaServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
 ```
@@ -46,7 +46,7 @@ spec:
   # slavePerGroup is the number of each broker cluster
   slavePerGroup: 2
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
+  brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
 ``` 

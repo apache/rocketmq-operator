@@ -23,9 +23,9 @@ import (
 	"reflect"
 	"strings"
 
-	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
 	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
+	share "github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -137,7 +137,7 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 			reqLogger.Error(err, "Failed to create new Deployment of MetaService", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 		}
 		// Deployment created successfully - return and requeue
-		// return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get MetaService Deployment.")
 	}
@@ -193,13 +193,12 @@ func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha
 		metaServerListStr = strings.TrimLeft(metaServerListStr, ";")
 		reqLogger.Info("metaServerListStr:" + metaServerListStr)
 
-		// update namesrvAddr of all brokers
 		mqAdmin := cons.MqAdminDir
 		subCmd := cons.UpdateBrokerConfig
 		key := cons.NamesrvAddr
-		broker := &cachev1alpha1.Broker{}
-		reqLogger.Info("broker.Spec.Size=" + strconv.Itoa(int(broker.Spec.Size)))
-		for i := 0 ;i < int(broker.Spec.Size); i++{
+
+		reqLogger.Info("broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
+		for i := 0 ;i < share.GroupNum; i++{
 			clusterName := cons.BrokerClusterPrefix + strconv.Itoa(i)
 			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
 			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", metaServerListStr, "-v", metaServerListStr)
