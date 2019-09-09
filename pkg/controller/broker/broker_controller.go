@@ -269,10 +269,10 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, br
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
-							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-master-logs",
+							Name: m.Spec.VolumeClaimTemplates[0].Name,
 						},{
 							MountPath: cons.StoreMountPath,
-							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-master-store",
+							Name: m.Spec.VolumeClaimTemplates[0].Name,
 						}},
 					}},
 				},
@@ -337,10 +337,10 @@ func (r *ReconcileBroker) statefulSetForSlaveBroker(m *cachev1alpha1.Broker, bro
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
-							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-slave-" + strconv.Itoa(slaveIndex) + "-logs",
+							Name: m.Spec.VolumeClaimTemplates[0].Name,
 						},{
 							MountPath: cons.StoreMountPath,
-							Name: m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-slave-" + strconv.Itoa(slaveIndex) + "-store",
+							Name: m.Spec.VolumeClaimTemplates[0].Name,
 						}},
 					}},
 				},

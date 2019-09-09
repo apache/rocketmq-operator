@@ -23,8 +23,8 @@ DOCKERHUB_REPO="2019liurui/rocketmq-operator:v0.0.1-snapshot"
 export GO111MODULE=on
 
 # uncomment the following 2 lines if you have updated the [kind]_type.go file or don't have zz_generated.deepcopy.go and zz_generated.openapi.go files
-#operator-sdk generate k8s
-#operator-sdk generate openapi
+operator-sdk generate k8s
+operator-sdk generate openapi
 
 go mod vendor
 
