@@ -259,20 +259,22 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, br
 						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 10909,
-							Name:          "10909port",
+							Name:          cons.ContainerPortName10909,
 						}, {
 							ContainerPort: 10911,
-							Name:          "10911port",
+							Name:          cons.ContainerPortName10911,
 						}, {
 							ContainerPort: 10912,
-							Name:          "10912port",
+							Name:          cons.ContainerPortName10912,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name: m.Spec.VolumeClaimTemplates[0].Name,
+							SubPath: cons.LogSubPathName,
 						},{
 							MountPath: cons.StoreMountPath,
 							Name: m.Spec.VolumeClaimTemplates[0].Name,
+							SubPath: cons.StoreSubPathName,
 						}},
 					}},
 				},
@@ -327,20 +329,22 @@ func (r *ReconcileBroker) statefulSetForSlaveBroker(m *cachev1alpha1.Broker, bro
 						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 10909,
-							Name:          "10909port",
+							Name:          cons.ContainerPortName10909,
 						}, {
 							ContainerPort: 10911,
-							Name:          "10911port",
+							Name:          cons.ContainerPortName10911,
 						}, {
 							ContainerPort: 10912,
-							Name:          "10912port",
+							Name:          cons.ContainerPortName10912,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name: m.Spec.VolumeClaimTemplates[0].Name,
+							SubPath: cons.LogSubPathName,
 						},{
 							MountPath: cons.StoreMountPath,
 							Name: m.Spec.VolumeClaimTemplates[0].Name,
+							SubPath: cons.StoreSubPathName,
 						}},
 					}},
 				},
