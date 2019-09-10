@@ -13,39 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
 kind: Deployment
+apiVersion: extensions/v1beta1
 metadata:
-  name: rocketmq-namesrv
+  name: nfs-client-provisioner
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      name: rocketmq-namesrv
+  replicas: 1
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        name: rocketmq-namesrv
+        app: nfs-client-provisioner
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: nfs-client-provisioner
       containers:
-        - name: namesrv
-          image: 2019liurui/rocketmq-namesrv:4.5.0-alpine
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 9876
+        - name: nfs-client-provisioner
+          image: quay.io/external_storage/nfs-client-provisioner:latest
           volumeMounts:
-            - mountPath: /home/rocketmq/logs
-              name: namesrvlogs
-            - mountPath: /home/rocketmq/store
-              name: namesrvstore
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          env:
+            - name: PROVISIONER_NAME
+              value: rocketmq/nfs
+            - name: NFS_SERVER
+              value: 192.168.130.32
+            - name: NFS_PATH
+              value: /data/k8s
       volumes:
-        - name: namesrvlogs
-          hostPath:
-            path: /data/namesrv/logs
-        - name: namesrvstore
-          hostPath:
-            path: /data/namesrv/store
-              #nodeSelector:
-            #rocketmq-operator: "on"
+        - name: nfs-client-root
+          nfs:
+            server: 192.168.130.32
+            path: /data/k8s
