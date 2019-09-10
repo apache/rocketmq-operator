@@ -125,30 +125,30 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 		return reconcile.Result{}, err
 	}
 
-	// Check if the deployment already exists, if not create a new one
-	found := &appsv1.Deployment{}
+	// Check if the statefulSet already exists, if not create a new one
+	found := &appsv1.StatefulSet{}
 
-	dep := r.deploymentForMetaService(instance)
+	dep := r.statefulSetForMetaService(instance)
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
 		err = r.client.Create(context.TODO(), dep)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new Deployment of MetaService", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+			reqLogger.Error(err, "Failed to create new StatefulSet of MetaService", "StatefulSet.Namespace", dep.Namespace, "StatefulSet.Name", dep.Name)
 		}
-		// Deployment created successfully - return and requeue
+		// StatefulSet created successfully - return and requeue
 		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
-		reqLogger.Error(err, "Failed to get MetaService Deployment.")
+		reqLogger.Error(err, "Failed to get MetaService StatefulSet.")
 	}
 
-	// Ensure the deployment size is the same as the spec
+	// Ensure the statefulSet size is the same as the spec
 	size := instance.Spec.Size
 	if *found.Spec.Replicas != size {
 		found.Spec.Replicas = &size
 		err = r.client.Update(context.TODO(), found)
 		reqLogger.Info("MetaService Updated")
 		if err != nil {
-			reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+			reqLogger.Error(err, "Failed to update StatefulSet.", "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
 			return reconcile.Result{}, err
 		}
 	}
@@ -160,7 +160,7 @@ func (r *ReconcileMetaService) Reconcile(request reconcile.Request) (reconcile.R
 func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha1.MetaService, request reconcile.Request, requeue bool) (reconcile.Result, error){
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Check the MetaServers status")
-	// List the pods for this metaService's deployment
+	// List the pods for this metaService's statefulSet
 	podList := &corev1.PodList{}
 	labelSelector := labels.SelectorFromSet(labelsForMetaService(instance.Name))
 	listOps := &client.ListOptions{
@@ -247,14 +247,14 @@ func labelsForMetaService(name string) map[string]string {
 	return map[string]string{"app": "meta_service", "meta_service_cr": name}
 }
 
-func (r *ReconcileMetaService) deploymentForMetaService(m *rocketmqv1alpha1.MetaService) *appsv1.Deployment {
+func (r *ReconcileMetaService) statefulSetForMetaService(m *rocketmqv1alpha1.MetaService) *appsv1.StatefulSet {
 	ls := labelsForMetaService(m.Name)
-	dep := &appsv1.Deployment{
+	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.Name,
 			Namespace: m.Namespace,
 		},
-		Spec: appsv1.DeploymentSpec{
+		Spec: appsv1.StatefulSetSpec{
 			Replicas: &m.Spec.Size,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
@@ -273,33 +273,17 @@ func (r *ReconcileMetaService) deploymentForMetaService(m *rocketmqv1alpha1.Meta
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 9876,
-							Name:          "9876port",
+							Name:          cons.ContainerPortName9876,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
-							MountPath: "/home/rocketmq/logs",
-							Name: "namesrvlogs",
-						},{
-							MountPath: "/home/rocketmq/store",
-							Name: "namesrvstore",
+							MountPath: cons.LogMountPath,
+							Name: m.Spec.VolumeClaimTemplates[0].Name,
+							SubPath: cons.LogSubPathName,
 						}},
-					}},
-					Volumes: []corev1.Volume{{
-						Name: "namesrvlogs",
-						VolumeSource: corev1.VolumeSource{
-							HostPath: &corev1.HostPathVolumeSource{
-								Path: "/data/namesrv/logs",
-							},
-						},
-					},{
-						Name: "namesrvstore",
-						VolumeSource: corev1.VolumeSource{
-							HostPath: &corev1.HostPathVolumeSource{
-								Path: "/data/namesrv/store",
-							},
-						},
 					}},
 				},
 			},
+			VolumeClaimTemplates: m.Spec.VolumeClaimTemplates,
 		},
 	}
 	// Set Broker instance as the owner and controller

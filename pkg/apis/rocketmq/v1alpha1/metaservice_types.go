@@ -34,6 +34,8 @@ type MetaServiceSpec struct {
 	MetaServiceImage string `json:"metaServiceImage"`
 	// ImagePullPolicy defines how the image is pulled.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
+	// VolumeClaimTemplates defines the StorageClass
+	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 }
 
 // MetaServiceStatus defines the observed state of MetaService

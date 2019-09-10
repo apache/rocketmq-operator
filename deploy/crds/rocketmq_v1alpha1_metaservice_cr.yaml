@@ -24,3 +24,14 @@ spec:
   metaServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  # volumeClaimTemplates defines the storageClass
+  volumeClaimTemplates:
+    - metadata:
+        name: namesrv-storage
+        annotations:
+          volume.beta.kubernetes.io/storage-class: rocketmq-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
