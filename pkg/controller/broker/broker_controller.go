@@ -19,8 +19,10 @@ package broker
 
 import (
 	"context"
+	"strconv"
+	"time"
 
-	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
+	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
 	"github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
@@ -37,11 +39,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strconv"
-	"time"
 )
 
 var log = logf.Log.WithName("controller_broker")
+
+/**
+* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
+* business logic.  Delete these comments after modifying this file.*
+ */
 
 // Add creates a new Broker Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -63,16 +68,16 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Broker
-	err = c.Watch(&source.Kind{Type: &cachev1alpha1.Broker{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &rocketmqv1alpha1.Broker{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner Broker
-	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &cachev1alpha1.Broker{},
+		OwnerType:    &rocketmqv1alpha1.Broker{},
 	})
 	if err != nil {
 		return err
@@ -81,11 +86,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
+// blank assignment to verify that ReconcileBroker implements reconcile.Reconciler
 var _ reconcile.Reconciler = &ReconcileBroker{}
 
 // ReconcileBroker reconciles a Broker object
 type ReconcileBroker struct {
-	// TODO: Clarify the split client
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
@@ -95,7 +100,7 @@ type ReconcileBroker struct {
 // Reconcile reads that state of the cluster for a Broker object and makes changes based on the state read
 // and what is in the Broker.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Broker StatefulSet for each Broker CR
+// a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
@@ -104,7 +109,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	reqLogger.Info("Reconciling Broker.")
 
 	// Fetch the Broker instance
-	broker := &cachev1alpha1.Broker{}
+	broker := &rocketmqv1alpha1.Broker{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, broker)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -159,14 +164,14 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 
 		if broker.Spec.AllowRestart {
 			// The following code will restart all brokers to update NAMESRV_ADDR env
-			if share.IsMetaServersStrUpdated {
+			if share.IsNameServersStrUpdated {
 				// update master broker
 				reqLogger.Info("Update Master Broker NAMESRV_ADDR of " + brokerName)
 				err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
 				if err != nil {
 					reqLogger.Error(err, "Failed to get broker master StatefulSet of " + brokerName)
 				} else {
-					found.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
+					found.Spec.Template.Spec.Containers[0].Env[0].Value = share.NameServersStr
 					err = r.client.Update(context.TODO(), found)
 					if err != nil {
 						reqLogger.Error(err, "Failed to update NAMESRV_ADDR of master broker " + brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
@@ -183,7 +188,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 					if err != nil {
 						reqLogger.Error(err, "Failed to get broker replica StatefulSet of " + brokerName)
 					} else {
-						replicaFound.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
+						replicaFound.Spec.Template.Spec.Containers[0].Env[0].Value = share.NameServersStr
 						err = r.client.Update(context.TODO(), replicaFound)
 						if err != nil {
 							reqLogger.Error(err, "Failed to update NAMESRV_ADDR of "+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "StatefulSet.Namespace", replicaFound.Namespace, "StatefulSet.Name", replicaFound.Name)
@@ -195,7 +200,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			}
 		}
 	}
-	share.IsMetaServersStrUpdated = false
+	share.IsNameServersStrUpdated = false
 
 	// Ensure the statefulSet size is the same as the spec
 	//size := broker.Spec.Size
@@ -239,12 +244,13 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	return reconcile.Result{true, time.Duration(3) * time.Second}, nil
 }
 
-func getBrokerName(broker *cachev1alpha1.Broker, brokerGroupIndex int) string {
+
+func getBrokerName(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int) string {
 	return broker.Name + "-" + strconv.Itoa(brokerGroupIndex)
 }
 
 // statefulSetForBroker returns a master broker StatefulSet object
-func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, brokerGroupIndex int) *appsv1.StatefulSet {
+func (r *ReconcileBroker) statefulSetForMasterBroker(m *rocketmqv1alpha1.Broker, brokerGroupIndex int) *appsv1.StatefulSet {
 	ls := labelsForBroker(m.Name)
 	var a int32 = 1
 	var c = &a
@@ -316,7 +322,7 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, br
 }
 
 // statefulSetForBroker returns a replica broker StatefulSet object
-func (r *ReconcileBroker) statefulSetForReplicaBroker(m *cachev1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *appsv1.StatefulSet {
+func (r *ReconcileBroker) statefulSetForReplicaBroker(m *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *appsv1.StatefulSet {
 	ls := labelsForBroker(m.Name)
 	var a int32 = 1
 	var c = &a

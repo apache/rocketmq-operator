@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-kubectl create -f deploy/crds/cache_v1alpha1_broker_crd.yaml
-kubectl create -f deploy/crds/rocketmq_v1alpha1_metaservice_crd.yaml
+kubectl create -f deploy/crds/rocketmq_v1alpha1_broker_crd.yaml
+kubectl create -f deploy/crds/rocketmq_v1alpha1_nameservice_crd.yaml
 kubectl create -f deploy/service_account.yaml
 kubectl create -f deploy/role.yaml
 kubectl create -f deploy/role_binding.yaml
@@ -24,5 +24,5 @@ kubectl create -f deploy/operator.yaml
 
 echo "Wait for operator being ready..."
 sleep 2
-#kubectl create -f deploy/crds/rocketmq_v1alpha1_metaservice_cr.yaml
-#kubectl create -f deploy/crds/cache_v1alpha1_broker_cr.yaml
+#kubectl create -f deploy/crds/rocketmq_v1alpha1_nameservice_cr.yaml
+#kubectl create -f deploy/crds/rocketmq_v1alpha1_broker_cr.yaml
