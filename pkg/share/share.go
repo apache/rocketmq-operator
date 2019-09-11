@@ -21,3 +21,4 @@ package share
 var GroupNum = 0
 var MetaServersStr = ""
 var IsMetaServersStrUpdated = false
+var BrokerClusterName  = ""

@@ -119,61 +119,81 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
-	// Check if the statefulSet already exists, if not create a new one
-	found := &appsv1.StatefulSet{}
-
 	share.GroupNum = int(broker.Spec.Size)
-	slavePerGroup := broker.Spec.SlavePerGroup
-	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(share.GroupNum) + ", slavePerGroup=" + strconv.Itoa(slavePerGroup))
+	share.BrokerClusterName = broker.Name
+	replicaPerGroup := broker.Spec.ReplicaPerGroup
+	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(share.GroupNum) + ", replicaPerGroup=" + strconv.Itoa(replicaPerGroup))
 
-	for brokerClusterIndex := 0; brokerClusterIndex < share.GroupNum; brokerClusterIndex++ {
-		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerClusterIndex+1) + "/" + strconv.Itoa(share.GroupNum))
-		dep := r.statefulSetForMasterBroker(broker, brokerClusterIndex)
+	for brokerGroupIndex := 0; brokerGroupIndex < share.GroupNum; brokerGroupIndex++ {
+		brokerName := getBrokerName(broker, brokerGroupIndex)
+		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerGroupIndex+1) + "/" + strconv.Itoa(share.GroupNum))
+		dep := r.statefulSetForMasterBroker(broker, brokerGroupIndex)
+		// Check if the statefulSet already exists, if not create a new one
+		found := &appsv1.StatefulSet{}
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
 
 		if err != nil && errors.IsNotFound(err) {
 			reqLogger.Info("Creating a new Master Broker StatefulSet.", "StatefulSet.Namespace", dep.Namespace, "StatefulSet.Name", dep.Name)
 			err = r.client.Create(context.TODO(), dep)
-			for slaveIndex := 1; slaveIndex <= slavePerGroup; slaveIndex++ {
-				reqLogger.Info("Check Slave Broker of cluster-" + strconv.Itoa(brokerClusterIndex) + " " + strconv.Itoa(slaveIndex) + "/" + strconv.Itoa(slavePerGroup))
-				slaveDep := r.statefulSetForSlaveBroker(broker, brokerClusterIndex, slaveIndex)
-				err = r.client.Get(context.TODO(), types.NamespacedName{Name: slaveDep.Name, Namespace: slaveDep.Namespace}, found)
-				if err != nil && errors.IsNotFound(err) {
-					reqLogger.Info("Creating a new Slave Broker StatefulSet.", "StatefulSet.Namespace", slaveDep.Namespace, "StatefulSet.Name", slaveDep.Name)
-					err = r.client.Create(context.TODO(), slaveDep)
-					if err != nil {
-						reqLogger.Error(err, "Failed to create new StatefulSet of broker-"+strconv.Itoa(brokerClusterIndex)+"-slave-"+strconv.Itoa(slaveIndex), "StatefulSet.Namespace", slaveDep.Namespace, "StatefulSet.Name", slaveDep.Name)
-					}
-				} else if err != nil {
-					reqLogger.Error(err, "Failed to get broker slave StatefulSet.")
-				}
-			}
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new StatefulSet of "+cons.BrokerClusterPrefix+strconv.Itoa(brokerClusterIndex), "StatefulSet.Namespace", dep.Namespace, "StatefulSet.Name", dep.Name)
+				reqLogger.Error(err, "Failed to create new StatefulSet of "+cons.BrokerClusterPrefix+strconv.Itoa(brokerGroupIndex), "StatefulSet.Namespace", dep.Namespace, "StatefulSet.Name", dep.Name)
 			}
 		} else if err != nil {
 			reqLogger.Error(err, "Failed to get broker master StatefulSet.")
 		}
 
-		// The following code will restart all brokers to update NAMESRV_ADDR env
-		/*if share.IsMetaServersStrUpdated {
-			reqLogger.Info("Update Master Broker NAMESRV_ADDR of "+cons.BrokerClusterPrefix+strconv.Itoa(brokerClusterIndex))
-			found.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
-			err = r.client.Update(context.TODO(), found)
-			if err != nil {
-				reqLogger.Error(err, "Failed to update NAMESRV_ADDR of master broker in "+cons.BrokerClusterPrefix+strconv.Itoa(brokerClusterIndex), "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
-			}
-			for slaveIndex := 1; slaveIndex <= slavePerGroup; slaveIndex++ {
-				reqLogger.Info("Update Slave Broker NAMESRV_ADDR of cluster-" + strconv.Itoa(brokerClusterIndex) + " " + strconv.Itoa(slaveIndex) + "/" + strconv.Itoa(slavePerGroup))
-				slaveDep := r.statefulSetForSlaveBroker(broker, brokerClusterIndex, slaveIndex)
-				err = r.client.Get(context.TODO(), types.NamespacedName{Name: slaveDep.Name, Namespace: slaveDep.Namespace}, found)
-				found.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
-				err = r.client.Update(context.TODO(), found)
+		for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
+			reqLogger.Info("Check Replica Broker of cluster-" + strconv.Itoa(brokerGroupIndex) + " " + strconv.Itoa(replicaIndex) + "/" + strconv.Itoa(replicaPerGroup))
+			replicaDep := r.statefulSetForReplicaBroker(broker, brokerGroupIndex, replicaIndex)
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: replicaDep.Name, Namespace: replicaDep.Namespace}, found)
+			if err != nil && errors.IsNotFound(err) {
+				reqLogger.Info("Creating a new Replica Broker StatefulSet.", "StatefulSet.Namespace", replicaDep.Namespace, "StatefulSet.Name", replicaDep.Name)
+				err = r.client.Create(context.TODO(), replicaDep)
 				if err != nil {
-					reqLogger.Error(err, "Failed to update NAMESRV_ADDR of broker-"+strconv.Itoa(brokerClusterIndex)+"-slave-"+strconv.Itoa(slaveIndex), "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
+					reqLogger.Error(err, "Failed to create new StatefulSet of broker-"+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "StatefulSet.Namespace", replicaDep.Namespace, "StatefulSet.Name", replicaDep.Name)
+				}
+			} else if err != nil {
+				reqLogger.Error(err, "Failed to get broker replica StatefulSet.")
+			}
+		}
+
+		if broker.Spec.AllowRestart {
+			// The following code will restart all brokers to update NAMESRV_ADDR env
+			if share.IsMetaServersStrUpdated {
+				// update master broker
+				reqLogger.Info("Update Master Broker NAMESRV_ADDR of " + brokerName)
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
+				if err != nil {
+					reqLogger.Error(err, "Failed to get broker master StatefulSet of " + brokerName)
+				} else {
+					found.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
+					err = r.client.Update(context.TODO(), found)
+					if err != nil {
+						reqLogger.Error(err, "Failed to update NAMESRV_ADDR of master broker " + brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
+					} else {
+						reqLogger.Info("Successfully updated NAMESRV_ADDR of master broker " + brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
+					}
+				}
+				// update replicas brokers
+				for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
+					reqLogger.Info("Update Replica Broker NAMESRV_ADDR of " + brokerName + " " + strconv.Itoa(replicaIndex) + "/" + strconv.Itoa(replicaPerGroup))
+					replicaDep := r.statefulSetForReplicaBroker(broker, brokerGroupIndex, replicaIndex)
+					replicaFound := &appsv1.StatefulSet{}
+					err = r.client.Get(context.TODO(), types.NamespacedName{Name: replicaDep.Name, Namespace: replicaDep.Namespace}, replicaFound)
+					if err != nil {
+						reqLogger.Error(err, "Failed to get broker replica StatefulSet of " + brokerName)
+					} else {
+						replicaFound.Spec.Template.Spec.Containers[0].Env[0].Value = share.MetaServersStr
+						err = r.client.Update(context.TODO(), replicaFound)
+						if err != nil {
+							reqLogger.Error(err, "Failed to update NAMESRV_ADDR of "+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "StatefulSet.Namespace", replicaFound.Namespace, "StatefulSet.Name", replicaFound.Name)
+						} else {
+							reqLogger.Info("Successfully updated NAMESRV_ADDR of "+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "StatefulSet.Namespace", replicaFound.Namespace, "StatefulSet.Name", replicaFound.Name)
+						}
+					}
 				}
 			}
-		}*/
+		}
 	}
 	share.IsMetaServersStrUpdated = false
 
@@ -219,14 +239,18 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	return reconcile.Result{true, time.Duration(3) * time.Second}, nil
 }
 
+func getBrokerName(broker *cachev1alpha1.Broker, brokerGroupIndex int) string {
+	return broker.Name + "-" + strconv.Itoa(brokerGroupIndex)
+}
+
 // statefulSetForBroker returns a master broker StatefulSet object
-func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, brokerClusterIndex int) *appsv1.StatefulSet {
+func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, brokerGroupIndex int) *appsv1.StatefulSet {
 	ls := labelsForBroker(m.Name)
 	var a int32 = 1
 	var c = &a
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-master",
+			Name:      m.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master",
 			Namespace: m.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
@@ -241,10 +265,10 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, br
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Image:           m.Spec.BrokerImage,
-						Name:            cons.MasterBrokerContainerNamePrefix + strconv.Itoa(brokerClusterIndex),
+						Name:            cons.MasterBrokerContainerNamePrefix + strconv.Itoa(brokerGroupIndex),
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
-							Name:  cons.EnvNamesrvAddr,
+							Name:  cons.EnvNameServiceAddress,
 							Value: m.Spec.NameServers,
 						}, {
 							Name:  cons.EnvReplicationMode,
@@ -254,18 +278,20 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, br
 							Value: "0",
 						}, {
 							Name:  cons.EnvBrokerClusterName,
-							Value: cons.BrokerClusterPrefix + strconv.Itoa(brokerClusterIndex),
+							Value: m.Name,
+						}, {
+							Name:  cons.EnvBrokerName,
+							Value: m.Name + "-" + strconv.Itoa(brokerGroupIndex),
 						}},
-						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 10909,
-							Name:          cons.ContainerPortName10909,
+							ContainerPort: cons.BrokerVipContainerPort,
+							Name:          cons.BrokerVipContainerPortName,
 						}, {
-							ContainerPort: 10911,
-							Name:          cons.ContainerPortName10911,
+							ContainerPort: cons.BrokerMainContainerPort,
+							Name:          cons.BrokerMainContainerPortName,
 						}, {
-							ContainerPort: 10912,
-							Name:          cons.ContainerPortName10912,
+							ContainerPort: cons.BrokerHighAvailabilityContainerPort,
+							Name:          cons.BrokerHighAvailabilityContainerPortName,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
@@ -289,14 +315,14 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *cachev1alpha1.Broker, br
 
 }
 
-// statefulSetForBroker returns a slave broker StatefulSet object
-func (r *ReconcileBroker) statefulSetForSlaveBroker(m *cachev1alpha1.Broker, brokerClusterIndex int, slaveIndex int) *appsv1.StatefulSet {
+// statefulSetForBroker returns a replica broker StatefulSet object
+func (r *ReconcileBroker) statefulSetForReplicaBroker(m *cachev1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *appsv1.StatefulSet {
 	ls := labelsForBroker(m.Name)
 	var a int32 = 1
 	var c = &a
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name + "-" + strconv.Itoa(brokerClusterIndex) + "-slave-" + strconv.Itoa(slaveIndex),
+			Name:      m.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex),
 			Namespace: m.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
@@ -311,31 +337,33 @@ func (r *ReconcileBroker) statefulSetForSlaveBroker(m *cachev1alpha1.Broker, bro
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Image:           m.Spec.BrokerImage,
-						Name:            cons.SlaveBrokerContainerNamePrefix + strconv.Itoa(brokerClusterIndex),
+						Name:            cons.ReplicaBrokerContainerNamePrefix + strconv.Itoa(brokerGroupIndex),
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
-							Name:  cons.EnvNamesrvAddr,
+							Name:  cons.EnvNameServiceAddress,
 							Value: m.Spec.NameServers,
 						}, {
 							Name:  cons.EnvReplicationMode,
 							Value: m.Spec.ReplicationMode,
 						}, {
 							Name:  cons.EnvBrokerId,
-							Value: strconv.Itoa(slaveIndex),
+							Value: strconv.Itoa(replicaIndex),
 						}, {
 							Name:  cons.EnvBrokerClusterName,
-							Value: cons.BrokerClusterPrefix + strconv.Itoa(brokerClusterIndex),
+							Value: m.Name,
+						}, {
+							Name:  cons.EnvBrokerName,
+							Value: m.Name + "-" + strconv.Itoa(brokerGroupIndex),
 						}},
-						//Command: []string{"cmd", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 10909,
-							Name:          cons.ContainerPortName10909,
+							ContainerPort: cons.BrokerVipContainerPort,
+							Name:          cons.BrokerVipContainerPortName,
 						}, {
-							ContainerPort: 10911,
-							Name:          cons.ContainerPortName10911,
+							ContainerPort: cons.BrokerMainContainerPort,
+							Name:          cons.BrokerMainContainerPortName,
 						}, {
-							ContainerPort: 10912,
-							Name:          cons.ContainerPortName10912,
+							ContainerPort: cons.BrokerHighAvailabilityContainerPort,
+							Name:          cons.BrokerHighAvailabilityContainerPortName,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,

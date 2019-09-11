@@ -27,6 +27,9 @@ spec:
           type: object
         spec:
           properties:
+            allowRestart:
+              description: AllowRestart defines whether allow pod restart
+              type: boolean
             brokerImage:
               description: BaseImage is the broker image to use for the Pods.
               type: string
@@ -36,15 +39,15 @@ spec:
             nameServers:
               description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
               type: string
+            replicaPerGroup:
+              description: ReplicaPerGroup each broker cluster's replica number
+              format: int64
+              type: integer
             replicationMode:
               description: ReplicationMode is SYNC or ASYNC
               type: string
             size:
               format: int32
-              type: integer
-            slavePerGroup:
-              description: SlavePerGroup each broker cluster's slave number
-              format: int64
               type: integer
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines the StorageClass
@@ -53,9 +56,10 @@ spec:
               type: array
           required:
           - size
-          - slavePerGroup
+          - replicaPerGroup
           - brokerImage
           - imagePullPolicy
+          - allowRestart
           - volumeClaimTemplates
           type: object
         status:

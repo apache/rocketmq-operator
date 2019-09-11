@@ -28,8 +28,7 @@ if [ $BROKER_ID = 0 ];then
     fi
 fi
 
-#BROKER_NAME=$(cat /etc/hostname | grep -o '[^-]*$')
-BROKER_NAME=$(cat /etc/hostname)
+#BROKER_NAME=$(cat /etc/hostname)
 DELETE_WHEN="04"
 FILE_RESERVED_TIME="48"
 FLUSH_DISK_TYPE="ASYNC_FLUSH"

@@ -18,18 +18,20 @@ kind: Broker
 metadata:
   name: broker
 spec:
-  # size is the number of the broker cluster, each broker cluster contains a master broker and [slavePerGroup] slave brokers.
+  # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
   size: 2
   # nameServers is the [ip:port] list of name service
   nameServers: 192.168.130.33:9876
-  # replicationMode is the broker slave sync mode, can be ASYNC or SYNC
+  # replicationMode is the broker replica sync mode, can be ASYNC or SYNC
   replicationMode: ASYNC
-  # slavePerGroup is the number of each broker cluster
-  slavePerGroup: 1
+  # replicaPerGroup is the number of each broker cluster
+  replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
   brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  # allowRestart defines whether allow pod restart
+  allowRestart: false
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:

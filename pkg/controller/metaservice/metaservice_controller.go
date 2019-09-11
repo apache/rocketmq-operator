@@ -21,6 +21,8 @@ import (
 	"context"
 	"os/exec"
 	"reflect"
+	"strconv"
+	"time"
 
 	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
@@ -40,8 +42,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strconv"
-	"time"
 )
 
 var log = logf.Log.WithName("controller_metaservice")
@@ -207,20 +207,19 @@ func (r *ReconcileMetaService) updateMetaServiceStatus(instance *rocketmqv1alpha
 
 		mqAdmin := cons.MqAdminDir
 		subCmd := cons.UpdateBrokerConfig
-		key := cons.NamesrvAddr
+		key := cons.ParamNameServiceAddress
 
 		reqLogger.Info("share.GroupNum=broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
-		for i := 0 ;i < share.GroupNum; i++{
-			clusterName := cons.BrokerClusterPrefix + strconv.Itoa(i)
-			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
-			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldMetaServerListStr, "-v", share.MetaServersStr)
-			output, err := cmd.Output()
-			if err != nil {
-				reqLogger.Error(err, "Update Broker config " + key + " failed of cluster " + clusterName)
-				return reconcile.Result{Requeue: true}, err
-			}
-			reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + " with output: " + string(output))
+
+		clusterName := share.BrokerClusterName
+		reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
+		cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldMetaServerListStr, "-v", share.MetaServersStr)
+		output, err := cmd.Output()
+		if err != nil {
+			reqLogger.Error(err, "Update Broker config "+key+" failed of cluster "+clusterName)
+			return reconcile.Result{Requeue: true}, err
 		}
+		reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + " with output: " + string(output))
 
 	}
 	// Print MetaServers IP
@@ -272,8 +271,8 @@ func (r *ReconcileMetaService) statefulSetForMetaService(m *rocketmqv1alpha1.Met
 						Name:            "meta-service",
 						ImagePullPolicy: m.Spec.ImagePullPolicy,
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 9876,
-							Name:          cons.ContainerPortName9876,
+							ContainerPort: cons.MetaServiceMainContainerPortNumber,
+							Name:          cons.MetaServiceMainContainerPortName,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
