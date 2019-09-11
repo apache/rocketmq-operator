@@ -16,8 +16,8 @@ type NameServiceSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	// Size is the number of the name service Pod
 	Size int32 `json:"size"`
-	//MetaServiceImage is the name service image
-	MetaServiceImage string `json:"metaServiceImage"`
+	//NameServiceImage is the name service image
+	NameServiceImage string `json:"nameServiceImage"`
 	// ImagePullPolicy defines how the image is pulled.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
 	// VolumeClaimTemplates defines the StorageClass
@@ -30,8 +30,8 @@ type NameServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	// MetaServers is the name service ip list
-	MetaServers []string `json:"metaServers"`
+	// NameServers is the name service ip list
+	NameServers []string `json:"nameServers"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
