@@ -28,8 +28,58 @@ spec:
         metadata:
           type: object
         spec:
+          properties:
+            allowRestart:
+              description: AllowRestart defines whether allow pod restart
+              type: boolean
+            brokerImage:
+              description: BaseImage is the broker image to use for the Pods.
+              type: string
+            imagePullPolicy:
+              description: ImagePullPolicy defines how the image is pulled.
+              type: string
+            nameServers:
+              description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
+              type: string
+            replicaPerGroup:
+              description: ReplicaPerGroup each broker cluster's replica number
+              format: int64
+              type: integer
+            replicationMode:
+              description: ReplicationMode is SYNC or ASYNC
+              type: string
+            size:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "operator-sdk generate k8s" to regenerate code after
+                modifying this file Add custom validation using kubebuilder tags:
+                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              format: int32
+              type: integer
+            volumeClaimTemplates:
+              description: VolumeClaimTemplates defines the StorageClass
+              items:
+                type: object
+              type: array
+          required:
+          - size
+          - replicaPerGroup
+          - brokerImage
+          - imagePullPolicy
+          - allowRestart
+          - volumeClaimTemplates
           type: object
         status:
+          properties:
+            nodes:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                code after modifying this file Add custom validation using kubebuilder
+                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              items:
+                type: string
+              type: array
+          required:
+          - nodes
           type: object
   version: v1alpha1
   versions:

@@ -28,8 +28,45 @@ spec:
         metadata:
           type: object
         spec:
+          properties:
+            imagePullPolicy:
+              description: ImagePullPolicy defines how the image is pulled.
+              type: string
+            nameServiceImage:
+              description: NameServiceImage is the name service image
+              type: string
+            size:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "operator-sdk generate k8s" to regenerate code after
+                modifying this file Add custom validation using kubebuilder tags:
+                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+                Size is the number of the name service Pod'
+              format: int32
+              type: integer
+            volumeClaimTemplates:
+              description: VolumeClaimTemplates defines the StorageClass
+              items:
+                type: object
+              type: array
+          required:
+          - size
+          - nameServiceImage
+          - imagePullPolicy
+          - volumeClaimTemplates
           type: object
         status:
+          properties:
+            nameServers:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                code after modifying this file Add custom validation using kubebuilder
+                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+                NameServers is the name service ip list'
+              items:
+                type: string
+              type: array
+          required:
+          - nameServers
           type: object
   version: v1alpha1
   versions:
