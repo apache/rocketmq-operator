@@ -37,6 +37,10 @@ type NameServiceSpec struct {
 	NameServiceImage string `json:"nameServiceImage"`
 	// ImagePullPolicy defines how the image is pulled.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
+	// StorageMode can be EmptyDir, HostPath, NFS
+	StorageMode string `json:"storageMode"`
+	// HostPath is the local path to store data
+	HostPath string `json:"hostPath"`
 	// VolumeClaimTemplates defines the StorageClass
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 }

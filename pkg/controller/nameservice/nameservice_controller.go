@@ -205,7 +205,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		mqAdmin := cons.MqAdminDir
+		mqAdmin := cons.AdminToolDir
 		subCmd := cons.UpdateBrokerConfig
 		key := cons.ParamNameServiceAddress
 
@@ -231,6 +231,44 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(3)*time.Second}, nil
 	} else {
 		return reconcile.Result{}, nil
+	}
+}
+
+func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1.PersistentVolumeClaim{
+	switch nameService.Spec.StorageMode {
+	case cons.StorageModeNFS:
+		return nameService.Spec.VolumeClaimTemplates
+	case cons.StorageModeEmptyDir, cons.StorageModeHostPath:
+		fallthrough
+	default:
+		return nil
+	}
+}
+
+func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
+	switch nameService.Spec.StorageMode {
+	case cons.StorageModeNFS:
+		return nil
+	case cons.StorageModeEmptyDir:
+		volumes := []corev1.Volume{{
+			Name: nameService.Spec.VolumeClaimTemplates[0].Name,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+
+				}},
+		}}
+		return volumes
+	case cons.StorageModeHostPath:
+		fallthrough
+	default:
+		volumes := []corev1.Volume{{
+			Name: nameService.Spec.VolumeClaimTemplates[0].Name,
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: nameService.Spec.HostPath,
+				}},
+		}}
+		return volumes
 	}
 }
 

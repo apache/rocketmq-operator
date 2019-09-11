@@ -24,5 +24,5 @@ kubectl create -f deploy/operator.yaml
 
 echo "Wait for operator being ready..."
 sleep 2
-#kubectl create -f deploy/crds/rocketmq_v1alpha1_nameservice_cr.yaml
-#kubectl create -f deploy/crds/rocketmq_v1alpha1_broker_cr.yaml
+#kubectl create -f example/rocketmq_v1alpha1_nameservice_cr.yaml
+#kubectl create -f example/rocketmq_v1alpha1_broker_cr.yaml

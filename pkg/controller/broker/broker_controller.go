@@ -250,14 +250,14 @@ func getBrokerName(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int) string
 }
 
 // statefulSetForBroker returns a master broker StatefulSet object
-func (r *ReconcileBroker) statefulSetForMasterBroker(m *rocketmqv1alpha1.Broker, brokerGroupIndex int) *appsv1.StatefulSet {
-	ls := labelsForBroker(m.Name)
+func (r *ReconcileBroker) statefulSetForMasterBroker(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int) *appsv1.StatefulSet {
+	ls := labelsForBroker(broker.Name)
 	var a int32 = 1
 	var c = &a
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master",
-			Namespace: m.Namespace,
+			Name:      broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master",
+			Namespace: broker.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas: c,
@@ -270,24 +270,24 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *rocketmqv1alpha1.Broker,
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           m.Spec.BrokerImage,
+						Image:           broker.Spec.BrokerImage,
 						Name:            cons.MasterBrokerContainerNamePrefix + strconv.Itoa(brokerGroupIndex),
-						ImagePullPolicy: m.Spec.ImagePullPolicy,
+						ImagePullPolicy: broker.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
 							Name:  cons.EnvNameServiceAddress,
-							Value: m.Spec.NameServers,
+							Value: broker.Spec.NameServers,
 						}, {
 							Name:  cons.EnvReplicationMode,
-							Value: m.Spec.ReplicationMode,
+							Value: broker.Spec.ReplicationMode,
 						}, {
 							Name:  cons.EnvBrokerId,
 							Value: "0",
 						}, {
 							Name:  cons.EnvBrokerClusterName,
-							Value: m.Name,
+							Value: broker.Name,
 						}, {
 							Name:  cons.EnvBrokerName,
-							Value: m.Name + "-" + strconv.Itoa(brokerGroupIndex),
+							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
 						}},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.BrokerVipContainerPort,
@@ -301,35 +301,36 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(m *rocketmqv1alpha1.Broker,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
-							Name: m.Spec.VolumeClaimTemplates[0].Name,
-							SubPath: cons.LogSubPathName,
+							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.LogSubPathName,
 						},{
 							MountPath: cons.StoreMountPath,
-							Name: m.Spec.VolumeClaimTemplates[0].Name,
-							SubPath: cons.StoreSubPathName,
+							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.StoreSubPathName,
 						}},
 					}},
+					Volumes: getVolumes(broker),
 				},
 			},
-			VolumeClaimTemplates: m.Spec.VolumeClaimTemplates,
+			VolumeClaimTemplates: getVolumeClaimTemplates(broker),
 		},
 	}
 	// Set Broker instance as the owner and controller
-	controllerutil.SetControllerReference(m, dep, r.scheme)
+	controllerutil.SetControllerReference(broker, dep, r.scheme)
 
 	return dep
 
 }
 
 // statefulSetForBroker returns a replica broker StatefulSet object
-func (r *ReconcileBroker) statefulSetForReplicaBroker(m *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *appsv1.StatefulSet {
-	ls := labelsForBroker(m.Name)
+func (r *ReconcileBroker) statefulSetForReplicaBroker(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *appsv1.StatefulSet {
+	ls := labelsForBroker(broker.Name)
 	var a int32 = 1
 	var c = &a
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex),
-			Namespace: m.Namespace,
+			Name:      broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex),
+			Namespace: broker.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas: c,
@@ -342,24 +343,24 @@ func (r *ReconcileBroker) statefulSetForReplicaBroker(m *rocketmqv1alpha1.Broker
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           m.Spec.BrokerImage,
+						Image:           broker.Spec.BrokerImage,
 						Name:            cons.ReplicaBrokerContainerNamePrefix + strconv.Itoa(brokerGroupIndex),
-						ImagePullPolicy: m.Spec.ImagePullPolicy,
+						ImagePullPolicy: broker.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
 							Name:  cons.EnvNameServiceAddress,
-							Value: m.Spec.NameServers,
+							Value: broker.Spec.NameServers,
 						}, {
 							Name:  cons.EnvReplicationMode,
-							Value: m.Spec.ReplicationMode,
+							Value: broker.Spec.ReplicationMode,
 						}, {
 							Name:  cons.EnvBrokerId,
 							Value: strconv.Itoa(replicaIndex),
 						}, {
 							Name:  cons.EnvBrokerClusterName,
-							Value: m.Name,
+							Value: broker.Name,
 						}, {
 							Name:  cons.EnvBrokerName,
-							Value: m.Name + "-" + strconv.Itoa(brokerGroupIndex),
+							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
 						}},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.BrokerVipContainerPort,
@@ -373,24 +374,65 @@ func (r *ReconcileBroker) statefulSetForReplicaBroker(m *rocketmqv1alpha1.Broker
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
-							Name: m.Spec.VolumeClaimTemplates[0].Name,
-							SubPath: cons.LogSubPathName,
+							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.LogSubPathName,
 						},{
 							MountPath: cons.StoreMountPath,
-							Name: m.Spec.VolumeClaimTemplates[0].Name,
-							SubPath: cons.StoreSubPathName,
+							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.StoreSubPathName,
 						}},
 					}},
+					Volumes: getVolumes(broker),
 				},
 			},
-			VolumeClaimTemplates: m.Spec.VolumeClaimTemplates,
+			VolumeClaimTemplates: getVolumeClaimTemplates(broker),
 		},
 	}
 	// Set Broker instance as the owner and controller
-	controllerutil.SetControllerReference(m, dep, r.scheme)
+	controllerutil.SetControllerReference(broker, dep, r.scheme)
 
 	return dep
 
+}
+
+func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.PersistentVolumeClaim{
+	switch broker.Spec.StorageMode {
+	case cons.StorageModeNFS:
+		return broker.Spec.VolumeClaimTemplates
+	case cons.StorageModeEmptyDir:
+		fallthrough
+	case cons.StorageModeHostPath:
+		fallthrough
+	default:
+		return nil
+	}
+}
+
+func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
+	switch broker.Spec.StorageMode {
+	case cons.StorageModeNFS:
+		return nil
+	case cons.StorageModeEmptyDir:
+		volumes := []corev1.Volume{{
+			Name: broker.Spec.VolumeClaimTemplates[0].Name,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+
+				}},
+		}}
+		return volumes
+	case cons.StorageModeHostPath:
+		fallthrough
+	default:
+		volumes := []corev1.Volume{{
+			Name: broker.Spec.VolumeClaimTemplates[0].Name,
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: broker.Spec.HostPath,
+				}},
+		}}
+		return volumes
+	}
 }
 
 // labelsForBroker returns the labels for selecting the resources
