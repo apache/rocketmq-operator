@@ -88,4 +88,5 @@ tags
 **/*.zip
 **/zz_generated.deepcopy.go
 **/zz_generated.openapi.go
-**/go.sum
+**/*.sum
+*.sum

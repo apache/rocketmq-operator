@@ -25,49 +25,54 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// BrokerSpec defines the desired state of Broker
+// NameServiceSpec defines the desired state of NameService
 // +k8s:openapi-gen=true
-type BrokerSpec struct {
+type NameServiceSpec struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	// Size is the number of the name service Pod
 	Size int32 `json:"size"`
-	// NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
-	NameServers string `json:"nameServers,omitempty"`
-	// ReplicationMode is SYNC or ASYNC
-	ReplicationMode string `json:"replicationMode,omitempty"`
-	// SlavePerGroup is the number of slave brokers in each broker group
-	SlavePerGroup int `json:"slavePerGroup"`
-	// BaseImage is the broker container image to use for the Pods.
-	BrokerImage string `json:"brokerImage"`
+	//NameServiceImage is the name service image
+	NameServiceImage string `json:"nameServiceImage"`
 	// ImagePullPolicy defines how the image is pulled.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
+	// VolumeClaimTemplates defines the StorageClass
+	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 }
 
-// BrokerStatus defines the observed state of Broker
+// NameServiceStatus defines the observed state of NameService
 // +k8s:openapi-gen=true
-type BrokerStatus struct {
-	Nodes []string `json:"nodes"`
+type NameServiceStatus struct {
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	// NameServers is the name service ip list
+	NameServers []string `json:"nameServers"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Broker is the Schema for the brokers API
+// NameService is the Schema for the nameservices API
 // +k8s:openapi-gen=true
-type Broker struct {
+// +kubebuilder:subresource:status
+type NameService struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   BrokerSpec   `json:"spec,omitempty"`
-	Status BrokerStatus `json:"status,omitempty"`
+	Spec   NameServiceSpec   `json:"spec,omitempty"`
+	Status NameServiceStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// BrokerList contains a list of Broker
-type BrokerList struct {
+// NameServiceList contains a list of NameService
+type NameServiceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Broker `json:"items"`
+	Items           []NameService `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Broker{}, &BrokerList{})
+	SchemeBuilder.Register(&NameService{}, &NameServiceList{})
 }

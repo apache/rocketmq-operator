@@ -1,0 +1,45 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: Broker
+metadata:
+  name: broker
+spec:
+  # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
+  size: 2
+  # nameServers is the [ip:port] list of name service
+  nameServers: 192.168.130.33:9876
+  # replicationMode is the broker replica sync mode, can be ASYNC or SYNC
+  replicationMode: ASYNC
+  # replicaPerGroup is the number of each broker cluster
+  replicaPerGroup: 1
+  # brokerImage is the customized docker image repo of the RocketMQ broker
+  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
+  # imagePullPolicy is the image pull policy
+  imagePullPolicy: Always
+  # allowRestart defines whether allow pod restart
+  allowRestart: false
+  # volumeClaimTemplates defines the storageClass
+  volumeClaimTemplates:
+    - metadata:
+        name: broker-storage
+        annotations:
+          volume.beta.kubernetes.io/storage-class: rocketmq-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 8Gi

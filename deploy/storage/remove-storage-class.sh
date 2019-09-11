@@ -15,5 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-./brokerGenConfig.sh
-./mqbroker -n $NAMESRV_ADDR -c $ROCKETMQ_HOME/conf/broker.conf
+kubectl delete -f nfs-client-sa.yaml
+kubectl delete -f nfs-client-class.yaml 
+kubectl delete -f nfs-client.yaml  

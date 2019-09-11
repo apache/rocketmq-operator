@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"testing"
 
-	cachev1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
+	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -50,12 +50,12 @@ func TestBrokerController(t *testing.T) {
 	)
 
 	// A Broker resource with metadata and spec.
-	broker := &cachev1alpha1.Broker{
+	broker := &rocketmqv1alpha1.Broker{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: cachev1alpha1.BrokerSpec{
+		Spec: rocketmqv1alpha1.BrokerSpec{
 			Size: replicas, // Set desired number of Broker replicas.
 		},
 	}
@@ -66,7 +66,7 @@ func TestBrokerController(t *testing.T) {
 
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(cachev1alpha1.SchemeGroupVersion, broker)
+	s.AddKnownTypes(rocketmqv1alpha1.SchemeGroupVersion, broker)
 	// Create a fake client to mock API calls.
 	cl := fake.NewFakeClient(objs...)
 	// Create a ReconcileBroker object with the scheme and fake client.
@@ -129,7 +129,7 @@ func TestBrokerController(t *testing.T) {
 	}
 
 	// Get the updated Broker object.
-	broker = &cachev1alpha1.Broker{}
+	broker = &rocketmqv1alpha1.Broker{}
 	err = r.client.Get(context.TODO(), req.NamespacedName, broker)
 	if err != nil {
 		t.Errorf("get broker: (%v)", err)

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,14 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: rocketmq.operator.com/v1alpha1
-kind: MetaService
-metadata:
-  name: meta-service
-spec:
-  # size is the the name service instance number of the name service cluster
-  size: 2
-  # metaServiceImage is the customized docker image repo of the RocketMQ name service
-  metaServiceImage: docker.io/library/rocketmq-namesrv:4.5.0-alpine
-  # imagePullPolicy is the image pull policy
-  imagePullPolicy: Always
+kubectl apply -f nfs-client-sa.yaml
+kubectl apply -f nfs-client-class.yaml 
+kubectl apply -f nfs-client.yaml  

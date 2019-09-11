@@ -13,20 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: cache.example.com/v1alpha1
-kind: Broker
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: NameService
 metadata:
-  name: broker
+  name: name-service
 spec:
-  # size is the number of the broker cluster, each broker cluster contains a master broker and [slavePerGroup] slave brokers.
-  size: 2
-  # nameServers is the [ip:port] list of name service
-  nameServers: 192.168.130.33:9876;192.168.130.34:9876
-  # replicationMode is the broker slave sync mode, can be ASYNC or SYNC
-  replicationMode: ASYNC
-  # slavePerGroup is the number of each broker cluster
-  slavePerGroup: 2
-  # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
+  # size is the the name service instance number of the name service cluster
+  size: 1
+  # nameServiceImage is the customized docker image repo of the RocketMQ name service
+  nameServiceImage: docker.io/library/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  # volumeClaimTemplates defines the storageClass
+  volumeClaimTemplates:
+    - metadata:
+        name: namesrv-storage
+        annotations:
+          volume.beta.kubernetes.io/storage-class: rocketmq-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
