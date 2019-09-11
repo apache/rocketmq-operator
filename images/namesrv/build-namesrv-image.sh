@@ -33,7 +33,7 @@ if [ $# -lt 1 ]; then
 fi
 
 ROCKETMQ_VERSION=$1
-DOCKERHUB_REPO=2019liurui/rocketmq-namesrv
+DOCKERHUB_REPO=docker.io/library/rocketmq-namesrv
 
 checkVersion $ROCKETMQ_VERSION
 
