@@ -47,17 +47,17 @@ nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          136m
 
 RocketMQ Operator provides several CRDs to allow users define their RocketMQ service component cluster, which includes the Namesrv cluster and the Broker cluster.
 
-1. Check the file ```rocketmq_v1alpha1_metaservice_cr.yaml``` in the ```deploy/crds``` directory, for example:
+1. Check the file ```rocketmq_v1alpha1_nameservice_cr.yaml``` in the ```deploy/crds``` directory, for example:
 ```
-apiVersion: rocketmq.operator.com/v1alpha1
-kind: MetaService
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: NameService
 metadata:
-  name: meta-service
+  name: name-service
 spec:
   # size is the the name service instance number of the name service cluster
   size: 1
-  # metaServiceImage is the customized docker image repo of the RocketMQ name service
-  metaServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
+  # nameServiceImage is the customized docker image repo of the RocketMQ name service
+  nameServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # volumeClaimTemplates defines the storageClass
@@ -77,7 +77,7 @@ which defines the RocketMQ name service (namesrv) cluster scale.
 
 2. Check the file ```cache_v1alpha1_broker_cr.yaml``` in the ```deploy/crds``` directory, for example:
 ```
-apiVersion: cache.example.com/v1alpha1
+apiVersion: rocketmq.apache.org/v1alpha1
 kind: Broker
 metadata:
   name: broker
@@ -94,6 +94,8 @@ spec:
   brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  # allowRestart defines whether allow pod restart
+  allowRestart: false
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:
@@ -129,8 +131,8 @@ Now you can use the CRDs provide by RocketMQ Operator to deploy your RocketMQ cl
 2. Deploy the RocketMQ name service cluster by running:
 
 ``` 
-$ kubectl apply -f deploy/crds/rocketmq_v1alpha1_metaservice_cr.yaml 
-metaservice.rocketmq.operator.com/meta-service created
+$ kubectl apply -f deploy/crds/rocketmq_v1alpha1_nameservice_cr.yaml 
+nameservice.rocketmq.apache.org/name-service created
 ```
 
 Check the status:
@@ -138,7 +140,7 @@ Check the status:
 ```
 $ kubectl get pods -owide
 NAME                                      READY   STATUS    RESTARTS   AGE     IP               NODE        NOMINATED NODE   READINESS GATES
-meta-service-0                            1/1     Running   0          3m18s   192.168.130.33   k2data-13   <none>           <none>
+name-service-0                            1/1     Running   0          3m18s   192.168.130.33   k2data-13   <none>           <none>
 nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          150m    10.244.2.114     k2data-14   <none>           <none>
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          5m53s   10.244.2.116     k2data-14   <none>           <none>
 ```
@@ -160,7 +162,7 @@ broker-0-master-0                         1/1     Running   0          38s     1
 broker-0-replica-1-0                        1/1     Running   0          38s     10.244.1.128     k2data-13   <none>           <none>
 broker-1-master-0                         1/1     Running   0          38s     10.244.2.117     k2data-14   <none>           <none>
 broker-1-replica-1-0                        1/1     Running   0          38s     10.244.3.17      k2data-15   <none>           <none>
-meta-service-0                            1/1     Running   0          6m7s    192.168.130.33   k2data-13   <none>           <none>
+name-service-0                            1/1     Running   0          6m7s    192.168.130.33   k2data-13   <none>           <none>
 nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          153m    10.244.2.114     k2data-14   <none>           <none>
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          8m42s   10.244.2.116     k2data-14   <none>           <none>
 ```
@@ -173,13 +175,13 @@ broker-storage-broker-0-master-0    Bound    pvc-7a74871b-c005-441a-bb15-8106566
 broker-storage-broker-0-replica-1-0   Bound    pvc-521e7e9a-3795-487a-9f76-22da74db74dd   8Gi        RWO            rocketmq-storage   78s
 broker-storage-broker-1-master-0    Bound    pvc-d7b76efe-384c-4f8d-9e8a-ebe209ba826c   8Gi        RWO            rocketmq-storage   78s
 broker-storage-broker-1-replica-1-0   Bound    pvc-af266db9-83a9-4929-a2fe-e40fb5fdbfa4   8Gi        RWO            rocketmq-storage   78s
-namesrv-storage-meta-service-0      Bound    pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e   1Gi        RWO            rocketmq-storage   79s
+namesrv-storage-name-service-0      Bound    pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e   1Gi        RWO            rocketmq-storage   79s
 $ kubectl get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                       STORAGECLASS       REASON   AGE
 pvc-521e7e9a-3795-487a-9f76-22da74db74dd   8Gi        RWO            Delete           Bound    default/broker-storage-broker-0-replica-1-0   rocketmq-storage            79s
 pvc-7a74871b-c005-441a-bb15-8106566c9d19   8Gi        RWO            Delete           Bound    default/broker-storage-broker-0-master-0    rocketmq-storage            79s
 pvc-af266db9-83a9-4929-a2fe-e40fb5fdbfa4   8Gi        RWO            Delete           Bound    default/broker-storage-broker-1-replica-1-0   rocketmq-storage            78s
-pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e   1Gi        RWO            Delete           Bound    default/namesrv-storage-meta-service-0      rocketmq-storage            79s
+pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e   1Gi        RWO            Delete           Bound    default/namesrv-storage-name-service-0      rocketmq-storage            79s
 pvc-d7b76efe-384c-4f8d-9e8a-ebe209ba826c   8Gi        RWO            Delete           Bound    default/broker-storage-broker-1-master-0    rocketmq-storage            78s
 ```
 
@@ -193,7 +195,7 @@ Access the NFS server node of your cluster and verify whether the RocketMQ data 
 $ cd /data/k8s/
 $ ls
 default-broker-storage-broker-0-master-0-pvc-7a74871b-c005-441a-bb15-8106566c9d19   default-broker-storage-broker-1-replica-1-0-pvc-af266db9-83a9-4929-a2fe-e40fb5fdbfa4
-default-broker-storage-broker-0-replica-1-0-pvc-521e7e9a-3795-487a-9f76-22da74db74dd  default-namesrv-storage-meta-service-0-pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e
+default-broker-storage-broker-0-replica-1-0-pvc-521e7e9a-3795-487a-9f76-22da74db74dd  default-namesrv-storage-name-service-0-pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e
 default-broker-storage-broker-1-master-0-pvc-d7b76efe-384c-4f8d-9e8a-ebe209ba826c
 $ ls default-broker-storage-broker-1-master-0-pvc-d7b76efe-384c-4f8d-9e8a-ebe209ba826c/logs/rocketmqlogs/
 broker_default.log  broker.log  commercial.log  filter.log  lock.log  protection.log  remoting.log  stats.log  storeerror.log  store.log  transaction.log  watermark.log
@@ -216,7 +218,7 @@ $ kubectl delete -f deploy/crds/cache_v1alpha1_broker_cr.yaml
 to remove the name service clusters:
 
 ```
-$ kubectl delete -f deploy/crds/rocketmq_v1alpha1_metaservice_cr.yaml
+$ kubectl delete -f deploy/crds/rocketmq_v1alpha1_nameservice_cr.yaml
 ```
 
 to remove the RocketMQ Operator:

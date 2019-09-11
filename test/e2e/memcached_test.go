@@ -21,7 +21,7 @@ import (
 	"time"
 
 	apis "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis"
-	operator "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/cache/v1alpha1"
+	operator "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"

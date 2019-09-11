@@ -47,18 +47,6 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - cache.example.com
-  resources:
-  - '*'
-  verbs:
-  - '*'
-- apiGroups:
-  - rocketmq.operator.com
-  resources:
-  - '*'
-  verbs:
-  - '*'
-- apiGroups:
   - rocketmq.apache.org
   resources:
   - '*'
