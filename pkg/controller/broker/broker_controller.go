@@ -382,7 +382,7 @@ func (r *ReconcileBroker) statefulSetForReplicaBroker(broker *rocketmqv1alpha1.B
 							SubPath:   cons.StoreSubPathName,
 						}},
 					}},
-					Volumes: getVolumes(broker),
+					Volumes: getVolumes(broker, true, brokerGroupIndex, replicaIndex),
 				},
 			},
 			VolumeClaimTemplates: getVolumeClaimTemplates(broker),
@@ -399,16 +399,14 @@ func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.Persisten
 	switch broker.Spec.StorageMode {
 	case cons.StorageModeNFS:
 		return broker.Spec.VolumeClaimTemplates
-	case cons.StorageModeEmptyDir:
-		fallthrough
-	case cons.StorageModeHostPath:
+	case cons.StorageModeEmptyDir, cons.StorageModeHostPath:
 		fallthrough
 	default:
 		return nil
 	}
 }
 
-func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
+func getVolumes(broker *rocketmqv1alpha1.Broker, isReplica bool, brokerGroupIndex int, replicaIndex int) []corev1.Volume {
 	switch broker.Spec.StorageMode {
 	case cons.StorageModeNFS:
 		return nil
@@ -428,10 +426,18 @@ func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
 			Name: broker.Spec.VolumeClaimTemplates[0].Name,
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
-					Path: broker.Spec.HostPath,
+					Path: broker.Spec.HostPath + getHostPathSuffix(broker, isReplica, brokerGroupIndex, replicaIndex),
 				}},
 		}}
 		return volumes
+	}
+}
+
+func getHostPathSuffix(broker *rocketmqv1alpha1.Broker, isReplica bool, brokerGroupIndex int, replicaIndex int) string {
+	if isReplica {
+		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
+	} else {
+		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master-" + strconv.Itoa(replicaIndex)
 	}
 }
 

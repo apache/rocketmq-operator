@@ -16,6 +16,7 @@
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: Broker
 metadata:
+  # name of broker cluster
   name: broker
 spec:
   # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
@@ -27,11 +28,15 @@ spec:
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
+  brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart
   allowRestart: false
+  # storageMode can be EmptyDir, HostPath, NFS
+  storageMode: HostPath
+  # hostPath is the local path to store data
+  hostPath: /data/rocketmq/broker
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:
