@@ -20,7 +20,7 @@ package constants
 const BrokerClusterPrefix = "broker-cluster-"
 const MasterBrokerContainerNamePrefix = "broker-master"
 const ReplicaBrokerContainerNamePrefix = "broker-replica"
-const MqAdminDir  = "/home/rocketmq/rocketmq-4.5.0/bin/mqadmin"
+const AdminToolDir = "/home/rocketmq/rocketmq-4.5.0/bin/mqadmin"
 const UpdateBrokerConfig  = "updateBrokerConfig"
 const ParamNameServiceAddress = "namesrvAddr"
 const EnvNameServiceAddress = "NAMESRV_ADDR"
@@ -40,5 +40,10 @@ const BrokerMainContainerPort  = 10911
 const BrokerMainContainerPortName = "main"
 const BrokerHighAvailabilityContainerPort  = 10912
 const BrokerHighAvailabilityContainerPortName = "ha"
+
+const StorageModeNFS  = "NFS"
+const StorageModeEmptyDir  = "EmptyDir"
+const StorageModeHostPath  = "HostPath"
+
 
 

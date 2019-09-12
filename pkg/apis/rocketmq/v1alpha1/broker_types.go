@@ -44,6 +44,10 @@ type BrokerSpec struct {
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
 	// AllowRestart defines whether allow pod restart
 	AllowRestart bool `json:"allowRestart"`
+	// StorageMode can be EmptyDir, HostPath, NFS
+	StorageMode string `json:"storageMode"`
+	// HostPath is the local path to store data
+	HostPath string `json:"hostPath"`
 	// VolumeClaimTemplates defines the StorageClass
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 }

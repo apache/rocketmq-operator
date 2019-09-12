@@ -29,6 +29,9 @@ spec:
           type: object
         spec:
           properties:
+            hostPath:
+              description: HostPath is the local path to store data
+              type: string
             imagePullPolicy:
               description: ImagePullPolicy defines how the image is pulled.
               type: string
@@ -43,6 +46,9 @@ spec:
                 Size is the number of the name service Pod'
               format: int32
               type: integer
+            storageMode:
+              description: StorageMode can be EmptyDir, HostPath, NFS
+              type: string
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines the StorageClass
               items:
@@ -52,6 +58,8 @@ spec:
           - size
           - nameServiceImage
           - imagePullPolicy
+          - storageMode
+          - hostPath
           - volumeClaimTemplates
           type: object
         status:

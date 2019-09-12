@@ -205,7 +205,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		mqAdmin := cons.MqAdminDir
+		mqAdmin := cons.AdminToolDir
 		subCmd := cons.UpdateBrokerConfig
 		key := cons.ParamNameServiceAddress
 
@@ -234,6 +234,44 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	}
 }
 
+func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1.PersistentVolumeClaim{
+	switch nameService.Spec.StorageMode {
+	case cons.StorageModeNFS:
+		return nameService.Spec.VolumeClaimTemplates
+	case cons.StorageModeEmptyDir, cons.StorageModeHostPath:
+		fallthrough
+	default:
+		return nil
+	}
+}
+
+func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
+	switch nameService.Spec.StorageMode {
+	case cons.StorageModeNFS:
+		return nil
+	case cons.StorageModeEmptyDir:
+		volumes := []corev1.Volume{{
+			Name: nameService.Spec.VolumeClaimTemplates[0].Name,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+
+				}},
+		}}
+		return volumes
+	case cons.StorageModeHostPath:
+		fallthrough
+	default:
+		volumes := []corev1.Volume{{
+			Name: nameService.Spec.VolumeClaimTemplates[0].Name,
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: nameService.Spec.HostPath,
+				}},
+		}}
+		return volumes
+	}
+}
+
 func getNameServers(pods []corev1.Pod) []string {
 	var nameServers []string
 	for _, pod := range pods {
@@ -246,15 +284,15 @@ func labelsForNameService(name string) map[string]string {
 	return map[string]string{"app": "name_service", "name_service_cr": name}
 }
 
-func (r *ReconcileNameService) statefulSetForNameService(m *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
-	ls := labelsForNameService(m.Name)
+func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
+	ls := labelsForNameService(nameService.Name)
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name,
-			Namespace: m.Namespace,
+			Name:      nameService.Name,
+			Namespace: nameService.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: &m.Spec.Size,
+			Replicas: &nameService.Spec.Size,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
 			},
@@ -266,27 +304,28 @@ func (r *ReconcileNameService) statefulSetForNameService(m *rocketmqv1alpha1.Nam
 					HostNetwork: true,
 					DNSPolicy: "ClusterFirstWithHostNet",
 					Containers: []corev1.Container{{
-						Image:           m.Spec.NameServiceImage,
+						Image: nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",
-						ImagePullPolicy: m.Spec.ImagePullPolicy,
+						ImagePullPolicy: nameService.Spec.ImagePullPolicy,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.NameServiceMainContainerPortNumber,
 							Name:          cons.NameServiceMainContainerPortName,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
-							Name: m.Spec.VolumeClaimTemplates[0].Name,
-							SubPath: cons.LogSubPathName,
+							Name:      nameService.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.LogSubPathName,
 						}},
 					}},
+					Volumes: getVolumes(nameService),
 				},
 			},
-			VolumeClaimTemplates: m.Spec.VolumeClaimTemplates,
+			VolumeClaimTemplates: getVolumeClaimTemplates(nameService),
 		},
 	}
 	// Set Broker instance as the owner and controller
-	controllerutil.SetControllerReference(m, dep, r.scheme)
+	controllerutil.SetControllerReference(nameService, dep, r.scheme)
 
 	return dep
 }
