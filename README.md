@@ -18,7 +18,7 @@ Currently we provide several ways of your RocketMQ data persistence: ```EmptyDir
 ...
 ```
 
-If you choose ```EmptyDir```, you don't need to do special preparation steps for data persistence. But the data storage life is the same with the pod's life, if the pod is deleted you may lost the data.
+If you choose ```EmptyDir```, you don't need to do extra preparation steps for data persistence. But the data storage life is the same with the pod's life, if the pod is deleted you may lost the data.
 
 If you choose other storage modes, please refer to the following instructions to prepare the data persistence.
 
@@ -42,7 +42,7 @@ You may refer to the instructions in the script for more information.
 
 #### Prepare Storage Class of NFS
 
-The first step is to prepare a storage class to create PV and PVC where the RocketMQ data will be stored. Here we use NFS as the storage class.
+If you choose NFS as the storage mode, the first step is to prepare a storage class based on NFS provider to create PV and PVC where the RocketMQ data will be stored. 
 
 1. Deploy NFS server and clients on your Kubernetes cluster. Please make sure they are functional before you go to the next step. Here is a instruction on how to verify NFS service.
 
