@@ -302,14 +302,14 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(broker *rocketmqv1alpha1.Br
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.LogSubPathName,
+							SubPath:   cons.LogSubPathName + getPathSuffix(broker, brokerGroupIndex, 0),
 						},{
 							MountPath: cons.StoreMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.StoreSubPathName,
+							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, 0),
 						}},
 					}},
-					Volumes: getVolumes(broker),
+					Volumes: getVolumes(broker, false, brokerGroupIndex, 0),
 				},
 			},
 			VolumeClaimTemplates: getVolumeClaimTemplates(broker),
@@ -375,11 +375,11 @@ func (r *ReconcileBroker) statefulSetForReplicaBroker(broker *rocketmqv1alpha1.B
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.LogSubPathName,
+							SubPath:   cons.LogSubPathName + getPathSuffix(broker,  brokerGroupIndex, replicaIndex),
 						},{
 							MountPath: cons.StoreMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.StoreSubPathName,
+							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
 						}},
 					}},
 					Volumes: getVolumes(broker, true, brokerGroupIndex, replicaIndex),
@@ -426,18 +426,18 @@ func getVolumes(broker *rocketmqv1alpha1.Broker, isReplica bool, brokerGroupInde
 			Name: broker.Spec.VolumeClaimTemplates[0].Name,
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
-					Path: broker.Spec.HostPath + getHostPathSuffix(broker, isReplica, brokerGroupIndex, replicaIndex),
+					Path: broker.Spec.HostPath,
 				}},
 		}}
 		return volumes
 	}
 }
 
-func getHostPathSuffix(broker *rocketmqv1alpha1.Broker, isReplica bool, brokerGroupIndex int, replicaIndex int) string {
-	if isReplica {
-		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
+func getPathSuffix(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) string {
+	if replicaIndex == 0 {
+		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master"
 	} else {
-		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master-" + strconv.Itoa(replicaIndex)
+		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
 	}
 }
 

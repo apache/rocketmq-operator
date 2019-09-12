@@ -8,7 +8,39 @@ It is built using the [Operator SDK](https://github.com/operator-framework/opera
 
 ## Quick Start
 
-### Prepare Storage Class
+### Prepare Volume Persistence
+
+Currently we provide several ways of your RocketMQ data persistence: ```EmptyDir```, ```HostPath``` and ```NFS```, which can be configured in CR files, for example in ```rocketmq_v1alpha1_nameservice_cr.yaml```:
+```
+...
+ # storageMode can be EmptyDir, HostPath, NFS
+  storageMode: HostPath
+...
+```
+
+If you choose ```EmptyDir```, you don't need to do special preparation steps for data persistence. But the data storage life is the same with the pod's life, if the pod is deleted you may lost the data.
+
+If you choose other storage modes, please refer to the following instructions to prepare the data persistence.
+
+#### Prepare HostPath
+
+This storage mode means the RocketMQ data (including all the logs and store files) is stored in each host where the pod lies on. In that case you need to create an dir where you want the RocketMQ data to be stored on. 
+
+We provide a script in ```deploy/storage/hostpath/prepare-host-path.sh```, which you can use to create the ```HostPath``` dir on every worker node of your Kubernetes cluster. 
+
+```
+$ cd deploy/storage/hostpath
+
+$ sudo su
+
+$ ./prepare-hostpath.sh 
+Changed hostPath /data/rocketmq/nameserver uid to 3000, gid to 3000
+Changed hostPath /data/rocketmq/broker uid to 3000, gid to 3000
+```
+
+You may refer to the instructions in the script for more information.
+
+#### Prepare Storage Class of NFS
 
 The first step is to prepare a storage class to create PV and PVC where the RocketMQ data will be stored. Here we use NFS as the storage class.
 
@@ -79,9 +111,13 @@ spec:
   # size is the the name service instance number of the name service cluster
   size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
+  nameServiceImage: docker.io/library/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  # storageMode can be EmptyDir, HostPath, NFS
+  storageMode: HostPath
+  # hostPath is the local path to store data
+  hostPath: /data/rocketmq/nameserver
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:
@@ -102,6 +138,7 @@ which defines the RocketMQ name service (namesrv) cluster scale.
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: Broker
 metadata:
+  # name of broker cluster
   name: broker
 spec:
   # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
@@ -113,11 +150,15 @@ spec:
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
+  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart
   allowRestart: false
+  # storageMode can be EmptyDir, HostPath, NFS
+  storageMode: HostPath
+  # hostPath is the local path to store data
+  hostPath: /data/rocketmq/broker
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:
@@ -208,10 +249,25 @@ pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e   1Gi        RWO            Delete     
 pvc-d7b76efe-384c-4f8d-9e8a-ebe209ba826c   8Gi        RWO            Delete           Bound    default/broker-storage-broker-1-master-0    rocketmq-storage            78s
 ```
 
+> Notice: if you don't choose the NFS storage mode, then the above PV and PVC won't be created.
+
 Congratulations! You have successfully deployed your RocketMQ cluster by RocketMQ Operator.
 
 ### Verify the Data Storage
 
+#### Verify HostPath Storage
+Access on any node which contains the RocketMQ service pod, check the ```hostPath``` you configured, for example:
+```
+$ ls /data/rocketmq/broker
+logs  store
+
+$ cat /data/rocketmq/broker/logs/broker-1-replica-1/rocketmqlogs/broker.log
+...
+2019-09-12 13:12:24 INFO main - The broker[broker-1, 10.244.3.35:10911] boot success. serializeType=JSON and name server is 192.168.130.35:9876
+...
+```
+
+#### Verify NFS storage
 Access the NFS server node of your cluster and verify whether the RocketMQ data is stored in your NFS data volume path:
 
 ```

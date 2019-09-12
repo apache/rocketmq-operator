@@ -35,6 +35,9 @@ spec:
             brokerImage:
               description: BaseImage is the broker image to use for the Pods.
               type: string
+            hostPath:
+              description: HostPath is the local path to store data
+              type: string
             imagePullPolicy:
               description: ImagePullPolicy defines how the image is pulled.
               type: string
@@ -55,6 +58,9 @@ spec:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               format: int32
               type: integer
+            storageMode:
+              description: StorageMode can be EmptyDir, HostPath, NFS
+              type: string
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines the StorageClass
               items:
@@ -66,6 +72,8 @@ spec:
           - brokerImage
           - imagePullPolicy
           - allowRestart
+          - storageMode
+          - hostPath
           - volumeClaimTemplates
           type: object
         status:
