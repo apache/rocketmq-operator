@@ -188,9 +188,9 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		share.NameServersStr = nameServerListStr[:len(nameServerListStr)-1]
 		reqLogger.Info("share.NameServersStr:" + share.NameServersStr)
 
-		if len(oldNameServerListStr) < 2 {
+		if len(oldNameServerListStr) < 8 {
 			oldNameServerListStr = share.NameServersStr
-		} else {
+		} else if len(share.NameServersStr) > 8 {
 			oldNameServerListStr = oldNameServerListStr[:len(oldNameServerListStr)-1]
 			share.IsNameServersStrUpdated = true
 		}
@@ -205,21 +205,25 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		mqAdmin := cons.AdminToolDir
-		subCmd := cons.UpdateBrokerConfig
-		key := cons.ParamNameServiceAddress
+		// use admin tool to update broker config
+		if share.IsNameServersStrUpdated && (len(oldNameServerListStr) > 8) && (len(share.NameServersStr) > 8) {
+			mqAdmin := cons.AdminToolDir
+			subCmd := cons.UpdateBrokerConfig
+			key := cons.ParamNameServiceAddress
 
-		reqLogger.Info("share.GroupNum=broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
+			reqLogger.Info("share.GroupNum=broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
 
-		clusterName := share.BrokerClusterName
-		reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
-		cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldNameServerListStr, "-v", share.NameServersStr)
-		output, err := cmd.Output()
-		if err != nil {
-			reqLogger.Error(err, "Update Broker config "+key+" failed of cluster "+clusterName)
-			return reconcile.Result{Requeue: true}, err
+			clusterName := share.BrokerClusterName
+			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
+			command := mqAdmin + " " + subCmd + " -c " + clusterName + " -k " + key + " -n " + oldNameServerListStr + " -v " + share.NameServersStr
+			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldNameServerListStr, "-v", share.NameServersStr)
+			output, err := cmd.Output()
+			if err != nil {
+				reqLogger.Error(err, "Update Broker config "+key+" failed of cluster "+clusterName + ", command: " + command)
+				return reconcile.Result{Requeue: true}, err
+			}
+			reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + ", command: " + command + ", with output: " + string(output))
 		}
-		reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + " with output: " + string(output))
 
 	}
 	// Print NameServers IP

@@ -176,8 +176,9 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 					if err != nil {
 						reqLogger.Error(err, "Failed to update NAMESRV_ADDR of master broker " + brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
 					} else {
-						reqLogger.Info("Successfully updated NAMESRV_ADDR of master broker " + brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
+						reqLogger.Info("Successfully updated NAMESRV_ADDR of master broker "+brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
 					}
+					time.Sleep(time.Duration(cons.RestartBrokerPodIntervalInSecond) * time.Second)
 				}
 				// update replicas brokers
 				for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
@@ -195,6 +196,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 						} else {
 							reqLogger.Info("Successfully updated NAMESRV_ADDR of "+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "StatefulSet.Namespace", replicaFound.Namespace, "StatefulSet.Name", replicaFound.Name)
 						}
+						time.Sleep(time.Duration(cons.RestartBrokerPodIntervalInSecond) * time.Second)
 					}
 				}
 			}
@@ -263,6 +265,9 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(broker *rocketmqv1alpha1.Br
 			Replicas: c,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
+			},
+			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
+				Type:          appsv1.RollingUpdateStatefulSetStrategyType,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
