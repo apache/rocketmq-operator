@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-NAMESRV_DOCKERHUB_REPO=docker.io/library/rocketmq-namesrv
-BROKER_DOCKERHUB_REPO=docker.io/library/rocketmq-broker
+NAMESRV_DOCKERHUB_REPO=2019liurui/rocketmq-namesrv
+BROKER_DOCKERHUB_REPO=2019liurui/rocketmq-broker
 ROCKETMQ_VERSION=4.5.0
 
 start_namesrv_broker()
