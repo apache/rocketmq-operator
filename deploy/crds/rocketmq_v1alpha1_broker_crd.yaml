@@ -51,9 +51,6 @@ spec:
             replicationMode:
               description: ReplicationMode is SYNC or ASYNC
               type: string
-            scaleContainerName:
-              description: The name of container where the metadata from
-              type: string
             scalePodName:
               description: The name of pod where the metadata from
               type: string
@@ -82,7 +79,6 @@ spec:
           - hostPath
           - volumeClaimTemplates
           - scalePodName
-          - scaleContainerName
           type: object
         status:
           properties:
