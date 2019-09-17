@@ -18,8 +18,8 @@
 package constants
 
 const BrokerClusterPrefix = "broker-cluster-"
-const MasterBrokerContainerNamePrefix = "broker-master"
-const ReplicaBrokerContainerNamePrefix = "broker-replica"
+const MasterBrokerContainerNamePrefix = "broker-master-"
+const ReplicaBrokerContainerNamePrefix = "broker-replica-"
 const AdminToolDir = "/home/rocketmq/rocketmq-4.5.0/bin/mqadmin"
 const UpdateBrokerConfig  = "updateBrokerConfig"
 const ParamNameServiceAddress = "namesrvAddr"

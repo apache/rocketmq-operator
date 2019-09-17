@@ -50,6 +50,10 @@ type BrokerSpec struct {
 	HostPath string `json:"hostPath"`
 	// VolumeClaimTemplates defines the StorageClass
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
+	// The name of pod where the metadata from
+	ScalePodName string `json:"scalePodName"`
+	// The name of container where the metadata from
+	ScaleContainerName string `json:"scaleContainerName"`
 }
 
 // BrokerStatus defines the observed state of Broker

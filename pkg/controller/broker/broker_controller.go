@@ -20,11 +20,13 @@ package broker
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
 	"github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
+	"github.com/operator-sdk-samples/rocketmq-operator/pkg/tool"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -122,6 +124,37 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		// Error reading the object - requeue the request.
 		reqLogger.Error(err, "Failed to get Broker.")
 		return reconcile.Result{}, err
+	}
+
+	k8s, err := tool.NewK8sClient()
+	if err != nil {
+		log.Error(err,"Error occurred while getting K8s Client" )
+		return reconcile.Result{}, err
+	}
+
+	cmdOpts := []string{
+		"env",
+
+	}
+	// cmdOpts = append(cmdOpts, "-database")
+
+	log.Info("Command being run: " + strings.Join(cmdOpts, " "))
+
+	podName := broker.Spec.ScalePodName
+	container := broker.Spec.ScaleContainerName
+	outputBytes, stderrBytes, err := k8s.Exec(broker.Namespace, podName, container, cmdOpts, nil)
+	stderr := stderrBytes.String()
+	output := outputBytes.String()
+
+	if stderrBytes != nil {
+		log.Info("STDERR: " + stderr)
+	}
+
+	if err != nil {
+		log.Error(err, "Error occured while running command: " )
+		log.Info("Stdout: " + output)
+	} else {
+		log.Info("Backup Output: " + output)
 	}
 
 	share.GroupNum = int(broker.Spec.Size)
@@ -314,7 +347,7 @@ func (r *ReconcileBroker) statefulSetForMasterBroker(broker *rocketmqv1alpha1.Br
 							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, 0),
 						}},
 					}},
-					Volumes: getVolumes(broker, false, brokerGroupIndex, 0),
+					Volumes: getVolumes(broker),
 				},
 			},
 			VolumeClaimTemplates: getVolumeClaimTemplates(broker),
@@ -387,7 +420,7 @@ func (r *ReconcileBroker) statefulSetForReplicaBroker(broker *rocketmqv1alpha1.B
 							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
 						}},
 					}},
-					Volumes: getVolumes(broker, true, brokerGroupIndex, replicaIndex),
+					Volumes: getVolumes(broker),
 				},
 			},
 			VolumeClaimTemplates: getVolumeClaimTemplates(broker),
@@ -411,7 +444,7 @@ func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.Persisten
 	}
 }
 
-func getVolumes(broker *rocketmqv1alpha1.Broker, isReplica bool, brokerGroupIndex int, replicaIndex int) []corev1.Volume {
+func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
 	switch broker.Spec.StorageMode {
 	case cons.StorageModeNFS:
 		return nil

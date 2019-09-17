@@ -51,6 +51,12 @@ spec:
             replicationMode:
               description: ReplicationMode is SYNC or ASYNC
               type: string
+            scaleContainerName:
+              description: The name of container where the metadata from
+              type: string
+            scalePodName:
+              description: The name of pod where the metadata from
+              type: string
             size:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "operator-sdk generate k8s" to regenerate code after
@@ -75,6 +81,8 @@ spec:
           - storageMode
           - hostPath
           - volumeClaimTemplates
+          - scalePodName
+          - scaleContainerName
           type: object
         status:
           properties:
