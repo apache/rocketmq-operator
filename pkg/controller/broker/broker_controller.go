@@ -246,7 +246,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		isInitial = false
 	}
 
-
 	if !isInitial {
 		if broker.Spec.Size != broker.Status.Size  {
 			// Get the metadata including subscriptionGroup.json and topics.json from scale source pod
@@ -263,6 +262,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 	}
 
+	// Update status.Size if needed
 	if broker.Spec.Size != broker.Status.Size  {
 		log.Info("broker.Status.Size = " + strconv.Itoa(broker.Status.Size))
 		log.Info("broker.Spec.Size = " + strconv.Itoa(broker.Spec.Size))
@@ -273,6 +273,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 	}
 
+	// Update status.Nodes if needed
 	if !reflect.DeepEqual(podNames, broker.Status.Nodes) {
 		broker.Status.Nodes = podNames
 		err = r.client.Status().Update(context.TODO(), broker)
@@ -308,20 +309,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	return reconcile.Result{true, time.Duration(3) * time.Second}, nil
 }
 
-func checkAndCopyMetadata(newPodNames []string, dir string, sourcePodName string, namespace string, k8s *tool.K8sClient)  {
-	cmdOpts := buildInputCommand(dir)
-	jsonStr := exec(cmdOpts, sourcePodName, k8s, namespace)
-	if len(jsonStr) < cons.MinMetadataJsonFileSize {
-		log.Info("The file " + dir + " is abnormally too short to execute metadata transmission, please check whether the source broker pod " + sourcePodName + " is correct")
-	} else {
-		// for each new pod, copy the metadata from the scale source pod
-		for _, newPodName := range newPodNames {
-			cmdOpts = buildOutputCommand(jsonStr, dir)
-			exec(cmdOpts, newPodName, k8s, namespace)
-		}
-	}
-}
-
 func getCopyMetadataJsonCommand(dir string, sourcePodName string, namespace string, k8s *tool.K8sClient) string {
 	cmdOpts := buildInputCommand(dir)
 	topicsJsonStr := exec(cmdOpts, sourcePodName, k8s, namespace)
@@ -341,7 +328,7 @@ func buildOutputCommand(content string, dest string) []string {
 	cmdOpts := []string{
 		"echo",
 		"-e",
-		"\"" + content + " liurui1 \"",
+		"\"" + content + "\"",
 		">",
 		dest,
 	}
@@ -368,15 +355,6 @@ func exec(cmdOpts []string, podName string, k8s *tool.K8sClient, namespace strin
 	return output
 }
 
-func contains(item string, arr []string) bool {
-	for _, value := range arr {
-		if reflect.DeepEqual(value, item) {
-			return true
-		}
-	}
-	return false
-}
-
 func getBrokerName(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int) string {
 	return broker.Name + "-" + strconv.Itoa(brokerGroupIndex)
 }
@@ -392,8 +370,6 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 	} else {
 		statefulSetName = broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
 	}
-
-
 
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -532,4 +508,27 @@ func getPodNames(pods []corev1.Pod) []string {
 		podNames = append(podNames, pod.Name)
 	}
 	return podNames
+}
+
+func contains(item string, arr []string) bool {
+	for _, value := range arr {
+		if reflect.DeepEqual(value, item) {
+			return true
+		}
+	}
+	return false
+}
+
+func checkAndCopyMetadata(newPodNames []string, dir string, sourcePodName string, namespace string, k8s *tool.K8sClient)  {
+	cmdOpts := buildInputCommand(dir)
+	jsonStr := exec(cmdOpts, sourcePodName, k8s, namespace)
+	if len(jsonStr) < cons.MinMetadataJsonFileSize {
+		log.Info("The file " + dir + " is abnormally too short to execute metadata transmission, please check whether the source broker pod " + sourcePodName + " is correct")
+	} else {
+		// for each new pod, copy the metadata from the scale source pod
+		for _, newPodName := range newPodNames {
+			cmdOpts = buildOutputCommand(jsonStr, dir)
+			exec(cmdOpts, newPodName, k8s, namespace)
+		}
+	}
 }

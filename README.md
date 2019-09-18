@@ -111,7 +111,7 @@ spec:
   # size is the the name service instance number of the name service cluster
   size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: 2019liurui/rocketmq-namesrv:4.5.0-alpine
+  nameServiceImage: docker.io/library/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # storageMode can be EmptyDir, HostPath, NFS
@@ -150,15 +150,17 @@ spec:
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: 2019liurui/rocketmq-broker:4.5.0-alpine
+  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart
-  allowRestart: false
+  allowRestart: true
   # storageMode can be EmptyDir, HostPath, NFS
   storageMode: HostPath
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/broker
+  # scalePodName is broker-[broker group number]-master-0
+  scalePodName: broker-0-master-0
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:
@@ -287,10 +289,45 @@ $ cat default-broker-storage-broker-1-master-0-pvc-d7b76efe-384c-4f8d-9e8a-ebe20
 ...
 ```
 
+## Horizontal Scale
 
+### Name Server Cluster Scale
+If the current name service cluster scale does not fit your requirements, you can simply use RocketMQ-Operator to up-scale or down-scale your name service cluster.
 
+If you want to enlarge your name service cluster. Modify your name service CR file ```rocketmq_v1alpha1_nameservice_cr.yaml```, increase the field ```size``` to the number you want, for example, from ```size: 1``` to ```size: 2```.
 
-### Clean the Environment
+> Notice: if your broker image version is 4.5.0 or earlier, you need to make sure that ```allowRestart: true``` is set in the broker CR file to enable rolling restart policy. If not, configure it to true and run ```kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml``` to apply the new config.
+
+After configuring the ```size``` fields, simply run 
+```
+kubectl apply -f example/rocketmq_v1alpha1_nameservice_cr.yaml 
+```
+Then a new name service pod will be deployed and meanwhile the operator will inform all the brokers to update their name service list parameters, so they can register to the new name service.
+
+> Notice: under the policy ```allowRestart: true```, the broker will gradually be updated so the update process is also not perceptible to the producer and consumer clients.
+
+### Broker Cluster Scale
+
+#### Up-scale Broker in Out-of-order Message Scenario
+It is often the case that with the development of your business, the old broker cluster scale no longer meets your needs. You can simply use RocketMQ-Operator to up-scale your broker cluster:
+
+1. Modify the ```size``` in the broker CR file to the number that you want the broker cluster scale will be, for example, from ```size: 1``` to ```size: 2```.
+
+2. Choose the source broker pod, from which the old metadata like topic and subscription information data will be transferred to the newly created brokers. The source broker pod field is 
+```
+...
+# scalePodName is broker-[broker group number]-master-0
+  scalePodName: broker-0-master-0
+...
+```
+
+3. Apply the new configurations:
+```
+kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml
+```
+Then a new broker group of pods will be deployed and meanwhile the operator will copy the metadata from the source broker pod to the newly created broker pods before the new brokers are stared, so the new brokers will reload previous topic and subscription information.
+
+## Clean the Environment
 If you want to tear down the RocketMQ cluster, to remove the broker clusters run
 
 ```
