@@ -1,6 +1,24 @@
 ## RocketMQ Operator
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
+## Table of Contents
+- [RocketMQ Operator](#rocketmq-operator)
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+    - [Prepare Volume Persistence](#prepare-volume-persistence)
+        - [Prepare HostPath](#prepare-hostpath)
+        - [Prepare Storage Class of NFS](#prepare-storage-class-of-nfs)
+    - [Define Your RocketMQ Cluster](#define-your-rocketmq-cluster)
+    - [Deploy RocketMQ Operator & Create RocketMQ Cluster](#deploy-rocketmq-operator--create-rocketmq-cluster)
+    - [Verify the Data Storage](#verify-the-data-storage)
+        - [Verify HostPath Storage](#verify-hostpath-storage)
+        - [Verify NFS storage](#verify-nfs-storage)
+- [Horizontal Scale](#horizontal-scale)
+    - [Name Server Cluster Scale](#name-server-cluster-scale)
+    - [Broker Cluster Scale](#broker-cluster-scale)
+        - [Up-scale Broker in Out-of-order Message Scenario](#up-scale-broker-in-out-of-order-message-scenario)
+- [Clean the Environment](#clean-the-environment)
+
 ## Overview
 
 RocketMQ Operator is to manage RocketMQ service instances deployed on the Kubernetes cluster.
