@@ -32,11 +32,13 @@ spec:
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart
-  allowRestart: false
+  allowRestart: true
   # storageMode can be EmptyDir, HostPath, NFS
   storageMode: HostPath
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/broker
+  # scalePodName is broker-[broker group number]-master-0
+  scalePodName: broker-0-master-0
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:

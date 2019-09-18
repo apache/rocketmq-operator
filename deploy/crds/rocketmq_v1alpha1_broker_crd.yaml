@@ -51,12 +51,15 @@ spec:
             replicationMode:
               description: ReplicationMode is SYNC or ASYNC
               type: string
+            scalePodName:
+              description: The name of pod where the metadata from
+              type: string
             size:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "operator-sdk generate k8s" to regenerate code after
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-              format: int32
+              format: int64
               type: integer
             storageMode:
               description: StorageMode can be EmptyDir, HostPath, NFS
@@ -75,6 +78,7 @@ spec:
           - storageMode
           - hostPath
           - volumeClaimTemplates
+          - scalePodName
           type: object
         status:
           properties:
@@ -86,8 +90,12 @@ spec:
               items:
                 type: string
               type: array
+            size:
+              format: int64
+              type: integer
           required:
           - nodes
+          - size
           type: object
   version: v1alpha1
   versions:
