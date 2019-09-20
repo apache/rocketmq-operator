@@ -18,7 +18,7 @@
 package controller
 
 import (
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/controller/broker"
+	"github.com/apache/rocketmq-operator/pkg/controller/broker"
 )
 
 func init() {

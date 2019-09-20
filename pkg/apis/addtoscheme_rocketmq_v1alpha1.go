@@ -18,7 +18,7 @@
 package apis
 
 import (
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	"github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 )
 
 func init() {
