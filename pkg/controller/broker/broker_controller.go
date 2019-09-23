@@ -259,7 +259,8 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			subscriptionGroupCommand := getCopyMetadataJsonCommand(cons.SubscriptionGroupJsonDir, sourcePodName, broker.Namespace, k8s)
 			log.Info("subscriptionGroupCommand: " + subscriptionGroupCommand)
 			MakeConfigDirCommand := "mkdir -p " + cons.StoreConfigDir
-			ChmodDirCommand := "chmod a+rw -R " + cons.StoreConfigDir
+			ChmodDirCommand := "chmod a+rw " + cons.StoreConfigDir
+			log.Info("ChmodDirCommand: " + ChmodDirCommand)
 			cmd = []string{"/bin/bash", "-c", MakeConfigDirCommand + " && " + ChmodDirCommand + " && " + topicsCommand + " && " + subscriptionGroupCommand}
 		}
 	}
@@ -327,10 +328,11 @@ func buildInputCommand(source string) []string {
 }
 
 func buildOutputCommand(content string, dest string) []string {
+	replaced := strings.Replace(content,"\"","\\\"", -1)
 	cmdOpts := []string{
 		"echo",
 		"-e",
-		"\"" + content + "\"",
+		"\"" + replaced + "\"",
 		">",
 		dest,
 	}
