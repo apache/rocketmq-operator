@@ -1,4 +1,4 @@
-module github.com/operator-sdk-samples/rocketmq-operator
+module github.com/apache/rocketmq-operator
 
 go 1.12
 

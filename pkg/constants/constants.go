@@ -20,6 +20,7 @@ package constants
 const BrokerClusterPrefix = "broker-cluster-"
 const BrokerContainerName = "broker"
 const AdminToolDir = "/home/rocketmq/rocketmq-4.5.0/bin/mqadmin"
+const StoreConfigDir = "/home/rocketmq/store/config"
 const TopicJsonDir = "/home/rocketmq/store/config/topics.json"
 const SubscriptionGroupJsonDir = "/home/rocketmq/store/config/subscriptionGroup.json"
 const UpdateBrokerConfig  = "updateBrokerConfig"

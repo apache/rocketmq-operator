@@ -24,9 +24,9 @@ import (
 	"strconv"
 	"time"
 
-	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
-	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
+	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	cons "github.com/apache/rocketmq-operator/pkg/constants"
+	"github.com/apache/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
