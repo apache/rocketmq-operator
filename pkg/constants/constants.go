@@ -49,4 +49,5 @@ const StorageModeHostPath  = "HostPath"
 
 const RestartBrokerPodIntervalInSecond  = 30
 const MinMetadataJsonFileSize  = 5
+const MinIpListLength  = 8
 

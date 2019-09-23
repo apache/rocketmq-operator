@@ -260,7 +260,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			log.Info("subscriptionGroupCommand: " + subscriptionGroupCommand)
 			MakeConfigDirCommand := "mkdir -p " + cons.StoreConfigDir
 			ChmodDirCommand := "chmod a+rw " + cons.StoreConfigDir
-			log.Info("ChmodDirCommand: " + ChmodDirCommand)
 			cmd = []string{"/bin/bash", "-c", MakeConfigDirCommand + " && " + ChmodDirCommand + " && " + topicsCommand + " && " + subscriptionGroupCommand}
 		}
 	}
