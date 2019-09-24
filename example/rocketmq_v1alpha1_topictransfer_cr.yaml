@@ -23,6 +23,6 @@ spec:
   # consumerGroup defines the consumer group
   consumerGroup: please_rename_unique_group_name_4
   # sourceCluster define the source cluster
-  sourceCluster: broker
+  sourceCluster: broker-0
   # targetCluster defines the target cluster
-  targetCluster: targetbroker
+  targetCluster: broker-1

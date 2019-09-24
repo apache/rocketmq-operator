@@ -308,7 +308,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	//	}
 	//}
 
-	return reconcile.Result{true, time.Duration(3) * time.Second}, nil
+	return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 }
 
 func getCopyMetadataJsonCommand(dir string, sourcePodName string, namespace string, k8s *tool.K8sClient) string {
@@ -414,7 +414,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 							Value: strconv.Itoa(replicaIndex),
 						}, {
 							Name:  cons.EnvBrokerClusterName,
-							Value: broker.Name,
+							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
 						}, {
 							Name:  cons.EnvBrokerName,
 							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),

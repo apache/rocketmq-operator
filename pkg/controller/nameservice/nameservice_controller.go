@@ -232,7 +232,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	}
 
 	if requeue {
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(3)*time.Second}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond)*time.Second}, nil
 	} else {
 		return reconcile.Result{}, nil
 	}
