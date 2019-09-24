@@ -33,8 +33,6 @@ type TopicTransferSpec struct {
 
 	// Topic name
 	Topic string `json:"topic,omitempty"`
-	// Consumer group
-	ConsumerGroup string `json:"consumerGroup,omitempty"`
 	// The cluster where the transferred topic from
 	SourceCluster string `json:"sourceCluster,omitempty"`
 	// The cluster where the topic will be transferred to

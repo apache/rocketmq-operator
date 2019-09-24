@@ -20,8 +20,6 @@ metadata:
 spec:
   # topic defines which topic to be transferred
   topic: TopicTest
-  # consumerGroup defines the consumer group
-  consumerGroup: please_rename_unique_group_name_4
   # sourceCluster define the source cluster
   sourceCluster: broker-0
   # targetCluster defines the target cluster

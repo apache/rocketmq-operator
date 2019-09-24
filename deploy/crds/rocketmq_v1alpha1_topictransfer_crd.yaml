@@ -29,9 +29,6 @@ spec:
           type: object
         spec:
           properties:
-            consumerGroup:
-              description: Consumer group
-              type: string
             sourceCluster:
               description: The cluster where the transferred topic from
               type: string
