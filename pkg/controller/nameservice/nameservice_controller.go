@@ -24,9 +24,9 @@ import (
 	"strconv"
 	"time"
 
-	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
-	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
+	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	cons "github.com/apache/rocketmq-operator/pkg/constants"
+	"github.com/apache/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -188,9 +188,9 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		share.NameServersStr = nameServerListStr[:len(nameServerListStr)-1]
 		reqLogger.Info("share.NameServersStr:" + share.NameServersStr)
 
-		if len(oldNameServerListStr) < 8 {
+		if len(oldNameServerListStr) <= cons.MinIpListLength {
 			oldNameServerListStr = share.NameServersStr
-		} else if len(share.NameServersStr) > 8 {
+		} else if len(share.NameServersStr) > cons.MinIpListLength {
 			oldNameServerListStr = oldNameServerListStr[:len(oldNameServerListStr)-1]
 			share.IsNameServersStrUpdated = true
 		}
@@ -206,7 +206,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		}
 
 		// use admin tool to update broker config
-		if share.IsNameServersStrUpdated && (len(oldNameServerListStr) > 8) && (len(share.NameServersStr) > 8) {
+		if share.IsNameServersStrUpdated && (len(oldNameServerListStr) > cons.MinIpListLength) && (len(share.NameServersStr) > cons.MinIpListLength) {
 			mqAdmin := cons.AdminToolDir
 			subCmd := cons.UpdateBrokerConfig
 			key := cons.ParamNameServiceAddress
@@ -232,7 +232,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	}
 
 	if requeue {
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(3)*time.Second}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond)*time.Second}, nil
 	} else {
 		return reconcile.Result{}, nil
 	}

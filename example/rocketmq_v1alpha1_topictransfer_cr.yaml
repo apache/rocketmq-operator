@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -15,15 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-kubectl create -f deploy/crds/rocketmq_v1alpha1_broker_crd.yaml
-kubectl create -f deploy/crds/rocketmq_v1alpha1_nameservice_crd.yaml
-kubectl create -f deploy/crds/rocketmq_v1alpha1_topictransfer_cr.yaml
-kubectl create -f deploy/service_account.yaml
-kubectl create -f deploy/role.yaml
-kubectl create -f deploy/role_binding.yaml
-kubectl create -f deploy/operator.yaml
-
-echo "Wait for operator being ready..."
-sleep 2
-#kubectl create -f example/rocketmq_v1alpha1_nameservice_cr.yaml
-#kubectl create -f example/rocketmq_v1alpha1_broker_cr.yaml
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: TopicTransfer
+metadata:
+  name: topictransfer
+spec:
+  # topic defines which topic to be transferred
+  topic: TopicTest
+  # sourceCluster define the source cluster
+  sourceCluster: broker-0
+  # targetCluster defines the target cluster
+  targetCluster: broker-1

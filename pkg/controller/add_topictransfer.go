@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package apis
+package controller
 
 import (
-	"github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	"github.com/apache/rocketmq-operator/pkg/controller/topictransfer"
 )
 
 func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme)
+	// AddToManagerFuncs is a list of functions to create controllers and add them to a manager.
+	AddToManagerFuncs = append(AddToManagerFuncs, topictransfer.Add)
 }

@@ -17,6 +17,7 @@
     - [Name Server Cluster Scale](#name-server-cluster-scale)
     - [Broker Cluster Scale](#broker-cluster-scale)
         - [Up-scale Broker in Out-of-order Message Scenario](#up-scale-broker-in-out-of-order-message-scenario)
+- [Topic Transfer](#topic-transfer)
 - [Clean the Environment](#clean-the-environment)
 
 ## Overview
@@ -346,6 +347,62 @@ It is often the case that with the development of your business, the old broker 
 kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml
 ```
 Then a new broker group of pods will be deployed and meanwhile the operator will copy the metadata from the source broker pod to the newly created broker pods before the new brokers are stared, so the new brokers will reload previous topic and subscription information.
+
+## Topic Transfer
+
+```Topic Transfer``` means that the user wants to migrate the work of providing service for a specific topic from a source(original) cluster to a target cluster without affecting the business. This may happen when the source cluster is about to shutdown, or the user wants to reduce the workload on the source cluster.
+
+Usually the ```Topic Transfer``` process consists of 7 steps:
+
+1. Add all consumer groups of the topic to the target cluster.
+
+2. Add the topic to be transferred to the target cluster. 
+
+3. Forbid new message writing into the source cluster.
+
+4. Check the consumer group consumption progress to make sure all messages in the source cluster have been consumed.
+
+5. Delete the topic in the source cluster when all messages in the source cluster have been consumed.
+
+6. Delete the consumer groups in the source cluster.
+
+7. Add the retry-topic to the target cluster.
+
+The TopicTransfer CRD can help you do that. Simply configure the CR file ```example/rocketmq_v1alpha1_topictransfer_cr.yaml```:
+
+```
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: TopicTransfer
+metadata:
+  name: topictransfer
+spec:
+  # topic defines which topic to be transferred
+  topic: TopicTest
+  # sourceCluster define the source cluster
+  sourceCluster: broker-0
+  # targetCluster defines the target cluster
+  targetCluster: broker-1
+```
+
+Then apply the ```TopicTransfer``` resource:
+
+```
+$ kubectl apply -f example/rocketmq_v1alpha1_topictransfer_cr.yaml
+```
+
+The operator will automatically do the topic transfer job. 
+
+If the transfer process is failed, the operator will roll-back the transfer operations for the atomicity of the ```TopicTransfer``` operation.
+
+You can check the operator logs or consume progress status to monitor and verify the topic transfer process:
+
+```
+$ kubectl logs -f [operator-pod-name] 
+```
+
+```
+$ sh bin/mqadmin consumerprogress -g [consumer-group] -n [name-server-ip]:9876
+```
 
 ## Clean the Environment
 If you want to tear down the RocketMQ cluster, to remove the broker clusters run

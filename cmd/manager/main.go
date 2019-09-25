@@ -24,8 +24,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/apis"
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/controller"
+	"github.com/apache/rocketmq-operator/pkg/apis"
+	"github.com/apache/rocketmq-operator/pkg/controller"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"

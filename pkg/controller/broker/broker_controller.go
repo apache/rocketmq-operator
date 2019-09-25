@@ -24,10 +24,10 @@ import (
 	"strings"
 	"time"
 
-	rocketmqv1alpha1 "github.com/operator-sdk-samples/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
-	cons "github.com/operator-sdk-samples/rocketmq-operator/pkg/constants"
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/share"
-	"github.com/operator-sdk-samples/rocketmq-operator/pkg/tool"
+	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	cons "github.com/apache/rocketmq-operator/pkg/constants"
+	"github.com/apache/rocketmq-operator/pkg/share"
+	"github.com/apache/rocketmq-operator/pkg/tool"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -258,7 +258,9 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			log.Info("topicsCommand: " + topicsCommand)
 			subscriptionGroupCommand := getCopyMetadataJsonCommand(cons.SubscriptionGroupJsonDir, sourcePodName, broker.Namespace, k8s)
 			log.Info("subscriptionGroupCommand: " + subscriptionGroupCommand)
-			cmd = []string{"/bin/bash", "-c", topicsCommand + " && " + subscriptionGroupCommand}
+			MakeConfigDirCommand := "mkdir -p " + cons.StoreConfigDir
+			ChmodDirCommand := "chmod a+rw " + cons.StoreConfigDir
+			cmd = []string{"/bin/bash", "-c", MakeConfigDirCommand + " && " + ChmodDirCommand + " && " + topicsCommand + " && " + subscriptionGroupCommand}
 		}
 	}
 
@@ -306,7 +308,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	//	}
 	//}
 
-	return reconcile.Result{true, time.Duration(3) * time.Second}, nil
+	return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 }
 
 func getCopyMetadataJsonCommand(dir string, sourcePodName string, namespace string, k8s *tool.K8sClient) string {
@@ -325,10 +327,11 @@ func buildInputCommand(source string) []string {
 }
 
 func buildOutputCommand(content string, dest string) []string {
+	replaced := strings.Replace(content,"\"","\\\"", -1)
 	cmdOpts := []string{
 		"echo",
 		"-e",
-		"\"" + content + "\"",
+		"\"" + replaced + "\"",
 		">",
 		dest,
 	}
@@ -411,7 +414,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 							Value: strconv.Itoa(replicaIndex),
 						}, {
 							Name:  cons.EnvBrokerClusterName,
-							Value: broker.Name,
+							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
 						}, {
 							Name:  cons.EnvBrokerName,
 							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),

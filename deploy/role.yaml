@@ -53,5 +53,6 @@ rules:
   - '*'
   - brokers
   - pods/exec
+  - topictransfers
   verbs:
   - '*'

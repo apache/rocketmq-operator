@@ -19,7 +19,9 @@ package constants
 
 const BrokerClusterPrefix = "broker-cluster-"
 const BrokerContainerName = "broker"
+const BasicCommand = "sh"
 const AdminToolDir = "/home/rocketmq/rocketmq-4.5.0/bin/mqadmin"
+const StoreConfigDir = "/home/rocketmq/store/config"
 const TopicJsonDir = "/home/rocketmq/store/config/topics.json"
 const SubscriptionGroupJsonDir = "/home/rocketmq/store/config/subscriptionGroup.json"
 const UpdateBrokerConfig  = "updateBrokerConfig"
@@ -41,11 +43,19 @@ const BrokerMainContainerPort  = 10911
 const BrokerMainContainerPortName = "main"
 const BrokerHighAvailabilityContainerPort  = 10912
 const BrokerHighAvailabilityContainerPortName = "ha"
-
+// storage modes
 const StorageModeNFS  = "NFS"
 const StorageModeEmptyDir  = "EmptyDir"
 const StorageModeHostPath  = "HostPath"
-
+// threshold values
 const RestartBrokerPodIntervalInSecond  = 30
 const MinMetadataJsonFileSize  = 5
-
+const MinIpListLength  = 8
+const CheckConsumeFinishIntervalInSecond = 5
+const RequeueIntervalInSecond = 6
+// fields
+const TopicIndex = 0
+const BrokerNameIndex = 1
+const DiffIndex = 6
+const TopicListTopic = 1
+const TopicListConsumerGroup = 2
