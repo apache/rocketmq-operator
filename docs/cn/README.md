@@ -1,9 +1,7 @@
-## RocketMQ Operator
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+# RocketMQ Operator 用户手册
 
-## Table of Contents
-- [RocketMQ Operator](#rocketmq-operator)
-- [Overview](#overview)
+## 目录
+- [概览](#overview)
 - [Quick Start](#quick-start)
     - [Prepare Volume Persistence](#prepare-volume-persistence)
         - [Prepare HostPath](#prepare-hostpath)
@@ -20,18 +18,19 @@
 - [Topic Transfer](#topic-transfer)
 - [Clean the Environment](#clean-the-environment)
 
-## Overview
+## 概览
 
-RocketMQ Operator is to manage RocketMQ service instances deployed on the Kubernetes cluster.
-It is built using the [Operator SDK](https://github.com/operator-framework/operator-sdk), which is part of the [Operator Framework](https://github.com/operator-framework/).
+RocketMQ Operator是一款管理Kubernetes集群上部署的RocketMQ服务集群的工具。
+它是使用[Operator SDK](https://github.com/operator-framework/operator-sdk)构建的，基于[Operator Framework](https://github.com/operator-framework/)提供的Operator标准框架。
 
-![RocketMQ-Operator architecture](docs/img/operator-arch.png)
+![RocketMQ-Operator architecture](../img/operator-arch.png)
 
-## Quick Start
+## 快速开始
 
-### Prepare Volume Persistence
+### 持久化准备工作
 
-Currently we provide several ways of your RocketMQ data persistence: ```EmptyDir```, ```HostPath``` and ```NFS```, which can be configured in CR files, for example in ```rocketmq_v1alpha1_nameservice_cr.yaml```:
+我们支持多种持久化您的RocketMQ数据的方式，包括：```EmptyDir```, ```HostPath``` 以及 ```NFS```。 您可以通过在示例资源文件例如```rocketmq_v1alpha1_nameservice_cr.yaml```中配置来选择您想要的存储方式：
+
 ```
 ...
  # storageMode can be EmptyDir, HostPath, NFS
@@ -39,15 +38,15 @@ Currently we provide several ways of your RocketMQ data persistence: ```EmptyDir
 ...
 ```
 
-If you choose ```EmptyDir```, you don't need to do extra preparation steps for data persistence. But the data storage life is the same with the pod's life, if the pod is deleted you may lost the data.
+如果您选择的是```EmptyDir```，那么您不需要做额外的准备工作来持久化数据。但是该方式下数据的持久化生命周期与对应的pod的生命周期相同，这意味着如果pod被删除您将有可能会丢失对应pod上的数据。
 
-If you choose other storage modes, please refer to the following instructions to prepare the data persistence.
+如果您选择的是其他持久化存储方式，请根据下面的指导完成相应的准备工作。
 
-#### Prepare HostPath
+#### HostPath （宿主机本地路径）准备工作
 
-This storage mode means the RocketMQ data (including all the logs and store files) is stored in each host where the pod lies on. In that case you need to create an dir where you want the RocketMQ data to be stored on. 
+该存储方式下，RocketMQ的数据（包括所有的日志和存储文件）会存储在每个pod对应所在的宿主机的本地路径上。 因此您需要事先准备好您希望挂载的本地路径及其统一名称。
 
-We provide a script in ```deploy/storage/hostpath/prepare-host-path.sh```, which you can use to create the ```HostPath``` dir on every worker node of your Kubernetes cluster. 
+为了方便您的准备工作，我们提供一个脚本```deploy/storage/hostpath/prepare-host-path.sh```用来帮助您创建```HostPath```本地路径：
 
 ```
 $ cd deploy/storage/hostpath
@@ -59,30 +58,32 @@ Changed hostPath /data/rocketmq/nameserver uid to 3000, gid to 3000
 Changed hostPath /data/rocketmq/broker uid to 3000, gid to 3000
 ```
 
-You may refer to the instructions in the script for more information.
+> 注意： 您需要在每台可能被部署RocketMQ的Kubernetes节点上运行此脚本，以便在每台节点上都准备好```HostPath```路径。
+> 
+> 默认创建的路径名与```example```下的示例自定义资源配置文件中的一致。您可以查看```prepare-host-path.sh```脚本的内容以获得更多相关信息。
 
-#### Prepare Storage Class of NFS
+#### 基于NFS的StorageClass准备工作
 
-If you choose NFS as the storage mode, the first step is to prepare a storage class based on NFS provider to create PV and PVC where the RocketMQ data will be stored. 
+如果您选择NFS作为您的RocketMQ数据存储方式，您将需要先在您的Kubernetes集群上部署好NFS服务端并在其他节点上部署好NFS客户端，然后准备一个基于```NFS provider```的StorageClass资源用来自动创建PV和PVC资源。如果您对以上概念不了解也没有关系，仅需按照以下步骤操作即可：
 
-1. Deploy NFS server and clients on your Kubernetes cluster. Please make sure they are functional before you go to the next step. Here is a instruction on how to verify NFS service.
+1. 在您的Kubernetes集群上部署好NFS服务端并在其他节点上部署好NFS客户端，部署方法可以参考[NFS部署文档](nfs_install_cn.md)。 请在下一步准备工作之前确保NFS服务工作正常，以下是一个简单的确认NFS工作正常的方法：
 
-    1) On your NFS client node, check if NFS shared dir exists.
+    1) 在您的NFS客户端节点上检查NFS共享路径是否存在：
     ```
    $ showmount -e 192.168.130.32
    Export list for 192.168.130.32:
    /data/k8s * 
     ```
-    2) On your NFS client node, create a test dir and mount it to the NFS shared dir (you may need sudo permission).
+    2) 在您的NFS客户端节点上创建一个测试路径，并将该路径挂载到NFS共享路径上(这一步您可能需要管理员权限)：
     ```
    $ mkdir -p   ~/test-nfc
    $ mount -t nfs 192.168.130.32:/data/k8s ~/test-nfc
     ```
-    3) On your NFS client node, create a test file on the mounted test dir.
+    3) 在您的NFS客户端节点上，在上面的测试路径下创建一个测试文件：
     ```
    $ touch ~/test-nfc/test.txt
     ```
-   4) On your NFS server node, check the shared dir. If there exists the test file we created on the client node, it proves the NFS service is functional.
+   4) 在您的NFS服务端节点上, 检查共享路径。 如果共享路径下存在您刚刚在NFS客户端节点上创建的测试文件，证明NFS是在正常工作的：
    ```
    $ ls -ls /data/k8s/
    total 4
