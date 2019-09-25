@@ -431,8 +431,3 @@ $ ./remove-storage-class.sh
 ```
 
 > Note: the NFS persistence data will not be deleted by default.
-
-
-```kubectl apply -f rocketmq-operator.yaml```
-
-```kubectl apply -f rocketmq-cluster.yaml```
