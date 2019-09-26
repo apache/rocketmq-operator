@@ -45,7 +45,7 @@ $ cd rocketmq-operator
 $ ./install-operator.sh
 ```
 
-Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
+3. Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
 
 ```
 $ kubectl get pods
@@ -94,7 +94,7 @@ You may refer to the instructions in the script for more information.
 
 If you choose NFS as the storage mode, the first step is to prepare a storage class based on NFS provider to create PV and PVC where the RocketMQ data will be stored. 
 
-1. Deploy NFS server and clients on your Kubernetes cluster. Please make sure they are functional before you go to the next step. Here is a instruction on how to verify NFS service.
+1. Deploy NFS server and clients on your Kubernetes cluster. You can refer to [NFS deployment document](docs/en/nfs_install_en.md) for more details. Please make sure they are functional before you go to the next step. Here is a instruction on how to verify NFS service.
 
     1) On your NFS client node, check if NFS shared dir exists.
     ```
@@ -140,7 +140,9 @@ Replace ```192.168.130.32``` and ```/data/k8s``` with your true NFS server IP ad
 $ cd deploy/storage
 $ ./deploy-storage-class.sh
 ```
-If the storage class is successfully deployed, you can get the pod status like:
+
+4. If the storage class is successfully deployed, you can get the pod status like:
+
 ```
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
@@ -182,7 +184,7 @@ spec:
             storage: 1Gi
 ```
 
-which defines the RocketMQ name service (namesrv) cluster scale.
+which defines the RocketMQ name service (name server) cluster scale.
 
 2. Check the file ```rocketmq_v1alpha1_broker_cr.yaml``` in the ```example``` directory, for example:
 ```

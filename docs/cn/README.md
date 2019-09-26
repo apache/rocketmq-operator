@@ -1,4 +1,4 @@
-# RocketMQ Operator 用户手册
+# RocketMQ Operator
 
 ## 目录
 
@@ -24,7 +24,7 @@ Switch to [English Document](../../README.md)
 
 ## 概览
 
-RocketMQ Operator是一款管理Kubernetes集群上部署的RocketMQ服务集群的工具。
+RocketMQ Operator的作用是管理基于Kubernetes平台的RocketMQ服务集群。
 它是使用[Operator SDK](https://github.com/operator-framework/operator-sdk)构建的，基于[Operator Framework](https://github.com/operator-framework/)提供的Operator标准框架。
 
 ![RocketMQ-Operator architecture](../img/operator-arch.png)
@@ -45,7 +45,7 @@ $ cd rocketmq-operator
 $ ./install-operator.sh
 ```
 
-使用命令 ```kubectl get pods``` 来检查RocketMQ Operator的部署状态，若部署成功将产生类似下面的输出:
+3. 使用命令 ```kubectl get pods``` 来检查RocketMQ Operator的部署状态，若部署成功将产生类似下面的输出:
 
 ```
 $ kubectl get pods
@@ -57,7 +57,7 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 
 ### 持久化准备工作
 
-在您部署RocketMQ集群之前，您需要做一些数据持久化的准备工作。目前RocketMQ Operator支持多种持久化RocketMQ数据的方式，包括：```EmptyDir```, ```HostPath``` 以及 ```NFS```。 
+在部署RocketMQ集群之前，您需要做一些数据持久化的准备工作。目前RocketMQ Operator支持多种持久化RocketMQ数据的方式，包括：```EmptyDir```, ```HostPath``` 以及 ```NFS```。 
 
 您可以通过在示例资源文件例如```rocketmq_v1alpha1_nameservice_cr.yaml```中配置来选择您想要的存储方式：
 
@@ -94,7 +94,7 @@ Changed hostPath /data/rocketmq/broker uid to 3000, gid to 3000
 
 #### 基于NFS的StorageClass准备工作
 
-如果您选择NFS作为您的RocketMQ数据存储方式，您将需要先在您的Kubernetes集群上部署好NFS服务端并在其他节点上部署好NFS客户端，然后准备一个基于```NFS provider```的StorageClass资源用来自动创建PV和PVC资源。如果您对以上概念不了解也没有关系，仅需按照以下步骤操作即可：
+如果您选择NFS作为RocketMQ数据存储方式，您将需要先在Kubernetes集群上部署好NFS服务端，并在其他节点上部署好NFS客户端，然后准备一个基于```NFS```的```StorageClass```资源用来自动创建PV和PVC资源。如果您对以上概念不了解也没有关系，仅需按照以下步骤操作即可：
 
 1. 在您的Kubernetes集群上部署好NFS服务端并在其他节点上部署好NFS客户端，部署方法可以参考[NFS部署文档](nfs_install_cn.md)。 请在下一步准备工作之前确保NFS服务工作正常，以下是一个简单的确认NFS工作正常的方法：
 
@@ -143,7 +143,7 @@ $ cd deploy/storage
 $ ./deploy-storage-class.sh
 ```
 
-如果StorageClass创建并部署成功，您将可以通过以下命令获得类似如下集群pod状态：
+4. 如果StorageClass创建并部署成功，您将可以通过以下命令获得类似如下集群pod状态：
 
 ```
 $ kubectl get pods
