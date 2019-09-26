@@ -2,14 +2,14 @@
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 ## Table of Contents
-- [RocketMQ Operator](#rocketmq-operator)
 - [Overview](#overview)
 - [Quick Start](#quick-start)
+    - [Deploy RocketMQ Operator](#deploy-rocketmq-operator)
     - [Prepare Volume Persistence](#prepare-volume-persistence)
         - [Prepare HostPath](#prepare-hostpath)
         - [Prepare Storage Class of NFS](#prepare-storage-class-of-nfs)
     - [Define Your RocketMQ Cluster](#define-your-rocketmq-cluster)
-    - [Deploy RocketMQ Operator & Create RocketMQ Cluster](#deploy-rocketmq-operator--create-rocketmq-cluster)
+    - [Create RocketMQ Cluster](#create-rocketmq-cluster)
     - [Verify the Data Storage](#verify-the-data-storage)
         - [Verify HostPath Storage](#verify-hostpath-storage)
         - [Verify NFS storage](#verify-nfs-storage)
@@ -18,7 +18,9 @@
     - [Broker Cluster Scale](#broker-cluster-scale)
         - [Up-scale Broker in Out-of-order Message Scenario](#up-scale-broker-in-out-of-order-message-scenario)
 - [Topic Transfer](#topic-transfer)
-- [Clean the Environment](#clean-the-environment)
+- [Clean the Environment](#clean-the-environment)
+
+点击这里切换为[中文](docs/cn/README.md)
 
 ## Overview
 
@@ -29,9 +31,36 @@ It is built using the [Operator SDK](https://github.com/operator-framework/opera
 
 ## Quick Start
 
+### Deploy RocketMQ Operator
+
+1. Clone the project on your Kubernetes cluster master node:
+```
+$ git clone https://github.com/apache/rocketmq-operator.git
+$ cd rocketmq-operator
+```
+
+2. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following script:
+
+```
+$ ./install-operator.sh
+```
+
+Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
+
+```
+$ kubectl get pods
+NAME                                      READY   STATUS    RESTARTS   AGE
+rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
+```
+
+Now you can use the CRDs provide by RocketMQ Operator to deploy your RocketMQ cluster.
+
 ### Prepare Volume Persistence
 
-Currently we provide several ways of your RocketMQ data persistence: ```EmptyDir```, ```HostPath``` and ```NFS```, which can be configured in CR files, for example in ```rocketmq_v1alpha1_nameservice_cr.yaml```:
+Before RocketMQ deployment, you may need to do some preparation steps for RocketMQ data persistence. 
+
+Currently we provide several options for your RocketMQ data persistence: ```EmptyDir```, ```HostPath``` and ```NFS```, which can be configured in CR files, for example in ```rocketmq_v1alpha1_nameservice_cr.yaml```:
+
 ```
 ...
  # storageMode can be EmptyDir, HostPath, NFS
@@ -116,11 +145,12 @@ If the storage class is successfully deployed, you can get the pod status like:
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          136m
+rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 ```
 
 ### Define Your RocketMQ Cluster
 
-RocketMQ Operator provides several CRDs to allow users define their RocketMQ service component cluster, which includes the Namesrv cluster and the Broker cluster.
+RocketMQ Operator provides several CRDs to allow users define their RocketMQ service component cluster, which includes the Name Server cluster and the Broker cluster.
 
 1. Check the file ```rocketmq_v1alpha1_nameservice_cr.yaml``` in the ```example``` directory, for example:
 ```
@@ -168,7 +198,7 @@ spec:
   nameServers: 192.168.130.33:9876
   # replicationMode is the broker replica sync mode, can be ASYNC or SYNC
   replicationMode: ASYNC
-  # replicaPerGroup is the number of each broker cluster
+  # replicaPerGroup is the number of replica broker in each group
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
   brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
@@ -196,25 +226,9 @@ spec:
 ``` 
 which defines the RocketMQ broker cluster scale, the [ip:port] list of name service and so on.
 
-### Deploy RocketMQ Operator & Create RocketMQ Cluster
+### Create RocketMQ Cluster
 
-1. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following script:
-
-```
-$ ./install-operator.sh
-```
-
-Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
-
-```
-$ kubectl get pods
-NAME                                      READY   STATUS    RESTARTS   AGE
-nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          146m
-rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
-```
-Now you can use the CRDs provide by RocketMQ Operator to deploy your RocketMQ cluster.
- 
-2. Deploy the RocketMQ name service cluster by running:
+1. Deploy the RocketMQ name service cluster by running:
 
 ``` 
 $ kubectl apply -f example/rocketmq_v1alpha1_nameservice_cr.yaml 
@@ -233,13 +247,13 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          5m53s   1
 
 We can see that there are 1 name service Pods running on 1 nodes and their IP addresses. Modify the ```nameServers``` field in the ```rocketmq_v1alpha1_broker_cr.yaml``` file using the IP addresses.
 
-3. Deploy the RocketMQ broker clusters by running:
+2. Deploy the RocketMQ broker clusters by running:
 ```
 $ kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml
 broker.rocketmq.apache.org/broker created 
 ```
 
-After a while after the Containers are created, the Kubernetes clusters status should be like:
+After a while the Broker Containers will be created, the Kubernetes clusters status should be like:
 
 ``` 
 $ kubectl get pods -owide
@@ -253,7 +267,7 @@ nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          153m    1
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          8m42s   10.244.2.116     k2data-14   <none>           <none>
 ```
 
-Check the PV and PVC status:
+3. Check the PV and PVC status:
 ```
 $ kubectl get pvc
 NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS       AGE
@@ -368,7 +382,7 @@ Usually the ```Topic Transfer``` process consists of 7 steps:
 
 * Add the retry-topic to the target cluster.
 
-The TopicTransfer CRD can help you do that. Simply configure the CR file ```example/rocketmq_v1alpha1_topictransfer_cr.yaml```:
+The ```TopicTransfer``` CRD can help you do that. Simply configure the CR file ```example/rocketmq_v1alpha1_topictransfer_cr.yaml```:
 
 ```
 apiVersion: rocketmq.apache.org/v1alpha1
@@ -405,6 +419,7 @@ $ sh bin/mqadmin consumerprogress -g [consumer-group] -n [name-server-ip]:9876
 ```
 
 ## Clean the Environment
+
 If you want to tear down the RocketMQ cluster, to remove the broker clusters run
 
 ```
@@ -430,4 +445,6 @@ $ cd deploy/storage
 $ ./remove-storage-class.sh
 ```
 
-> Note: the NFS persistence data will not be deleted by default.
+> Note: the NFS and HostPath persistence data will not be deleted by default.
+
+## Clean the Environment
