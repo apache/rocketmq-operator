@@ -446,5 +446,3 @@ $ ./remove-storage-class.sh
 ```
 
 > Note: the NFS and HostPath persistence data will not be deleted by default.
-
-## Clean the Environment
