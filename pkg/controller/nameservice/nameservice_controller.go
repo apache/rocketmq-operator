@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// Package nameservice contains the implementation of the NameService CRD reconcile function
 package nameservice
 
 import (

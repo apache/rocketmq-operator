@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// Package topictransfer contains the implementation of the TopicTransfer CRD reconcile function
 package topictransfer
 
 import (

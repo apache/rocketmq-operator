@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// Package broker contains the implementation of the Broker CRD reconcile function
 package broker
 
 import (
