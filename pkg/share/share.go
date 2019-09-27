@@ -17,8 +17,14 @@
 
 package share
 
-// Broker cluster number
+// GroupNum: the number of broker group
 var GroupNum = 0
+
+// NameServersStr: the name server list
 var NameServersStr = ""
+
+// IsNameServersStrUpdated: whether the name server list is updated
 var IsNameServersStrUpdated = false
-var BrokerClusterName  = ""
+
+// BrokerClusterName: the broker cluster name
+var BrokerClusterName = ""

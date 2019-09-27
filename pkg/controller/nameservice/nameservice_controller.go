@@ -156,8 +156,7 @@ func (r *ReconcileNameService) Reconcile(request reconcile.Request) (reconcile.R
 	return r.updateNameServiceStatus(instance, request, true)
 }
 
-
-func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha1.NameService, request reconcile.Request, requeue bool) (reconcile.Result, error){
+func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha1.NameService, request reconcile.Request, requeue bool) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Check the NameServers status")
 	// List the pods for this nameService's statefulSet
@@ -219,7 +218,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldNameServerListStr, "-v", share.NameServersStr)
 			output, err := cmd.Output()
 			if err != nil {
-				reqLogger.Error(err, "Update Broker config "+key+" failed of cluster "+clusterName + ", command: " + command)
+				reqLogger.Error(err, "Update Broker config "+key+" failed of cluster "+clusterName+", command: "+command)
 				return reconcile.Result{Requeue: true}, err
 			}
 			reqLogger.Info("Successfully updated Broker config " + key + " of cluster " + clusterName + ", command: " + command + ", with output: " + string(output))
@@ -232,13 +231,13 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	}
 
 	if requeue {
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond)*time.Second}, nil
-	} else {
-		return reconcile.Result{}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 	}
+
+	return reconcile.Result{}, nil
 }
 
-func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1.PersistentVolumeClaim{
+func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1.PersistentVolumeClaim {
 	switch nameService.Spec.StorageMode {
 	case cons.StorageModeNFS:
 		return nameService.Spec.VolumeClaimTemplates
@@ -257,9 +256,7 @@ func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
 		volumes := []corev1.Volume{{
 			Name: nameService.Spec.VolumeClaimTemplates[0].Name,
 			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-
-				}},
+				EmptyDir: &corev1.EmptyDirVolumeSource{}},
 		}}
 		return volumes
 	case cons.StorageModeHostPath:
@@ -306,14 +303,14 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 				},
 				Spec: corev1.PodSpec{
 					HostNetwork: true,
-					DNSPolicy: "ClusterFirstWithHostNet",
+					DNSPolicy:   "ClusterFirstWithHostNet",
 					Containers: []corev1.Container{{
 						Image: nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",
 						ImagePullPolicy: nameService.Spec.ImagePullPolicy,
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: cons.NameServiceMainContainerPortNumber,
+							ContainerPort: cons.NameServiceMainContainerPort,
 							Name:          cons.NameServiceMainContainerPortName,
 						}},
 						VolumeMounts: []corev1.VolumeMount{{

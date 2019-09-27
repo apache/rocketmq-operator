@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// Package tool provides tools for operator communicating with K8S cluster
 package tool
 
 import (
@@ -33,12 +34,14 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
+// K8sClient is a struct which contains the kubernetes.Interface and *rest.Config.
 type K8sClient struct {
 	// kubernetes.Interface should be used instead of kubernets.Inteface for unit test (mocking)
 	ClientSet kubernetes.Interface
 	Config    *rest.Config
 }
 
+// NewK8sClient is to generate a K8s client for interacting with the K8S cluster.
 func NewK8sClient() (*K8sClient, error) {
 	var kubeconfig string
 	if kubeConfigPath := os.Getenv("KUBECONFIG"); kubeConfigPath != "" {
@@ -72,6 +75,8 @@ func NewK8sClient() (*K8sClient, error) {
 	return client, nil
 }
 
+// Exec enables operator to execute command in the pod's container in the K8S cluster.
+// It returns the standard output and the standard error output.
 func (client *K8sClient) Exec(namespace, podName, containerName string, command []string, stdin io.Reader) (*bytes.Buffer, *bytes.Buffer, error) {
 	clientset, config := client.ClientSet, client.Config
 
@@ -115,4 +120,3 @@ func (client *K8sClient) Exec(namespace, podName, containerName string, command 
 
 	return &stdout, &stderr, nil
 }
-
