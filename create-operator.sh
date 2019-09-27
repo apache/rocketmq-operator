@@ -26,6 +26,7 @@ export GO111MODULE=on
 
 if [ ! -e build/rocketmq.zip ]; then
   curl https://dist.apache.org/repos/dist/release/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip;
+  mv rocketmq.zip build
 fi
 
 # use the following 2 commands if you have updated the [kind]_type.go file or don't have zz_generated.deepcopy.go and zz_generated.openapi.go files
