@@ -71,7 +71,7 @@ const StoreSubPathName = "store"
 // NameServiceMainContainerPort is the main port number of name server container
 const NameServiceMainContainerPort = 9876
 
-// NameServiceMainContainerPort is the main port name of name server container
+// NameServiceMainContainerPortName is the main port name of name server container
 const NameServiceMainContainerPortName = "main"
 
 // BrokerVipContainerPort is the VIP port number of broker container
