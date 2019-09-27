@@ -115,4 +115,3 @@ func (client *K8sClient) Exec(namespace, podName, containerName string, command 
 
 	return &stdout, &stderr, nil
 }
-

@@ -21,4 +21,4 @@ package share
 var GroupNum = 0
 var NameServersStr = ""
 var IsNameServersStrUpdated = false
-var BrokerClusterName  = ""
+var BrokerClusterName = ""

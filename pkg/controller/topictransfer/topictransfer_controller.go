@@ -122,7 +122,6 @@ func (r *ReconcileTopicTransfer) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{}, err
 	}
 
-
 	topic := topicTransfer.Spec.Topic
 	targetCluster := topicTransfer.Spec.TargetCluster
 	sourceCluster := topicTransfer.Spec.SourceCluster
@@ -170,7 +169,7 @@ func (r *ReconcileTopicTransfer) Reconcile(request reconcile.Request) (reconcile
 			output, err := cmd.Output()
 			// validate command output
 			if err != nil || !isUpdateConsumerGroupSuccess(string(output)) {
-				reqLogger.Error(err, "Failed to add ConsumerGroup " + consumerGroup + " to TargetCluster " + targetCluster + " with output: " + string(output))
+				reqLogger.Error(err, "Failed to add ConsumerGroup "+consumerGroup+" to TargetCluster "+targetCluster+" with output: "+string(output))
 				// terminate the transfer process
 				undo = true
 				return reconcile.Result{Requeue: true}, err
@@ -186,7 +185,7 @@ func (r *ReconcileTopicTransfer) Reconcile(request reconcile.Request) (reconcile
 		output, err := cmd.Output()
 		// validate command output
 		if err != nil || !isUpdateTopicCommandSuccess(string(output)) {
-			reqLogger.Error(err, "Failed to add Topic " + topic + " to TargetCluster " + targetCluster + " with output: " + string(output))
+			reqLogger.Error(err, "Failed to add Topic "+topic+" to TargetCluster "+targetCluster+" with output: "+string(output))
 			// terminate the transfer process
 			undo = true
 			return reconcile.Result{Requeue: true}, err
@@ -201,7 +200,7 @@ func (r *ReconcileTopicTransfer) Reconcile(request reconcile.Request) (reconcile
 		output, err = cmd.Output()
 		// validate command output
 		if err != nil || !isUpdateTopicCommandSuccess(string(output)) {
-			reqLogger.Error(err, "Failed to stop Topic " + topic + " write in SourceCluster " + sourceCluster + " with output: " + string(output))
+			reqLogger.Error(err, "Failed to stop Topic "+topic+" write in SourceCluster "+sourceCluster+" with output: "+string(output))
 			// terminate the transfer process
 			undo = true
 			return reconcile.Result{Requeue: true}, err
@@ -240,7 +239,7 @@ func (r *ReconcileTopicTransfer) Reconcile(request reconcile.Request) (reconcile
 		cmd = exec.Command(cons.BasicCommand, cons.AdminToolDir, deleteSourceClusterTopicCommand)
 		output, err = cmd.Output()
 		if err != nil || !isDeleteTopicCommandSuccess(string(output)) {
-			reqLogger.Error(err, "Failed to delete Topic " + topic + " in SourceCluster " + sourceCluster + " with output: " + string(output))
+			reqLogger.Error(err, "Failed to delete Topic "+topic+" in SourceCluster "+sourceCluster+" with output: "+string(output))
 			// terminate the transfer process
 			undo = true
 			return reconcile.Result{Requeue: true}, err
@@ -273,7 +272,7 @@ func (r *ReconcileTopicTransfer) Reconcile(request reconcile.Request) (reconcile
 			cmd = exec.Command(cons.BasicCommand, cons.AdminToolDir, createRetryTopicCommand)
 			output, err = cmd.Output()
 			if err != nil || !isUpdateTopicCommandSuccess(string(output)) {
-				reqLogger.Error(err, "Failed to create retry topic of consumer group " + consumerGroup + " in TargetCluster " + targetCluster + " with output: " + string(output))
+				reqLogger.Error(err, "Failed to create retry topic of consumer group "+consumerGroup+" in TargetCluster "+targetCluster+" with output: "+string(output))
 				// terminate the transfer process
 				undo = true
 				return reconcile.Result{Requeue: true}, err
@@ -293,7 +292,7 @@ func undoStopWrite(topic string, cluster string, nameServer string) {
 	cmd := exec.Command(cons.BasicCommand, cons.AdminToolDir, addTopicToClusterCommand)
 	output, err := cmd.Output()
 	if err != nil || !isUpdateTopicCommandSuccess(string(output)) {
-		log.Error(err, "Failed to undo stop write topic with output: " + string(output))
+		log.Error(err, "Failed to undo stop write topic with output: "+string(output))
 	}
 	log.Info("Successfully undo stop write topic with output: " + string(output))
 }
@@ -304,7 +303,7 @@ func undoDeleteTopic(topic string, cluster string, nameServer string) {
 	cmd := exec.Command(cons.BasicCommand, cons.AdminToolDir, addTopicToClusterCommand)
 	output, err := cmd.Output()
 	if err != nil || !isUpdateTopicCommandSuccess(string(output)) {
-		log.Error(err, "Failed to undo delete topic with output: " + string(output))
+		log.Error(err, "Failed to undo delete topic with output: "+string(output))
 	}
 	log.Info("Successfully undo delete topic with output: " + string(output))
 }
@@ -316,7 +315,7 @@ func undoDeleteConsumeGroup(consumerGroups []string, cluster string, nameServer 
 		cmd := exec.Command(cons.BasicCommand, cons.AdminToolDir, addConsumerGroupToTargetClusterCommand)
 		output, err := cmd.Output()
 		if err != nil || !isUpdateConsumerGroupSuccess(string(output)) {
-			log.Error(err, "Failed to undo delete consume group with output: " + string(output))
+			log.Error(err, "Failed to undo delete consume group with output: "+string(output))
 		}
 		log.Info("Successfully undo delete consume group with output: " + string(output))
 	}
@@ -328,7 +327,7 @@ func getConsumerGroupByTopic(topic string, nameServer string) []string {
 	cmd := exec.Command(cons.BasicCommand, cons.AdminToolDir, topicListCmd)
 	output, err := cmd.Output()
 	if err != nil || !isTopicListSuccess(string(output)) {
-		log.Error(err, "Failed to list topic with output: " + string(output))
+		log.Error(err, "Failed to list topic with output: "+string(output))
 		return nil
 	}
 	log.Info("topicListCmd output: " + string(output))
@@ -420,7 +419,7 @@ func buildAddRetryTopicToClusterCommand(consumerGroup string, cluster string, na
 
 func getClusterBrokerNames(cluster string) []string {
 	// TODO: consider more scenarios
-	return []string {cluster}
+	return []string{cluster}
 }
 
 func isConsumeFinished(output string, topic string, cluster string) bool {
@@ -428,14 +427,14 @@ func isConsumeFinished(output string, topic string, cluster string) bool {
 	brokers := getClusterBrokerNames(cluster)
 	for i := 1; i < len(lines); i++ {
 		fields := strings.Fields(strings.TrimSpace(lines[i]))
-		if len(fields) > cons.DiffIndex {
+		if len(fields) > cons.Diff {
 			for _, broker := range brokers {
 				log.Info("broker = " + broker)
-				log.Info("fields[cons.TopicIndex] = " + fields[cons.TopicIndex] + " , in line " + strconv.Itoa(i))
-				log.Info("fields[cons.BrokerNameIndex] = " + fields[cons.BrokerNameIndex] + " , in line " + strconv.Itoa(i))
-				log.Info("fields[cons.DiffIndex] = " + fields[cons.DiffIndex] + " , in line " + strconv.Itoa(i))
-				if fields[cons.TopicIndex] == topic && fields[cons.BrokerNameIndex] == broker {
-					if fields[cons.DiffIndex] != "0" {
+				log.Info("fields[cons.Topic] = " + fields[cons.Topic] + " , in line " + strconv.Itoa(i))
+				log.Info("fields[cons.BrokerName] = " + fields[cons.BrokerName] + " , in line " + strconv.Itoa(i))
+				log.Info("fields[cons.Diff] = " + fields[cons.Diff] + " , in line " + strconv.Itoa(i))
+				if fields[cons.Topic] == topic && fields[cons.BrokerName] == broker {
+					if fields[cons.Diff] != "0" {
 						return false
 					}
 				}

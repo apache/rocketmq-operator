@@ -149,7 +149,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			reqLogger.Info("Creating a new Master Broker StatefulSet.", "StatefulSet.Namespace", dep.Namespace, "StatefulSet.Name", dep.Name)
 			err = r.client.Create(context.TODO(), dep)
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new StatefulSet of "+cons.BrokerClusterPrefix+strconv.Itoa(brokerGroupIndex), "StatefulSet.Namespace", dep.Namespace, "StatefulSet.Name", dep.Name)
+				reqLogger.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", dep.Namespace, "StatefulSet.Name", dep.Name)
 			}
 		} else if err != nil {
 			reqLogger.Error(err, "Failed to get broker master StatefulSet.")
@@ -170,7 +170,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			}
 		}
 	}
-
 
 	// Check for name server scaling
 	if broker.Spec.AllowRestart {
@@ -247,11 +246,11 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	if !isInitial {
-		if broker.Spec.Size != broker.Status.Size  {
+		if broker.Spec.Size != broker.Status.Size {
 			// Get the metadata including subscriptionGroup.json and topics.json from scale source pod
 			k8s, err := tool.NewK8sClient()
 			if err != nil {
-				log.Error(err,"Error occurred while getting K8s Client" )
+				log.Error(err, "Error occurred while getting K8s Client")
 			}
 			sourcePodName := broker.Spec.ScalePodName
 			topicsCommand := getCopyMetadataJsonCommand(cons.TopicJsonDir, sourcePodName, broker.Namespace, k8s)
@@ -265,7 +264,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	// Update status.Size if needed
-	if broker.Spec.Size != broker.Status.Size  {
+	if broker.Spec.Size != broker.Status.Size {
 		log.Info("broker.Status.Size = " + strconv.Itoa(broker.Status.Size))
 		log.Info("broker.Spec.Size = " + strconv.Itoa(broker.Spec.Size))
 		broker.Status.Size = broker.Spec.Size
@@ -283,7 +282,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			reqLogger.Error(err, "Failed to update Broker Nodes status.")
 		}
 	}
-
 
 	//podList := &corev1.PodList{}
 	//labelSelector := labels.SelectorFromSet(labelsForBroker(broker.Name))
@@ -327,7 +325,7 @@ func buildInputCommand(source string) []string {
 }
 
 func buildOutputCommand(content string, dest string) []string {
-	replaced := strings.Replace(content,"\"","\\\"", -1)
+	replaced := strings.Replace(content, "\"", "\\\"", -1)
 	cmdOpts := []string{
 		"echo",
 		"-e",
@@ -350,7 +348,7 @@ func exec(cmdOpts []string, podName string, k8s *tool.K8sClient, namespace strin
 	}
 
 	if err != nil {
-		log.Error(err, "Error occurred while running command: " + strings.Join(cmdOpts, " "))
+		log.Error(err, "Error occurred while running command: "+strings.Join(cmdOpts, " "))
 		log.Info("stdout: " + output)
 	} else {
 		log.Info("output: " + output)
@@ -385,7 +383,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 				MatchLabels: ls,
 			},
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
-				Type:          appsv1.RollingUpdateStatefulSetStrategyType,
+				Type: appsv1.RollingUpdateStatefulSetStrategyType,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
@@ -393,8 +391,8 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           broker.Spec.BrokerImage,
-						Name:            cons.BrokerContainerName,
+						Image: broker.Spec.BrokerImage,
+						Name:  cons.BrokerContainerName,
 						Lifecycle: &corev1.Lifecycle{
 							PostStart: &corev1.Handler{
 								Exec: &corev1.ExecAction{
@@ -432,8 +430,8 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.LogSubPathName + getPathSuffix(broker,  brokerGroupIndex, replicaIndex),
-						},{
+							SubPath:   cons.LogSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
+						}, {
 							MountPath: cons.StoreMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
 							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
@@ -452,7 +450,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 
 }
 
-func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.PersistentVolumeClaim{
+func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.PersistentVolumeClaim {
 	switch broker.Spec.StorageMode {
 	case cons.StorageModeNFS:
 		return broker.Spec.VolumeClaimTemplates
@@ -471,9 +469,7 @@ func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
 		volumes := []corev1.Volume{{
 			Name: broker.Spec.VolumeClaimTemplates[0].Name,
 			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-
-				}},
+				EmptyDir: &corev1.EmptyDirVolumeSource{}},
 		}}
 		return volumes
 	case cons.StorageModeHostPath:
@@ -493,9 +489,8 @@ func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
 func getPathSuffix(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) string {
 	if replicaIndex == 0 {
 		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master"
-	} else {
-		return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
 	}
+	return "/" + broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
 }
 
 // labelsForBroker returns the labels for selecting the resources
@@ -522,7 +517,7 @@ func contains(item string, arr []string) bool {
 	return false
 }
 
-func checkAndCopyMetadata(newPodNames []string, dir string, sourcePodName string, namespace string, k8s *tool.K8sClient)  {
+func checkAndCopyMetadata(newPodNames []string, dir string, sourcePodName string, namespace string, k8s *tool.K8sClient) {
 	cmdOpts := buildInputCommand(dir)
 	jsonStr := exec(cmdOpts, sourcePodName, k8s, namespace)
 	if len(jsonStr) < cons.MinMetadataJsonFileSize {
