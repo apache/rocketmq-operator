@@ -104,10 +104,10 @@ const StorageModeHostPath = "HostPath"
 // RestartBrokerPodIntervalInSecond is restart broker pod interval in second
 const RestartBrokerPodIntervalInSecond = 30
 
-// MinMetadataJsonFileSize is if file length is lower than this will be considered as invalid
+// MinMetadataJsonFileSize is the threshold value if file length is lower than this will be considered as invalid
 const MinMetadataJsonFileSize = 5
 
-// MinIpListLength is if the name server list parameter length is shorter than this will be considered as invalid
+// MinIpListLength is the threshold value if the name server list parameter length is shorter than this will be considered as invalid
 const MinIpListLength = 8
 
 // CheckConsumeFinishIntervalInSecond is the interval of checking whether the consumption process is finished in second
