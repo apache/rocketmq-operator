@@ -23,8 +23,6 @@
 - [Topic Transfer](#topic-transfer)
 - [Clean the Environment](#clean-the-environment)
 
-点击这里切换为[中文](docs/cn/README.md)
-
 ## Overview
 
 RocketMQ Operator is to manage RocketMQ service instances deployed on the Kubernetes cluster.
