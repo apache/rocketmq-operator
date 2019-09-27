@@ -17,10 +17,16 @@
 
 set -eux;
 
-# Change the DOCKERHUB_REPO to your docker repo
+# You can change the DOCKERHUB_REPO to your docker repo for development purpose
 DOCKERHUB_REPO="docker.io/library/rocketmq-operator:v0.0.1-snapshot"
+# The version of RocketMQ including the Admin Tool
+ROCKETMQ_VERSION="4.5.0"
 
 export GO111MODULE=on
+
+if [ ! -e build/rocketmq.zip ]; then
+  curl https://dist.apache.org/repos/dist/release/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip;
+fi
 
 # use the following 2 commands if you have updated the [kind]_type.go file or don't have zz_generated.deepcopy.go and zz_generated.openapi.go files
 operator-sdk generate k8s
