@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// Package apis defines the customized resource definition (CRD)
 package apis
 
 import (

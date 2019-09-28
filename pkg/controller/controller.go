@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// Package controller contains the controller of different CRDs
 package controller
 
 import (

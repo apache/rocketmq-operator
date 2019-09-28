@@ -1,8 +1,8 @@
 ## RocketMQ Operator
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
+[![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/apache/rocketmq-operator/pkg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/apache/rocketmq-operator)](https://goreportcard.com/report/github.com/apache/rocketmq-operator)
-[![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/apache/rocketmq-operator)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -22,8 +22,6 @@
         - [Up-scale Broker in Out-of-order Message Scenario](#up-scale-broker-in-out-of-order-message-scenario)
 - [Topic Transfer](#topic-transfer)
 - [Clean the Environment](#clean-the-environment)
-
-点击这里切换为[中文](docs/cn/README.md)
 
 ## Overview
 

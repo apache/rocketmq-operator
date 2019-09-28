@@ -15,16 +15,19 @@
  * limitations under the License.
  */
 
+// Package share defines some variables shared by different packages
 package share
 
-// GroupNum is the number of broker group
-var GroupNum = 0
+var (
+	// GroupNum is the number of broker group
+	GroupNum = 0
 
-// NameServersStr is the name server list
-var NameServersStr = ""
+	// NameServersStr is the name server list
+	NameServersStr = ""
 
-// IsNameServersStrUpdated is whether the name server list is updated
-var IsNameServersStrUpdated = false
+	// IsNameServersStrUpdated is whether the name server list is updated
+	IsNameServersStrUpdated = false
 
-// BrokerClusterName is the broker cluster name
-var BrokerClusterName = ""
+	// BrokerClusterName is the broker cluster name
+	BrokerClusterName = ""
+)
