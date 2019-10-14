@@ -170,7 +170,7 @@ spec:
   # size is the the name service instance number of the name service cluster
   size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: rocketmqinc/rocketmq-namesrv:4.5.0-alpine
+  nameServiceImage: rocketmqop/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # storageMode can be EmptyDir, HostPath, NFS
@@ -209,7 +209,7 @@ spec:
   # replicaPerGroup is the number of replica broker in each group
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: rocketmqinc/rocketmq-broker:4.5.0-alpine
+  brokerImage: rocketmqop/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart

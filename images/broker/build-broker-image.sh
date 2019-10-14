@@ -33,7 +33,7 @@ if [ $# -lt 1 ]; then
 fi
 
 ROCKETMQ_VERSION=$1
-DOCKERHUB_REPO=rocketmqinc/rocketmq-broker
+DOCKERHUB_REPO=rocketmqop/rocketmq-broker
 
 checkVersion $ROCKETMQ_VERSION
 

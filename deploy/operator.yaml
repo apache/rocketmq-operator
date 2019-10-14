@@ -31,7 +31,7 @@ spec:
       containers:
         - name: rocketmq-operator
           # Replace this with the built image name
-          image: rocketmqinc/rocketmq-operator:0.2.0
+          image: rocketmqop/rocketmq-operator:0.2.0
           command:
           - rocketmq-operator
           imagePullPolicy: Always

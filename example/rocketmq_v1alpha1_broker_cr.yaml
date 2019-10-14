@@ -28,7 +28,7 @@ spec:
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: rocketmqinc/rocketmq-broker:4.5.0-alpine
+  brokerImage: rocketmqop/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart
