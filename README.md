@@ -7,21 +7,26 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Quick Start](#quick-start)
-    - [Deploy RocketMQ Operator](#deploy-rocketmq-operator)
-    - [Prepare Volume Persistence](#prepare-volume-persistence)
-        - [Prepare HostPath](#prepare-hostpath)
-        - [Prepare Storage Class of NFS](#prepare-storage-class-of-nfs)
-    - [Define Your RocketMQ Cluster](#define-your-rocketmq-cluster)
-    - [Create RocketMQ Cluster](#create-rocketmq-cluster)
-    - [Verify the Data Storage](#verify-the-data-storage)
-        - [Verify HostPath Storage](#verify-hostpath-storage)
-        - [Verify NFS storage](#verify-nfs-storage)
+  - [Deploy RocketMQ Operator](#deploy-rocketmq-operator)
+  - [Prepare Volume Persistence](#prepare-volume-persistence)
+    - [Prepare HostPath](#prepare-hostpath)
+    - [Prepare Storage Class of NFS](#prepare-storage-class-of-nfs)
+  - [Define Your RocketMQ Cluster](#define-your-rocketmq-cluster)
+  - [Create RocketMQ Cluster](#create-rocketmq-cluster)
+  - [Verify the Data Storage](#verify-the-data-storage)
+    - [Verify HostPath Storage](#verify-hostpath-storage)
+    - [Verify NFS storage](#verify-nfs-storage)
 - [Horizontal Scale](#horizontal-scale)
-    - [Name Server Cluster Scale](#name-server-cluster-scale)
-    - [Broker Cluster Scale](#broker-cluster-scale)
-        - [Up-scale Broker in Out-of-order Message Scenario](#up-scale-broker-in-out-of-order-message-scenario)
+  - [Name Server Cluster Scale](#name-server-cluster-scale)
+  - [Broker Cluster Scale](#broker-cluster-scale)
+    - [Up-scale Broker in Out-of-order Message Scenario](#up-scale-broker-in-out-of-order-message-scenario)
 - [Topic Transfer](#topic-transfer)
-- [Clean the Environment](#clean-the-environment)
+- [Clean the Environment](#clean-the-environment)
+- [Development](#development)
+  - [Prerequisites](#prerequisites)
+  - [Build](#build)
+    - [Operator](#operator)
+    - [Broker and Name Server Images](#broker-and-name-server-images)
 
 ## Overview
 
@@ -165,7 +170,7 @@ spec:
   # size is the the name service instance number of the name service cluster
   size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: docker.io/library/rocketmq-namesrv:4.5.0-alpine
+  nameServiceImage: rocketmqinc/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # storageMode can be EmptyDir, HostPath, NFS
@@ -204,7 +209,7 @@ spec:
   # replicaPerGroup is the number of replica broker in each group
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: docker.io/library/rocketmq-broker:4.5.0-alpine
+  brokerImage: rocketmqinc/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart
@@ -449,3 +454,47 @@ $ ./remove-storage-class.sh
 ```
 
 > Note: the NFS and HostPath persistence data will not be deleted by default.
+
+## Development
+
+### Prerequisites
+
++ [git](https://git-scm.com/downloads)
++ [go](https://golang.org/dl/) version v1.12+.
++ [mercurial](https://www.mercurial-scm.org/downloads) version 3.9+
++ [docker](https://docs.docker.com/install/) version 17.03+.
++ Access to a Kubernetes v1.11.3+ cluster.
++ [dep](https://golang.github.io/dep/docs/installation.html) version v0.5.0+.
++ [operator-sdk](https://github.com/operator-framework/operator-sdk) version v0.11.0+
+
+### Build
+
+For developers who want to build and push the operator-related images to the docker hub, please follow the instructions below.
+
+#### Operator
+
+RocketMQ-Operator uses ```operator-sdk``` to generate the scaffolding and build the operator image. You can refer to the [operator-sdk user guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) for more details.
+
+If you want to push the newly build operator image to your own docker hub, please modify the ```DOCKERHUB_REPO``` variable in the ```create-operator.sh``` script using your own repository. Then run the build script:
+
+```
+$ ./create-operator.sh
+```
+
+#### Broker and Name Server Images
+
+RocketMQ-Operator is based on customized images of ```Broker``` and ```Name Server```, which are build by ```build-broker-image.sh``` and ```build-namesrv-image.sh``` respectively. Therefore, the images used in the ```Broker``` and ```NameService``` CR yaml files should be build by these scripts.
+
+You can also modify the ```DOCKERHUB_REPO``` variable in the scripts to push the newly build images to your own repository:
+
+```
+$ cd images/broker
+$ ./build-broker-image.sh
+```
+
+```
+$ cd images/namesrv
+$ ./build-namesrv-image.sh
+```
+
+> Note: for users who just want to use the operator, there is no need to build the operator and customized broker and name server images themselves. Users can simply use the default official images which are maintained by the RocketMQ community. 
