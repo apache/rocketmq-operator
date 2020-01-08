@@ -3,6 +3,9 @@
 [![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
 [![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/apache/rocketmq-operator/pkg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/apache/rocketmq-operator)](https://goreportcard.com/report/github.com/apache/rocketmq-operator)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/apache/rocketmq-operator.svg)](http://isitmaintained.com/project/apache/rocketmq-operator "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/apache/rocketmq-operator.svg)](http://isitmaintained.com/project/apache/rocketmq-operator "Percentage of issues still open")
+![Twitter Follow](https://img.shields.io/twitter/follow/ApacheRocketMQ?style=social)
 
 ## Table of Contents
 - [Overview](#overview)
