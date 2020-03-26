@@ -413,7 +413,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 							Value: strconv.Itoa(replicaIndex),
 						}, {
 							Name:  cons.EnvBrokerClusterName,
-							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
+							Value: broker.Name,
 						}, {
 							Name:  cons.EnvBrokerName,
 							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
