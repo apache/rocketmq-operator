@@ -104,6 +104,19 @@ type ReconcileBroker struct {
 	scheme *runtime.Scheme
 }
 
+type ConfigMap struct {
+	metav1.TypeMeta `json:",inline"`
+	// Standard object's metadata.
+	// More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#metadata
+	// +optional
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+
+	// Data contains the configuration data.
+	// Each key must be a valid DNS_SUBDOMAIN with an optional leading dot.
+	// +optional
+	Data map[string]string `json:"data,omitempty" protobuf:"bytes,2,rep,name=data"`
+}
+
 // Reconcile reads that state of the cluster for a Broker object and makes changes based on the state read
 // and what is in the Broker.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
@@ -218,7 +231,12 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 					if err != nil {
 						reqLogger.Error(err, "Failed to get broker replica StatefulSet of "+brokerName)
 					} else {
-						replicaFound.Spec.Template.Spec.Containers[0].Env[0].Value = share.NameServersStr
+						for index := range replicaFound.Spec.Template.Spec.Containers[0].Env {
+							if cons.EnvNameServiceAddress == replicaFound.Spec.Template.Spec.Containers[0].Env[index].Name {
+								replicaFound.Spec.Template.Spec.Containers[0].Env[index].Value = share.NameServersStr
+								break
+							}
+						}
 						err = r.client.Update(context.TODO(), replicaFound)
 						if err != nil {
 							reqLogger.Error(err, "Failed to update NAMESRV_ADDR of "+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "StatefulSet.Namespace", replicaFound.Namespace, "StatefulSet.Name", replicaFound.Name)
@@ -410,22 +428,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 							},
 						},
 						ImagePullPolicy: broker.Spec.ImagePullPolicy,
-						Env: []corev1.EnvVar{{
-							Name:  cons.EnvNameServiceAddress,
-							Value: share.NameServersStr,
-						}, {
-							Name:  cons.EnvReplicationMode,
-							Value: broker.Spec.ReplicationMode,
-						}, {
-							Name:  cons.EnvBrokerId,
-							Value: strconv.Itoa(replicaIndex),
-						}, {
-							Name:  cons.EnvBrokerClusterName,
-							Value: broker.Name,
-						}, {
-							Name:  cons.EnvBrokerName,
-							Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
-						}},
+						Env: getENV(broker, replicaIndex, brokerGroupIndex),
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.BrokerVipContainerPort,
 							Name:          cons.BrokerVipContainerPortName,
@@ -444,6 +447,10 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 							MountPath: cons.StoreMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
 							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
+						}, {
+							MountPath: cons.BrokerConfigPath + "/" + cons.BrokerConfigName,
+							Name:      broker.Spec.Volumes[0].Name,
+							SubPath:   cons.BrokerConfigName,
 						}},
 					}},
 					Volumes: getVolumes(broker),
@@ -457,6 +464,24 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 
 	return dep
 
+}
+
+func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex int)  []corev1.EnvVar {
+	envs := []corev1.EnvVar{{
+		Name:  cons.EnvNameServiceAddress,
+		Value: broker.Spec.NameServers,
+	}, {
+		Name:  cons.EnvBrokerId,
+		Value: strconv.Itoa(replicaIndex),
+	}, {
+		Name:  cons.EnvBrokerClusterName,
+		Value: broker.Name,
+	}, {
+		Name:  cons.EnvBrokerName,
+		Value: broker.Name + "-" + strconv.Itoa(brokerGroupIndex),
+	}}
+	envs = append(envs, broker.Spec.Env...)
+	return envs
 }
 
 func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.PersistentVolumeClaim {
@@ -473,24 +498,26 @@ func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.Persisten
 func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
 	switch broker.Spec.StorageMode {
 	case cons.StorageModeStorageClass:
-		return nil
+		return broker.Spec.Volumes
 	case cons.StorageModeEmptyDir:
-		volumes := []corev1.Volume{{
+		volumes := broker.Spec.Volumes
+		volumes = append(volumes, corev1.Volume{
 			Name: broker.Spec.VolumeClaimTemplates[0].Name,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{}},
-		}}
+		})
 		return volumes
 	case cons.StorageModeHostPath:
 		fallthrough
 	default:
-		volumes := []corev1.Volume{{
+		volumes := broker.Spec.Volumes
+		volumes = append(volumes, corev1.Volume{
 			Name: broker.Spec.VolumeClaimTemplates[0].Name,
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
 					Path: broker.Spec.HostPath,
 				}},
-		}}
+		})
 		return volumes
 	}
 }
