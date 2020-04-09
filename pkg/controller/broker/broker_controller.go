@@ -104,19 +104,6 @@ type ReconcileBroker struct {
 	scheme *runtime.Scheme
 }
 
-type ConfigMap struct {
-	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
-	// More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#metadata
-	// +optional
-	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
-
-	// Data contains the configuration data.
-	// Each key must be a valid DNS_SUBDOMAIN with an optional leading dot.
-	// +optional
-	Data map[string]string `json:"data,omitempty" protobuf:"bytes,2,rep,name=data"`
-}
-
 // Reconcile reads that state of the cluster for a Broker object and makes changes based on the state read
 // and what is in the Broker.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
