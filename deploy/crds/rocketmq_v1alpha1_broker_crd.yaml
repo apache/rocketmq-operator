@@ -69,11 +69,11 @@ spec:
               items:
                 type: object
               type: array
-              volumes:
-                description: volumes defines the broker.conf
-                items:
-                  type: object
-                type: array
+            volumes:
+              description: volumes defines the broker.conf
+              items:
+                type: object
+              type: array
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines the StorageClass
               items:
