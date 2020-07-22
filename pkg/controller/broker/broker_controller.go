@@ -131,7 +131,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
-	if isInitial {
+	if broker.Status.Size == 0 {
 		share.GroupNum = broker.Spec.Size
 	} else {
 		share.GroupNum = broker.Status.Size
@@ -234,34 +234,27 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 	podNames := getPodNames(podList.Items)
 	log.Info("broker.Status.Nodes length = " + strconv.Itoa(len(broker.Status.Nodes)))
 	log.Info("podNames length = " + strconv.Itoa(len(podNames)))
-	// Ensure every pod is in running phase, then change the isInitial state to false
-	notReady := false
+	// Ensure every pod is in running phase
 	for _, pod := range podList.Items {
 		if !reflect.DeepEqual(pod.Status.Phase, corev1.PodRunning) {
 			log.Info("pod " + pod.Name + " phase is " + string(pod.Status.Phase) + ", wait for a moment...")
-			notReady = true
 		}
-	}
-	if !notReady {
-		isInitial = false
 	}
 
-	if !isInitial {
-		if broker.Spec.Size != broker.Status.Size {
-			// Get the metadata including subscriptionGroup.json and topics.json from scale source pod
-			k8s, err := tool.NewK8sClient()
-			if err != nil {
-				log.Error(err, "Error occurred while getting K8s Client")
-			}
-			sourcePodName := broker.Spec.ScalePodName
-			topicsCommand := getCopyMetadataJsonCommand(cons.TopicJsonDir, sourcePodName, broker.Namespace, k8s)
-			log.Info("topicsCommand: " + topicsCommand)
-			subscriptionGroupCommand := getCopyMetadataJsonCommand(cons.SubscriptionGroupJsonDir, sourcePodName, broker.Namespace, k8s)
-			log.Info("subscriptionGroupCommand: " + subscriptionGroupCommand)
-			MakeConfigDirCommand := "mkdir -p " + cons.StoreConfigDir
-			ChmodDirCommand := "chmod a+rw " + cons.StoreConfigDir
-			cmd = []string{"/bin/bash", "-c", MakeConfigDirCommand + " && " + ChmodDirCommand + " && " + topicsCommand + " && " + subscriptionGroupCommand}
+	if broker.Status.Size != 0 && broker.Spec.Size > broker.Status.Size {
+		// Get the metadata including subscriptionGroup.json and topics.json from scale source pod
+		k8s, err := tool.NewK8sClient()
+		if err != nil {
+			log.Error(err, "Error occurred while getting K8s Client")
 		}
+		sourcePodName := broker.Spec.ScalePodName
+		topicsCommand := getCopyMetadataJsonCommand(cons.TopicJsonDir, sourcePodName, broker.Namespace, k8s)
+		log.Info("topicsCommand: " + topicsCommand)
+		subscriptionGroupCommand := getCopyMetadataJsonCommand(cons.SubscriptionGroupJsonDir, sourcePodName, broker.Namespace, k8s)
+		log.Info("subscriptionGroupCommand: " + subscriptionGroupCommand)
+		MakeConfigDirCommand := "mkdir -p " + cons.StoreConfigDir
+		ChmodDirCommand := "chmod a+rw " + cons.StoreConfigDir
+		cmd = []string{"/bin/bash", "-c", MakeConfigDirCommand + " && " + ChmodDirCommand + " && " + topicsCommand + " && " + subscriptionGroupCommand}
 	}
 
 	// Update status.Size if needed
