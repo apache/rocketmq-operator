@@ -206,7 +206,7 @@ spec:
   # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
   size: 2
   # nameServers is the [ip:port] list of name service
-  nameServers: 192.168.130.33:9876
+  nameServers: ""
   # replicationMode is the broker replica sync mode, can be ASYNC or SYNC
   replicationMode: ASYNC
   # replicaPerGroup is the number of replica broker in each group
@@ -235,7 +235,7 @@ spec:
           requests:
             storage: 8Gi
 ``` 
-which defines the RocketMQ broker cluster scale, the [ip:port] list of name service and so on.
+which defines the RocketMQ broker cluster scale, the [ip:port] list of name service and so on. By default, the nameServers is an empty string which means it is automatically obtained by the operator.
 
 ### Create RocketMQ Cluster
 
@@ -256,7 +256,7 @@ nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          150m    1
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          5m53s   10.244.2.116     k2data-14   <none>           <none>
 ```
 
-We can see that there are 1 name service Pods running on 1 nodes and their IP addresses. Modify the ```nameServers``` field in the ```rocketmq_v1alpha1_broker_cr.yaml``` file using the IP addresses.
+We can see We can see that there are 1 name service Pod running on 1 node.
 
 2. Deploy the RocketMQ broker clusters by running:
 ```

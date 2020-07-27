@@ -190,6 +190,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 
 		if len(oldNameServerListStr) <= cons.MinIpListLength {
 			oldNameServerListStr = share.NameServersStr
+			share.IsNameServersStrInitialized = true
 		} else if len(share.NameServersStr) > cons.MinIpListLength {
 			oldNameServerListStr = oldNameServerListStr[:len(oldNameServerListStr)-1]
 			share.IsNameServersStrUpdated = true

@@ -28,6 +28,9 @@ var (
 	// IsNameServersStrUpdated is whether the name server list is updated
 	IsNameServersStrUpdated = false
 
+	// IsNameServersStrInitialized is whether the name server list is initialized
+	IsNameServersStrInitialized = false
+
 	// BrokerClusterName is the broker cluster name
 	BrokerClusterName = ""
 )
