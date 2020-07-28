@@ -46,7 +46,7 @@ func TestBrokerController(t *testing.T) {
 	var (
 		name            = "rocketmq-operator"
 		namespace       = "broker"
-		replicas  int32 = 3
+		replicas   		= 3
 	)
 
 	// A Broker resource with metadata and spec.
@@ -96,7 +96,7 @@ func TestBrokerController(t *testing.T) {
 		t.Fatalf("get deployment: (%v)", err)
 	}
 	dsize := *dep.Spec.Replicas
-	if dsize != replicas {
+	if dsize != int32(replicas) {
 		t.Errorf("dep size (%d) is not the expected size (%d)", dsize, replicas)
 	}
 

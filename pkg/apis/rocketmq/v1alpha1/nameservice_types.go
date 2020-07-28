@@ -37,6 +37,15 @@ type NameServiceSpec struct {
 	NameServiceImage string `json:"nameServiceImage"`
 	// ImagePullPolicy defines how the image is pulled.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
+	// HostNetwork can be true or false
+	HostNetwork bool `json:"hostNetwork"`
+	// Set DNS policy for the name server pod.
+	// Defaults to "ClusterFirst".
+	// Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.
+	// DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy.
+	// To have DNS options set along with hostNetwork, you have to specify DNS policy
+	// explicitly to 'ClusterFirstWithHostNet'.
+	DNSPolicy corev1.DNSPolicy `json:"dnsPolicy"`
 	// StorageMode can be EmptyDir, HostPath, NFS
 	StorageMode string `json:"storageMode"`
 	// HostPath is the local path to store data

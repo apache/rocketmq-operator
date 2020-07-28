@@ -278,7 +278,7 @@ func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
 func getNameServers(pods []corev1.Pod) []string {
 	var nameServers []string
 	for _, pod := range pods {
-		nameServers = append(nameServers, pod.Status.HostIP)
+		nameServers = append(nameServers, pod.Status.PodIP)
 	}
 	return nameServers
 }
@@ -304,8 +304,8 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
-					HostNetwork: true,
-					DNSPolicy:   "ClusterFirstWithHostNet",
+					HostNetwork: nameService.Spec.HostNetwork,
+					DNSPolicy:   nameService.Spec.DNSPolicy,
 					Containers: []corev1.Container{{
 						Image: nameService.Spec.NameServiceImage,
 						// Name must be lower case !
