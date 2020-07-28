@@ -137,6 +137,20 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		share.GroupNum = broker.Status.Size
 	}
 
+	if broker.Spec.NameServers == "" {
+		// wait for name server ready when create broker cluster if nameServers is omitted
+		for {
+			if share.IsNameServersStrInitialized {
+				break
+			} else {
+				log.Info("Broker Waiting for name server ready...")
+				time.Sleep(time.Duration(cons.WaitForNameServerReadyInSecond) * time.Second)
+			}
+		}
+	} else {
+		share.NameServersStr = broker.Spec.NameServers
+	}
+
 	share.BrokerClusterName = broker.Name
 	replicaPerGroup := broker.Spec.ReplicaPerGroup
 	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(share.GroupNum) + ", replicaPerGroup=" + strconv.Itoa(replicaPerGroup))
@@ -397,7 +411,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 						ImagePullPolicy: broker.Spec.ImagePullPolicy,
 						Env: []corev1.EnvVar{{
 							Name:  cons.EnvNameServiceAddress,
-							Value: broker.Spec.NameServers,
+							Value: share.NameServersStr,
 						}, {
 							Name:  cons.EnvReplicationMode,
 							Value: broker.Spec.ReplicationMode,

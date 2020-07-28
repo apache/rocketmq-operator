@@ -18,7 +18,7 @@
 set -eux;
 
 # You can change the DOCKERHUB_REPO to your docker repo for development purpose
-DOCKERHUB_REPO="apacherocketmq/rocketmq-operator:0.2.0"
+DOCKERHUB_REPO="apacherocketmq/rocketmq-operator:0.2.1"
 # The version of RocketMQ including the Admin Tool
 ROCKETMQ_VERSION="4.5.0"
 
@@ -26,7 +26,7 @@ export GO111MODULE=on
 
 # Download rocketmq.zip for the Admin Tool if it does not exist
 if [ ! -e build/rocketmq.zip ]; then
-  curl https://dist.apache.org/repos/dist/release/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip
+  curl https://archive.apache.org/dist/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip
   mv rocketmq.zip build
 fi
 

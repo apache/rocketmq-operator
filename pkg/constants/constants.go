@@ -106,6 +106,9 @@ const (
 	// RestartBrokerPodIntervalInSecond is restart broker pod interval in second
 	RestartBrokerPodIntervalInSecond = 30
 
+	// WaitForNameServerReadyInSecond is the time broker sleep for waiting nameserver ready in second
+	WaitForNameServerReadyInSecond = 1
+
 	// MinMetadataJsonFileSize is the threshold value if file length is lower than this will be considered as invalid
 	MinMetadataJsonFileSize = 5
 
