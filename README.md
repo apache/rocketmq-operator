@@ -68,11 +68,11 @@ Now you can use the CRDs provide by RocketMQ Operator to deploy your RocketMQ cl
 
 Before RocketMQ deployment, you may need to do some preparation steps for RocketMQ data persistence. 
 
-Currently we provide several options for your RocketMQ data persistence: ```EmptyDir```, ```HostPath``` and ```NFS```, which can be configured in CR files, for example in ```rocketmq_v1alpha1_nameservice_cr.yaml```:
+Currently we provide several options for your RocketMQ data persistence: ```EmptyDir```, ```HostPath``` and ```StorageClass```, which can be configured in CR files, for example in ```rocketmq_v1alpha1_nameservice_cr.yaml```:
 
 ```
 ...
- # storageMode can be EmptyDir, HostPath, NFS
+ # storageMode can be EmptyDir, HostPath, StorageClass
   storageMode: HostPath
 ...
 ```
@@ -101,7 +101,7 @@ You may refer to the instructions in the script for more information.
 
 #### Prepare Storage Class of NFS
 
-If you choose NFS as the storage mode, the first step is to prepare a storage class based on NFS provider to create PV and PVC where the RocketMQ data will be stored. 
+If you choose StorageClass as the storage mode, the first step is to prepare a storage class based on NFS provider to create PV and PVC where the RocketMQ data will be stored. 
 
 1. Deploy NFS server and clients on your Kubernetes cluster. You can refer to [NFS deployment document](docs/en/nfs_install_en.md) for more details. Please make sure they are functional before you go to the next step. Here is a instruction on how to verify NFS service.
 
@@ -217,7 +217,7 @@ spec:
   imagePullPolicy: Always
   # allowRestart defines whether allow pod restart
   allowRestart: true
-  # storageMode can be EmptyDir, HostPath, NFS
+  # storageMode can be EmptyDir, HostPath, StorageClass
   storageMode: HostPath
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/broker
@@ -297,7 +297,7 @@ pvc-c708cb49-aa52-4992-8cac-f46a48e2cc2e   1Gi        RWO            Delete     
 pvc-d7b76efe-384c-4f8d-9e8a-ebe209ba826c   8Gi        RWO            Delete           Bound    default/broker-storage-broker-1-master-0    rocketmq-storage            78s
 ```
 
-> Notice: if you don't choose the NFS storage mode, then the above PV and PVC won't be created.
+> Notice: if you don't choose the StorageClass storage mode, then the above PV and PVC won't be created.
 
 Congratulations! You have successfully deployed your RocketMQ cluster by RocketMQ Operator.
 
@@ -456,7 +456,7 @@ $ cd deploy/storage
 $ ./remove-storage-class.sh
 ```
 
-> Note: the NFS and HostPath persistence data will not be deleted by default.
+> Note: the StorageClass and HostPath persistence data will not be deleted by default.
 
 ## Development
 

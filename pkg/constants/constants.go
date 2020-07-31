@@ -94,8 +94,8 @@ const (
 	// BrokerHighAvailabilityContainerPortName is the high availability port name of broker container
 	BrokerHighAvailabilityContainerPortName = "ha"
 
-	// StorageModeNFS is the name of NFS storage mode
-	StorageModeNFS = "NFS"
+	// StorageModeStorageClass is the name of StorageClass storage mode
+	StorageModeStorageClass = "StorageClass"
 
 	// StorageModeEmptyDir is the name of EmptyDir storage mode
 	StorageModeEmptyDir = "EmptyDir"

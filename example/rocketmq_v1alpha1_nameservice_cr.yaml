@@ -19,20 +19,22 @@ metadata:
   name: name-service
 spec:
   # size is the the name service instance number of the name service cluster
-  size: 2
+  size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
   nameServiceImage: rocketmqinc/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # hostNetwork can be true or false
   hostNetwork: false
-  # Set DNS policy for the name server pod.
-  #	Defaults to "ClusterFirst".
-  #	Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.
-  # DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy.
-  # To have DNS options set along with hostNetwork, you have to specify DNS policy explicitly to 'ClusterFirstWithHostNet'.
-  dnsPolicy: ClusterFirst
-  # storageMode can be EmptyDir, HostPath, NFS
+  # resources describes the compute resource requirements and limits
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1024Mi"
+      cpu: "500m"
+  # storageMode can be EmptyDir, HostPath, StorageClass
   storageMode: EmptyDir
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/nameserver

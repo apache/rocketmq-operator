@@ -18,7 +18,7 @@
 set -eux;
 
 # You can change the DOCKERHUB_REPO to your docker repo for development purpose
-DOCKERHUB_REPO="2019liurui/rocketmq-operator:0.2.1"
+DOCKERHUB_REPO="apacherocketmq/rocketmq-operator:0.2.1-snapshot"
 # The version of RocketMQ including the Admin Tool
 ROCKETMQ_VERSION="4.5.0"
 

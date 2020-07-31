@@ -399,6 +399,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
+						Resources: broker.Spec.Resources,
 						Image: broker.Spec.BrokerImage,
 						Name:  cons.BrokerContainerName,
 						Lifecycle: &corev1.Lifecycle{
@@ -438,11 +439,9 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.LogSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
 						}, {
 							MountPath: cons.StoreMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
 						}},
 					}},
 					Volumes: getVolumes(broker),
@@ -460,7 +459,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 
 func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.PersistentVolumeClaim {
 	switch broker.Spec.StorageMode {
-	case cons.StorageModeNFS:
+	case cons.StorageModeStorageClass:
 		return broker.Spec.VolumeClaimTemplates
 	case cons.StorageModeEmptyDir, cons.StorageModeHostPath:
 		fallthrough
@@ -471,7 +470,7 @@ func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.Persisten
 
 func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
 	switch broker.Spec.StorageMode {
-	case cons.StorageModeNFS:
+	case cons.StorageModeStorageClass:
 		return nil
 	case cons.StorageModeEmptyDir:
 		volumes := []corev1.Volume{{

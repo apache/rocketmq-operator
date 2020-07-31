@@ -241,7 +241,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 
 func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1.PersistentVolumeClaim {
 	switch nameService.Spec.StorageMode {
-	case cons.StorageModeNFS:
+	case cons.StorageModeStorageClass:
 		return nameService.Spec.VolumeClaimTemplates
 	case cons.StorageModeEmptyDir, cons.StorageModeHostPath:
 		fallthrough
@@ -252,7 +252,7 @@ func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1
 
 func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
 	switch nameService.Spec.StorageMode {
-	case cons.StorageModeNFS:
+	case cons.StorageModeStorageClass:
 		return nil
 	case cons.StorageModeEmptyDir:
 		volumes := []corev1.Volume{{
@@ -305,8 +305,8 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 				},
 				Spec: corev1.PodSpec{
 					HostNetwork: nameService.Spec.HostNetwork,
-					DNSPolicy:   nameService.Spec.DNSPolicy,
 					Containers: []corev1.Container{{
+						Resources: nameService.Spec.Resources,
 						Image: nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",
@@ -318,7 +318,6 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name:      nameService.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.LogSubPathName,
 						}},
 					}},
 					Volumes: getVolumes(nameService),
