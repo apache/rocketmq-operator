@@ -318,6 +318,7 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name:      nameService.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.LogSubPathName,
 						}},
 					}},
 					Volumes: getVolumes(nameService),

@@ -439,9 +439,11 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 						VolumeMounts: []corev1.VolumeMount{{
 							MountPath: cons.LogMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.LogSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
 						}, {
 							MountPath: cons.StoreMountPath,
 							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
 						}},
 					}},
 					Volumes: getVolumes(broker),

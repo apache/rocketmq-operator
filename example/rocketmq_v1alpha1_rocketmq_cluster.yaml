@@ -51,10 +51,10 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: broker-storage
-        annotations:
-          volume.beta.kubernetes.io/storage-class: rocketmq-storage
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: yoda-lvm-default
         resources:
           requests:
             storage: 8Gi
@@ -88,10 +88,10 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: namesrv-storage
-        annotations:
-          volume.beta.kubernetes.io/storage-class: rocketmq-storage
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: yoda-lvm-default
         resources:
           requests:
             storage: 1Gi
