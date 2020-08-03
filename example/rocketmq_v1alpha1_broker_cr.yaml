@@ -26,7 +26,7 @@ spec:
   # replicationMode is the broker replica sync mode, can be ASYNC or SYNC
   replicationMode: ASYNC
   # replicaPerGroup is the number of each broker cluster
-  replicaPerGroup: 0
+  replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
   brokerImage: rocketmqinc/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
@@ -42,7 +42,7 @@ spec:
   # allowRestart defines whether allow pod restart
   allowRestart: true
   # storageMode can be EmptyDir, HostPath, StorageClass
-  storageMode: EmptyDir
+  storageMode: HostPath
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/broker
   # scalePodName is broker-[broker group number]-master-0

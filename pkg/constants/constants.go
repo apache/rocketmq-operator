@@ -59,10 +59,10 @@ const (
 	EnvBrokerName = "BROKER_NAME"
 
 	// LogMountPath is the directory of RocketMQ log files
-	LogMountPath = "/home/rocketmq/logs"
+	LogMountPath = "/root/logs"
 
 	// StoreMountPath is the directory of RocketMQ store files
-	StoreMountPath = "/home/rocketmq/store"
+	StoreMountPath = "/root/store"
 
 	// LogSubPathName is the sub-path name of log dir under mounted host dir
 	LogSubPathName = "logs"

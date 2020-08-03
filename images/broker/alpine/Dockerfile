@@ -19,52 +19,37 @@ FROM openjdk:8-alpine
 
 RUN apk add --no-cache bash gettext nmap-ncat openssl busybox-extras
 
-#ARG user=rocketmq
-#ARG group=rocketmq
-#ARG uid=3000
-#ARG gid=3000
-
-# RocketMQ is run with user `rocketmq`, uid = 1001
-# If you bind mount a volume from the host or a data container,
-# ensure you use the same uid
-
-#RUN addgroup --gid ${gid} ${group} \
-#    && adduser --uid ${uid} -G ${group} ${user} -s /bin/bash -D
-
 ARG version
 
 # Rocketmq version
 ENV ROCKETMQ_VERSION ${version}
 
 # Rocketmq home
-ENV ROCKETMQ_HOME  /home/rocketmq/rocketmq-${ROCKETMQ_VERSION}
+ENV ROCKETMQ_HOME  /root/rocketmq-${ROCKETMQ_VERSION}
 
 WORKDIR  ${ROCKETMQ_HOME}
-
-COPY rocketmq.zip ${ROCKETMQ_HOME}/rocketmq.zip
 
 # Install
 RUN set -eux; \
     apk add --virtual .build-deps curl gnupg unzip; \
-#    curl https://dist.apache.org/repos/dist/release/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip; \
-#    curl https://dist.apache.org/repos/dist/release/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip.asc -o rocketmq.zip.asc; \
-#    #https://www.apache.org/dist/rocketmq/KEYS
-#	curl https://www.apache.org/dist/rocketmq/KEYS -o KEYS; \
-#	\
-#	gpg --import KEYS; \
-#    gpg --batch --verify rocketmq.zip.asc rocketmq.zip; \
+    curl https://dist.apache.org/repos/dist/release/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip; \
+    curl https://dist.apache.org/repos/dist/release/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip.asc -o rocketmq.zip.asc; \
+    #https://www.apache.org/dist/rocketmq/KEYS
+	curl https://www.apache.org/dist/rocketmq/KEYS -o KEYS; \
+	\
+	gpg --import KEYS; \
+    gpg --batch --verify rocketmq.zip.asc rocketmq.zip; \
     unzip rocketmq.zip; \
 	mv rocketmq-all*/* . ; \
 	rmdir rocketmq-all* ; \
 	rm rocketmq.zip ; \
+	rm rocketmq.zip.asc KEYS; \
 	apk del .build-deps ; \
     rm -rf /var/cache/apk/* ; \
     rm -rf /tmp/*
 
 # Copy customized scripts
 COPY runbroker-customize.sh ${ROCKETMQ_HOME}/bin/
-
-#RUN chown -R ${uid}:${gid} ${ROCKETMQ_HOME}
 
 # Expose broker ports
 EXPOSE 10909 10911 10912
@@ -84,8 +69,6 @@ COPY brokerGenConfig.sh brokerStart.sh ${ROCKETMQ_HOME}/bin/
 
 RUN chmod a+x ${ROCKETMQ_HOME}/bin/brokerGenConfig.sh \
  && chmod a+x ${ROCKETMQ_HOME}/bin/brokerStart.sh
-
-#USER ${user}
 
 WORKDIR ${ROCKETMQ_HOME}/bin
 

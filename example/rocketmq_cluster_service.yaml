@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -15,5 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-./brokerGenConfig.sh
-./mqbroker -n $NAMESRV_ADDR -c $ROCKETMQ_HOME/conf/broker.conf
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-service
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    name_service_cr: name-service
+  ports:
+    - port: 9876
+      targetPort: 9876
+      # use this port to access the name server cluster
+      nodePort: 30080

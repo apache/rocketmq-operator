@@ -190,7 +190,6 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 
 		if len(oldNameServerListStr) <= cons.MinIpListLength {
 			oldNameServerListStr = share.NameServersStr
-			share.IsNameServersStrInitialized = true
 		} else if len(share.NameServersStr) > cons.MinIpListLength {
 			oldNameServerListStr = oldNameServerListStr[:len(oldNameServerListStr)-1]
 			share.IsNameServersStrUpdated = true
@@ -230,6 +229,11 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	// Print NameServers IP
 	for i, value := range instance.Status.NameServers {
 		reqLogger.Info("NameServers IP " + strconv.Itoa(i) + ": " + value)
+	}
+
+	runningNameServerNum := getRunningNameServersNum(podList.Items)
+	if runningNameServerNum == instance.Spec.Size {
+		share.IsNameServersStrInitialized = true
 	}
 
 	if requeue {
@@ -281,6 +285,16 @@ func getNameServers(pods []corev1.Pod) []string {
 		nameServers = append(nameServers, pod.Status.PodIP)
 	}
 	return nameServers
+}
+
+func getRunningNameServersNum(pods []corev1.Pod) int32 {
+	var num int32 = 0
+	for _, pod := range pods {
+		if reflect.DeepEqual(pod.Status.Phase, corev1.PodRunning) {
+			num++
+		}
+	}
+	return num
 }
 
 func labelsForNameService(name string) map[string]string {

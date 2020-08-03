@@ -28,7 +28,7 @@ spec:
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: rocketmqinc/rocketmq-broker:4.5.0-alpine-root
+  brokerImage: rocketmqinc/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # resources describes the compute resource requirements and limits
@@ -54,7 +54,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: yoda-lvm-default
+        storageClassName: rocketmq-storage
         resources:
           requests:
             storage: 8Gi
@@ -65,9 +65,9 @@ metadata:
   name: name-service
 spec:
   # size is the the name service instance number of the name service cluster
-  size: 2
+  size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: rocketmqinc/rocketmq-namesrv:4.5.0-alpine-root
+  nameServiceImage: rocketmqinc/rocketmq-namesrv:4.5.0-alpine
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # hostNetwork can be true or false
@@ -91,7 +91,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: yoda-lvm-default
+        storageClassName: rocketmq-storage
         resources:
           requests:
             storage: 1Gi

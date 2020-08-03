@@ -25,7 +25,7 @@ spec:
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # hostNetwork can be true or false
-  hostNetwork: false
+  hostNetwork: true
   # resources describes the compute resource requirements and limits
   resources:
     requests:
@@ -35,7 +35,7 @@ spec:
       memory: "1024Mi"
       cpu: "500m"
   # storageMode can be EmptyDir, HostPath, StorageClass
-  storageMode: EmptyDir
+  storageMode: HostPath
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/nameserver
   # volumeClaimTemplates defines the storageClass
