@@ -270,7 +270,8 @@ rocketmq-operator-76b4b9f4db-x52mz   1/1     Running   0          3h25m   10.1.2
 
 Using the default yaml, we can see that there are 2 name server Pods and 1 master broker 1 replica(slave) broker running on the k8s cluster.
 
-2. By default, the name server cluster is using cluster ip(because ```hostNetwork: false```), if you need tp exposure the name server cluster to the outside, you can set ```hostNetwork: true```, or use nodePort service:
+2. By default, the name server cluster is using host network ip(because ```hostNetwork: true```). If you set ```hostNetwork: true```, and need tp exposure the name server cluster to the outside, you can use the Service:
+
 ```
 $ kubectl apply -f example/rocketmq_cluster_service.yaml
 service/rocketmq-service created
