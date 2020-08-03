@@ -29,6 +29,12 @@ spec:
           type: object
         spec:
           properties:
+            dnsPolicy:
+              description: dnsPolicy defines how a pod's DNS will be configured
+              type: string
+            hostNetwork:
+              description: HostNetwork can be true or false
+              type: boolean
             hostPath:
               description: HostPath is the local path to store data
               type: string
@@ -38,6 +44,9 @@ spec:
             nameServiceImage:
               description: NameServiceImage is the name service image
               type: string
+            resources:
+              description: Resources describes the compute resource requirements
+              type: object
             size:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "operator-sdk generate k8s" to regenerate code after
@@ -58,6 +67,9 @@ spec:
           - size
           - nameServiceImage
           - imagePullPolicy
+          - hostNetwork
+          - dnsPolicy
+          - resources
           - storageMode
           - hostPath
           - volumeClaimTemplates
