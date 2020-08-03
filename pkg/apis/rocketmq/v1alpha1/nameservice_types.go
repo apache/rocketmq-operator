@@ -39,6 +39,8 @@ type NameServiceSpec struct {
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
 	// HostNetwork can be true or false
 	HostNetwork bool `json:"hostNetwork"`
+	// dnsPolicy defines how a pod's DNS will be configured
+	DNSPolicy corev1.DNSPolicy `json:"dnsPolicy"`
 	// Resources describes the compute resource requirements
 	Resources corev1.ResourceRequirements `json:"resources"`
 	// StorageMode can be EmptyDir, HostPath, NFS

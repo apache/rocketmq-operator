@@ -319,6 +319,7 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 				},
 				Spec: corev1.PodSpec{
 					HostNetwork: nameService.Spec.HostNetwork,
+					DNSPolicy: nameService.Spec.DNSPolicy,
 					Containers: []corev1.Container{{
 						Resources: nameService.Spec.Resources,
 						Image: nameService.Spec.NameServiceImage,
