@@ -190,7 +190,6 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 
 		if len(oldNameServerListStr) <= cons.MinIpListLength {
 			oldNameServerListStr = share.NameServersStr
-			share.IsNameServersStrInitialized = true
 		} else if len(share.NameServersStr) > cons.MinIpListLength {
 			oldNameServerListStr = oldNameServerListStr[:len(oldNameServerListStr)-1]
 			share.IsNameServersStrUpdated = true
@@ -232,6 +231,11 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		reqLogger.Info("NameServers IP " + strconv.Itoa(i) + ": " + value)
 	}
 
+	runningNameServerNum := getRunningNameServersNum(podList.Items)
+	if runningNameServerNum == instance.Spec.Size {
+		share.IsNameServersStrInitialized = true
+	}
+
 	if requeue {
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 	}
@@ -241,7 +245,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 
 func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1.PersistentVolumeClaim {
 	switch nameService.Spec.StorageMode {
-	case cons.StorageModeNFS:
+	case cons.StorageModeStorageClass:
 		return nameService.Spec.VolumeClaimTemplates
 	case cons.StorageModeEmptyDir, cons.StorageModeHostPath:
 		fallthrough
@@ -252,7 +256,7 @@ func getVolumeClaimTemplates(nameService *rocketmqv1alpha1.NameService) []corev1
 
 func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
 	switch nameService.Spec.StorageMode {
-	case cons.StorageModeNFS:
+	case cons.StorageModeStorageClass:
 		return nil
 	case cons.StorageModeEmptyDir:
 		volumes := []corev1.Volume{{
@@ -278,9 +282,19 @@ func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
 func getNameServers(pods []corev1.Pod) []string {
 	var nameServers []string
 	for _, pod := range pods {
-		nameServers = append(nameServers, pod.Status.HostIP)
+		nameServers = append(nameServers, pod.Status.PodIP)
 	}
 	return nameServers
+}
+
+func getRunningNameServersNum(pods []corev1.Pod) int32 {
+	var num int32 = 0
+	for _, pod := range pods {
+		if reflect.DeepEqual(pod.Status.Phase, corev1.PodRunning) {
+			num++
+		}
+	}
+	return num
 }
 
 func labelsForNameService(name string) map[string]string {
@@ -304,9 +318,10 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
-					HostNetwork: true,
-					DNSPolicy:   "ClusterFirstWithHostNet",
+					HostNetwork: nameService.Spec.HostNetwork,
+					DNSPolicy: nameService.Spec.DNSPolicy,
 					Containers: []corev1.Container{{
+						Resources: nameService.Spec.Resources,
 						Image: nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",

@@ -59,10 +59,10 @@ const (
 	EnvBrokerName = "BROKER_NAME"
 
 	// LogMountPath is the directory of RocketMQ log files
-	LogMountPath = "/home/rocketmq/logs"
+	LogMountPath = "/root/logs"
 
 	// StoreMountPath is the directory of RocketMQ store files
-	StoreMountPath = "/home/rocketmq/store"
+	StoreMountPath = "/root/store"
 
 	// LogSubPathName is the sub-path name of log dir under mounted host dir
 	LogSubPathName = "logs"
@@ -94,8 +94,8 @@ const (
 	// BrokerHighAvailabilityContainerPortName is the high availability port name of broker container
 	BrokerHighAvailabilityContainerPortName = "ha"
 
-	// StorageModeNFS is the name of NFS storage mode
-	StorageModeNFS = "NFS"
+	// StorageModeStorageClass is the name of StorageClass storage mode
+	StorageModeStorageClass = "StorageClass"
 
 	// StorageModeEmptyDir is the name of EmptyDir storage mode
 	StorageModeEmptyDir = "EmptyDir"

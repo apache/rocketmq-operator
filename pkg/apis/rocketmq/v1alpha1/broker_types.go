@@ -38,13 +38,15 @@ type BrokerSpec struct {
 	ReplicationMode string `json:"replicationMode,omitempty"`
 	// ReplicaPerGroup each broker cluster's replica number
 	ReplicaPerGroup int `json:"replicaPerGroup"`
-	// BaseImage is the broker image to use for the Pods.
+	// BaseImage is the broker image to use for the Pods
 	BrokerImage string `json:"brokerImage"`
-	// ImagePullPolicy defines how the image is pulled.
+	// ImagePullPolicy defines how the image is pulled
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
 	// AllowRestart defines whether allow pod restart
 	AllowRestart bool `json:"allowRestart"`
-	// StorageMode can be EmptyDir, HostPath, NFS
+	// Resources describes the compute resource requirements
+	Resources corev1.ResourceRequirements `json:"resources"`
+	// StorageMode can be EmptyDir, HostPath, StorageClass
 	StorageMode string `json:"storageMode"`
 	// HostPath is the local path to store data
 	HostPath string `json:"hostPath"`

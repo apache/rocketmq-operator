@@ -15,13 +15,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "Stopping RocketMQ-Operator..."
-#kubectl delete -f example/rocketmq_v1alpha1_rocketmq_cluster.yaml
+checkVersion()
+{
+    echo "Version = $1"
+	echo $1 |grep -E "^[0-9]+\.[0-9]+\.[0-9]+" > /dev/null
+    if [ $? = 0 ]; then
+        return 1
+    fi
 
-kubectl delete -f deploy/operator.yaml
-kubectl delete -f deploy/role_binding.yaml
-kubectl delete -f deploy/role.yaml
-kubectl delete -f deploy/service_account.yaml
-kubectl delete -f deploy/crds/rocketmq_v1alpha1_broker_crd.yaml
-kubectl delete -f deploy/crds/rocketmq_v1alpha1_nameservice_crd.yaml
-kubectl delete -f deploy/crds/rocketmq_v1alpha1_topictransfer_crd.yaml
+	echo "Version $1 illegal, it should be X.X.X format(e.g. 4.5.0), please check released versions in 'https://dist.apache.org/repos/dist/release/rocketmq/'"
+    exit 2
+}
+
+if [ $# -lt 1 ]; then
+    echo -e "Usage: sh $0 Version"
+    exit 2
+fi
+
+ROCKETMQ_VERSION=$1
+DOCKERHUB_REPO=apacherocketmq/rocketmq-broker
+
+checkVersion $ROCKETMQ_VERSION
+
+docker build -t ${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine --build-arg version=${ROCKETMQ_VERSION} .
+
+docker push ${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine

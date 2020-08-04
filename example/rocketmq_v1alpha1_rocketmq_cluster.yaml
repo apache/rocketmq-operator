@@ -42,7 +42,7 @@ spec:
   # allowRestart defines whether allow pod restart
   allowRestart: true
   # storageMode can be EmptyDir, HostPath, StorageClass
-  storageMode: HostPath
+  storageMode: EmptyDir
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/broker
   # scalePodName is broker-[broker group number]-master-0
@@ -51,10 +51,54 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: broker-storage
-        annotations:
-          volume.beta.kubernetes.io/storage-class: rocketmq-storage
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: rocketmq-storage
         resources:
           requests:
             storage: 8Gi
+---
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: NameService
+metadata:
+  name: name-service
+spec:
+  # size is the the name service instance number of the name service cluster
+  size: 1
+  # nameServiceImage is the customized docker image repo of the RocketMQ name service
+  nameServiceImage: apacherocketmq/rocketmq-namesrv:4.5.0-alpine
+  # imagePullPolicy is the image pull policy
+  imagePullPolicy: Always
+  # hostNetwork can be true or false
+  hostNetwork: true
+  #  Set DNS policy for the pod.
+  #  Defaults to "ClusterFirst".
+  #  Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.
+  #  DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy.
+  #  To have DNS options set along with hostNetwork, you have to specify DNS policy
+  #  explicitly to 'ClusterFirstWithHostNet'.
+  dnsPolicy: ClusterFirstWithHostNet
+  # resources describes the compute resource requirements and limits
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1024Mi"
+      cpu: "500m"
+  # storageMode can be EmptyDir, HostPath, StorageClass
+  storageMode: EmptyDir
+  # hostPath is the local path to store data
+  hostPath: /data/rocketmq/nameserver
+  # volumeClaimTemplates defines the storageClass
+  volumeClaimTemplates:
+    - metadata:
+        name: namesrv-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: rocketmq-storage
+        resources:
+          requests:
+            storage: 1Gi

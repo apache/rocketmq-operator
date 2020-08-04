@@ -33,13 +33,13 @@ spec:
               description: AllowRestart defines whether allow pod restart
               type: boolean
             brokerImage:
-              description: BaseImage is the broker image to use for the Pods.
+              description: BaseImage is the broker image to use for the Pods
               type: string
             hostPath:
               description: HostPath is the local path to store data
               type: string
             imagePullPolicy:
-              description: ImagePullPolicy defines how the image is pulled.
+              description: ImagePullPolicy defines how the image is pulled
               type: string
             nameServers:
               description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
@@ -51,6 +51,9 @@ spec:
             replicationMode:
               description: ReplicationMode is SYNC or ASYNC
               type: string
+            resources:
+              description: Resources describes the compute resource requirements
+              type: object
             scalePodName:
               description: The name of pod where the metadata from
               type: string
@@ -62,7 +65,7 @@ spec:
               format: int64
               type: integer
             storageMode:
-              description: StorageMode can be EmptyDir, HostPath, NFS
+              description: StorageMode can be EmptyDir, HostPath, StorageClass
               type: string
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines the StorageClass
@@ -75,6 +78,7 @@ spec:
           - brokerImage
           - imagePullPolicy
           - allowRestart
+          - resources
           - storageMode
           - hostPath
           - volumeClaimTemplates

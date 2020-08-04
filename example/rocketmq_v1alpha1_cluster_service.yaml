@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -15,28 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-checkVersion()
-{
-    echo "Version = $1"
-	echo $1 |grep -E "^[0-9]+\.[0-9]+\.[0-9]+" > /dev/null
-    if [ $? = 0 ]; then
-        return 1
-    fi
-
-	echo "Version $1 illegal, it should be X.X.X format(e.g. 4.5.0), please check released versions in 'https://dist.apache.org/repos/dist/release/rocketmq/'"
-    exit 2
-}
-
-if [ $# -lt 1 ]; then
-    echo -e "Usage: sh $0 Version"
-    exit 2
-fi
-
-ROCKETMQ_VERSION=$1
-DOCKERHUB_REPO=rocketmqinc/rocketmq-namesrv
-
-checkVersion $ROCKETMQ_VERSION
-
-docker build -t ${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine --build-arg version=${ROCKETMQ_VERSION} .
-
-docker push ${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-service
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    name_service_cr: name-service
+  ports:
+    - port: 9876
+      targetPort: 9876
+      # use this port to access the name server cluster
+      nodePort: 30080
