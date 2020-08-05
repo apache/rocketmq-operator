@@ -33,7 +33,7 @@ if [ $# -lt 1 ]; then
 fi
 
 ROCKETMQ_VERSION=$1
-DOCKERHUB_REPO=apacherocketmq/rocketmq-namesrv
+DOCKERHUB_REPO=apacherocketmq/rocketmq-nameserver
 
 checkVersion $ROCKETMQ_VERSION
 

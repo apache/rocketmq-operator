@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-NAMESRV_DOCKERHUB_REPO=apacherocketmq/rocketmq-namesrv
+NAMESRV_DOCKERHUB_REPO=apacherocketmq/rocketmq-nameserver
 BROKER_DOCKERHUB_REPO=apacherocketmq/rocketmq-broker
 ROCKETMQ_VERSION=4.5.0
 
@@ -47,7 +47,7 @@ if [ ! -d "`pwd`/data" ]; then
   mkdir -p "data"
 fi
 
-echo "Play RocketMQ namesrv and broker image"
+echo "Play RocketMQ nameserver and broker image"
 echo "Starting RocketMQ nodes..."
 
 case "${BASE_IMAGE}" in
