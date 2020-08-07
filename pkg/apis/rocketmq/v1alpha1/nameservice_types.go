@@ -43,7 +43,7 @@ type NameServiceSpec struct {
 	DNSPolicy corev1.DNSPolicy `json:"dnsPolicy"`
 	// Resources describes the compute resource requirements
 	Resources corev1.ResourceRequirements `json:"resources"`
-	// StorageMode can be EmptyDir, HostPath, NFS
+	// StorageMode can be EmptyDir, HostPath, StorageClass
 	StorageMode string `json:"storageMode"`
 	// HostPath is the local path to store data
 	HostPath string `json:"hostPath"`
