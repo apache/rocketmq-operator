@@ -37,7 +37,7 @@ spec:
       memory: "2048Mi"
       cpu: "250m"
     limits:
-      memory: "4096Mi"
+      memory: "12288Mi"
       cpu: "500m"
   # allowRestart defines whether allow pod restart
   allowRestart: true
