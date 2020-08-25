@@ -183,7 +183,7 @@ spec:
       memory: "2048Mi"
       cpu: "250m"
     limits:
-      memory: "4096Mi"
+      memory: "12288Mi"
       cpu: "500m"
   # allowRestart defines whether allow pod restart
   allowRestart: true
@@ -251,6 +251,8 @@ spec:
 ```
 
 which defines the RocketMQ name server cluster and the broker cluster scale, the [ip:port] list of name service and so on. By default, the nameServers is an empty string which means it is automatically obtained by the operator.
+
+> Notice: Currently the broker image use the formula ```max(min(1/2 ram, 1024MB), min(1/4 ram, 8GB))``` to calculate JVM Xmx size in which ```ram``` is the host memory size. If the memory resource limit is lower than the container requirement, it may occur the ```OOMkilled``` error.
 
 ### Create RocketMQ Cluster
 
