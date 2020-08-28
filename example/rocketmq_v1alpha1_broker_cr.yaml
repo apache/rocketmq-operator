@@ -27,6 +27,10 @@ spec:
   replicationMode: ASYNC
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
+  # nodeAffinityKey|nodeAffinityKey|nodeAffinityValues used to schedule specified nodes
+  nodeAffinityKey: kubernetes.io/hostname
+  nodeAffinityOperator: In
+  nodeAffinityValues: ["node1","node2"]
   # brokerImage is the customized docker image repo of the RocketMQ broker
   brokerImage: apacherocketmq/rocketmq-broker:4.5.0-alpine
   # imagePullPolicy is the image pull policy

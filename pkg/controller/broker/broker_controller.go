@@ -380,6 +380,23 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 		statefulSetName = broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
 	}
 
+	var affinity corev1.Affinity
+	if broker.Spec.NodeAffinityKey != "" && broker.Spec.NodeAffinityOperator != "" && broker.Spec.NodeAffinityValues != nil {
+		affinity = corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key: 	  broker.Spec.NodeAffinityKey,
+							Operator: corev1.NodeSelectorOperator(broker.Spec.NodeAffinityOperator),
+							Values:   broker.Spec.NodeAffinityValues,
+						}},
+					}},
+				},
+			},
+		}
+	}
+
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      statefulSetName,
@@ -398,6 +415,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
+					Affinity: &affinity,
 					Containers: []corev1.Container{{
 						Resources: broker.Spec.Resources,
 						Image: broker.Spec.BrokerImage,

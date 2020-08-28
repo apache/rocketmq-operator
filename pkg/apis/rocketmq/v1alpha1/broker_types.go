@@ -38,6 +38,10 @@ type BrokerSpec struct {
 	ReplicationMode string `json:"replicationMode,omitempty"`
 	// ReplicaPerGroup each broker cluster's replica number
 	ReplicaPerGroup int `json:"replicaPerGroup"`
+	//NodeAffinityKey|NodeAffinityOperator|NodeAffinityValues used to schedule pod to specified node
+	NodeAffinityKey string `json:"nodeAffinityKey"`
+	NodeAffinityOperator string `json:"nodeAffinityOperator"`
+	NodeAffinityValues []string `json:"nodeAffinityValues"`
 	// BaseImage is the broker image to use for the Pods
 	BrokerImage string `json:"brokerImage"`
 	// ImagePullPolicy defines how the image is pulled

@@ -38,6 +38,17 @@ spec:
             hostPath:
               description: HostPath is the local path to store data
               type: string
+            nodeAffinityKey:
+              description: NodeAffinityKey defines the key of nodeselector in nodeAffinity.
+              type: string
+            nodeAffinityOperator:
+              description: NodeAffinityOperator defines the operator of nodeselector in nodeAffinity.
+              type: string
+            nodeAffinityValues:
+              description: NodeAffinityValues defines the values of nodeselector in nodeAffinity.
+              items:
+                type: string
+              type: array
             imagePullPolicy:
               description: ImagePullPolicy defines how the image is pulled
               type: string
