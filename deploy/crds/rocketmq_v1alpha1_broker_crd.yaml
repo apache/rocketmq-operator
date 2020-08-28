@@ -48,9 +48,6 @@ spec:
               description: ReplicaPerGroup each broker cluster's replica number
               format: int64
               type: integer
-            replicationMode:
-              description: ReplicationMode is SYNC or ASYNC
-              type: string
             resources:
               description: Resources describes the compute resource requirements
               type: object
@@ -67,6 +64,16 @@ spec:
             storageMode:
               description: StorageMode can be EmptyDir, HostPath, StorageClass
               type: string
+            env:
+              description: env defines custom env, e.g. BROKER_MEM
+              items:
+                type: object
+              type: array
+            volumes:
+              description: volumes defines the broker.conf
+              items:
+                type: object
+              type: array
             volumeClaimTemplates:
               description: VolumeClaimTemplates defines the StorageClass
               items:
@@ -77,10 +84,13 @@ spec:
           - replicaPerGroup
           - brokerImage
           - imagePullPolicy
+          - nameServers
           - allowRestart
           - resources
           - storageMode
           - hostPath
+          - env
+          - volumes
           - volumeClaimTemplates
           - scalePodName
           type: object

@@ -33,7 +33,7 @@ RUN  /usr/local/bin/user_setup
 ENV ROCKETMQ_VERSION 4.5.0
 
 # Rocketmq home
-ENV ROCKETMQ_HOME  /home/rocketmq/rocketmq-${ROCKETMQ_VERSION}
+ENV ROCKETMQ_HOME  /home/rocketmq/operator
 
 WORKDIR  ${ROCKETMQ_HOME}
 

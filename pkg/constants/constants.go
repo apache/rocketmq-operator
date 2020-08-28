@@ -26,7 +26,7 @@ const (
 	BasicCommand = "sh"
 
 	// AdminToolDir is the RocketMQ Admin directory in operator image
-	AdminToolDir = "/home/rocketmq/rocketmq-4.5.0/bin/mqadmin"
+	AdminToolDir = "/home/rocketmq/operator/bin/mqadmin"
 
 	// StoreConfigDir is the directory of config file
 	StoreConfigDir = "/home/rocketmq/store/config"
@@ -37,6 +37,12 @@ const (
 	// SubscriptionGroupJsonDir is the directory of subscriptionGroup.json
 	SubscriptionGroupJsonDir = "/home/rocketmq/store/config/subscriptionGroup.json"
 
+	// BrokerConfigDir is the directory of the mounted config file
+	BrokerConfigPath = "/home/rocketmq/broker/conf"
+
+	// BrokerConfigName is the name of mounted configuration file
+	BrokerConfigName = "broker-common.conf"
+
 	// UpdateBrokerConfig is update broker config command
 	UpdateBrokerConfig = "updateBrokerConfig"
 
@@ -45,9 +51,6 @@ const (
 
 	// EnvNameServiceAddress is the container environment variable name of name server list
 	EnvNameServiceAddress = "NAMESRV_ADDR"
-
-	// EnvReplicationMode is the container environment variable name of replication mode
-	EnvReplicationMode = "REPLICATION_MODE"
 
 	// EnvBrokerId is the container environment variable name of broker id
 	EnvBrokerId = "BROKER_ID"

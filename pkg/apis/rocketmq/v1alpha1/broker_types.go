@@ -34,8 +34,6 @@ type BrokerSpec struct {
 	Size int `json:"size"`
 	// NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
 	NameServers string `json:"nameServers,omitempty"`
-	// ReplicationMode is SYNC or ASYNC
-	ReplicationMode string `json:"replicationMode,omitempty"`
 	// ReplicaPerGroup each broker cluster's replica number
 	ReplicaPerGroup int `json:"replicaPerGroup"`
 	// BaseImage is the broker image to use for the Pods
@@ -50,6 +48,10 @@ type BrokerSpec struct {
 	StorageMode string `json:"storageMode"`
 	// HostPath is the local path to store data
 	HostPath string `json:"hostPath"`
+	// Env defines custom env, e.g. BROKER_MEM
+	Env []corev1.EnvVar `json:"env"`
+	// Volumes define the broker.conf
+	Volumes []corev1.Volume `json:"volumes"`
 	// VolumeClaimTemplates defines the StorageClass
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 	// The name of pod where the metadata from

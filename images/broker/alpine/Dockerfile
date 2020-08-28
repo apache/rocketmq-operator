@@ -25,7 +25,7 @@ ARG version
 ENV ROCKETMQ_VERSION ${version}
 
 # Rocketmq home
-ENV ROCKETMQ_HOME  /root/rocketmq-${ROCKETMQ_VERSION}
+ENV ROCKETMQ_HOME  /home/rocketmq/broker
 
 WORKDIR  ${ROCKETMQ_HOME}
 
