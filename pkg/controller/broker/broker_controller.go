@@ -456,7 +456,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex int)  []corev1.EnvVar {
 	envs := []corev1.EnvVar{{
 		Name:  cons.EnvNameServiceAddress,
-		Value: broker.Spec.NameServers,
+		Value: share.NameServersStr,
 	}, {
 		Name:  cons.EnvBrokerId,
 		Value: strconv.Itoa(replicaIndex),
