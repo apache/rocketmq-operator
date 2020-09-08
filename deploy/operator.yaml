@@ -31,7 +31,7 @@ spec:
       containers:
         - name: rocketmq-operator
           # Replace this with the built image name
-          image: apacherocketmq/rocketmq-operator:0.2.1
+          image: apacherocketmq/rocketmq-operator:0.3.0-snapshot
           command:
           - rocketmq-operator
           imagePullPolicy: Always

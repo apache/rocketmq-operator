@@ -21,7 +21,7 @@ spec:
   # size is the the name service instance number of the name service cluster
   size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine
+  nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   # hostNetwork can be true or false

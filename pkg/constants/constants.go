@@ -19,6 +19,9 @@
 package constants
 
 const (
+	// TODO: get paths by container ENV or actual value instead of fixed constant
+	DataPath = "/root"
+
 	// BrokerContainerName is the name of broker container
 	BrokerContainerName = "broker"
 
@@ -29,16 +32,16 @@ const (
 	AdminToolDir = "/home/rocketmq/operator/bin/mqadmin"
 
 	// StoreConfigDir is the directory of config file
-	StoreConfigDir = "/home/rocketmq/store/config"
+	StoreConfigDir = DataPath + "/store/config"
 
 	// TopicJsonDir is the directory of topics.json
-	TopicJsonDir = "/home/rocketmq/store/config/topics.json"
+	TopicJsonDir = StoreConfigDir + "/topics.json"
 
 	// SubscriptionGroupJsonDir is the directory of subscriptionGroup.json
-	SubscriptionGroupJsonDir = "/home/rocketmq/store/config/subscriptionGroup.json"
+	SubscriptionGroupJsonDir = StoreConfigDir + "/subscriptionGroup.json"
 
 	// BrokerConfigDir is the directory of the mounted config file
-	BrokerConfigPath = "/home/rocketmq/broker/conf"
+	BrokerConfigPath = DataPath + "/rocketmq/broker/conf"
 
 	// BrokerConfigName is the name of mounted configuration file
 	BrokerConfigName = "broker-common.conf"
@@ -62,10 +65,10 @@ const (
 	EnvBrokerName = "BROKER_NAME"
 
 	// LogMountPath is the directory of RocketMQ log files
-	LogMountPath = "/root/logs"
+	LogMountPath = DataPath + "/logs"
 
 	// StoreMountPath is the directory of RocketMQ store files
-	StoreMountPath = "/root/store"
+	StoreMountPath = DataPath + "/store"
 
 	// LogSubPathName is the sub-path name of log dir under mounted host dir
 	LogSubPathName = "logs"
