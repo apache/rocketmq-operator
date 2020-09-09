@@ -311,7 +311,7 @@ Using the default yaml, we can see that there are 2 name server Pods and 1 maste
 2. By default, the name server cluster uses host network IP (because ```hostNetwork: true```). If you set ```hostNetwork: true```, and need to exposure the name server cluster to the outside, you can use the Service:
 
 ```
-$ kubectl apply -f example/rocketmq_cluster_service.yaml
+$ kubectl apply -f example/rocketmq_v1alpha1_cluster_service.yaml
 service/rocketmq-service created
 ```
 
