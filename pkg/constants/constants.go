@@ -141,4 +141,19 @@ const (
 
 	// TopicListConsumerGroup is the consumer group field index of the output when using command check topic list
 	TopicListConsumerGroup = 2
+
+	// ExporterContainerName is the name of rocketmq exporter
+	ExporterContainerName = "rocketmq-exporter"
+
+	// ExporterDefaultRequestCPU is the default value of rocketmq-exporter's request CPU
+	ExporterDefaultRequestCPU     = "100m"
+
+	// ExporterDefaultLimitCPU is the default value of rocketmq-exporter's limit CPU
+	ExporterDefaultLimitCPU       = "200m"
+
+	// ExporterDefaultRequestMemory is the default value of rocketmq-exporter's Request Memory
+	ExporterDefaultRequestMemory  = "200Mi"
+
+	// ExporterDefaultLimitMemory is the default value of rocketmq-exporter's limit Memory
+	ExporterDefaultLimitMemory    = "300Mi"
 )

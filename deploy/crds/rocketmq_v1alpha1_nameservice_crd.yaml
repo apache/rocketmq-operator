@@ -63,6 +63,9 @@ spec:
               items:
                 type: object
               type: array
+            exporter:
+              description: Exporter defines rocketmq metrics
+              type: object
           required:
           - size
           - nameServiceImage

@@ -20,6 +20,7 @@ package nameservice
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"os/exec"
 	"reflect"
 	"strconv"
@@ -342,8 +343,43 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 			VolumeClaimTemplates: getVolumeClaimTemplates(nameService),
 		},
 	}
+	if nameService.Spec.Exporter.Enabled {
+		exporter := r.createRocketMQExporterContainer(nameService)
+		dep.Spec.Template.Spec.Containers = append(dep.Spec.Template.Spec.Containers, exporter)
+		dep.Spec.Template.Annotations = nameService.Spec.Exporter.Annotations
+	}
 	// Set Broker instance as the owner and controller
 	controllerutil.SetControllerReference(nameService, dep, r.scheme)
 
 	return dep
+}
+
+func (r *ReconcileNameService) createRocketMQExporterContainer(nameService *rocketmqv1alpha1.NameService) (container corev1.Container) {
+	container = corev1.Container{
+		Name: cons.ExporterContainerName,
+		Image: nameService.Spec.Exporter.Image,
+		Env: nameService.Spec.Exporter.Env,
+		ImagePullPolicy: func(specPolicy corev1.PullPolicy) corev1.PullPolicy {
+			if specPolicy == "" {
+				return corev1.PullAlways
+			}
+			return specPolicy
+		}(nameService.Spec.Exporter.ImagePullPolicy),
+		Resources: func(requirements corev1.ResourceRequirements) corev1.ResourceRequirements {
+			if requirements.Limits.Memory().IsZero() && requirements.Requests.Memory().IsZero() {
+				return corev1.ResourceRequirements{
+					Limits: corev1.ResourceList{
+						corev1.ResourceCPU:    resource.MustParse(cons.ExporterDefaultLimitCPU),
+						corev1.ResourceMemory: resource.MustParse(cons.ExporterDefaultLimitMemory),
+					},
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    resource.MustParse(cons.ExporterDefaultRequestCPU),
+						corev1.ResourceMemory: resource.MustParse(cons.ExporterDefaultRequestMemory),
+					},
+				}
+			}
+			return requirements
+		}(nameService.Spec.Exporter.Resources),
+	}
+	return
 }
