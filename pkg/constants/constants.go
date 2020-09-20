@@ -100,6 +100,12 @@ const (
 	// BrokerHighAvailabilityContainerPortName is the high availability port name of broker container
 	BrokerHighAvailabilityContainerPortName = "ha"
 
+	// ConsoleContainerPort is the port number of RocketMQ Console container
+	ConsoleContainerPort = 8080
+
+	// ConsoleContainerPortName is the port name of RocketMQ Console container
+	ConsoleContainerPortName = "console"
+
 	// StorageModeStorageClass is the name of StorageClass storage mode
 	StorageModeStorageClass = "StorageClass"
 
