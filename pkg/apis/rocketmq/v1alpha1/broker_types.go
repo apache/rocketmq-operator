@@ -56,6 +56,8 @@ type BrokerSpec struct {
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 	// The name of pod where the metadata from
 	ScalePodName string `json:"scalePodName"`
+	// RocketMQ Name, the broker and nameserver in the same cluster must be filled with the same name
+	RocketMQName string `json:"rocketMQName"`
 }
 
 // BrokerStatus defines the observed state of Broker

@@ -24,6 +24,8 @@ spec:
   nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  # rocketMQName is the rocketmq name, must equal to broker.spec.rocketMQName and topictransfer.spec.rocketMQName
+  rocketMQName: "rocketmq_name"
   # hostNetwork can be true or false
   hostNetwork: true
   #  Set DNS policy for the pod.
