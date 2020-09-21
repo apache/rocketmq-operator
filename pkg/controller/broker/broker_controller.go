@@ -165,7 +165,6 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 	}
 
-	share.BrokerClusterName = broker.Name
 	replicaPerGroup := broker.Spec.ReplicaPerGroup
 	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(share.GroupNum) + ", replicaPerGroup=" + strconv.Itoa(replicaPerGroup))
 	for brokerGroupIndex := 0; brokerGroupIndex < share.GroupNum; brokerGroupIndex++ {

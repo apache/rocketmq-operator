@@ -31,9 +31,6 @@ var (
 	// IsNameServersStrInitialized is whether the name server list is initialized
 	IsNameServersStrInitialized = false
 
-	// BrokerClusterName is the broker cluster name
-	BrokerClusterName = ""
-
 	// svc of controller for brokers
 	ControllerAccessPoint = ""
 )

@@ -217,13 +217,37 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 
 		// use admin tool to update broker config
 		if share.IsNameServersStrUpdated && (len(oldNameServerListStr) > cons.MinIpListLength) && (len(share.NameServersStr) > cons.MinIpListLength) {
+			// bash-4.4$ ./mqadmin clusterList -n 192.168.180.36:9876
+			// #Cluster Name     #Broker Name            #BID  #Addr                  #Version                #InTPS(LOAD)       #OutTPS(LOAD) #PCWait(ms) #Hour #SPACE
+			// broker            broker-0                0     192.168.180.40:10911   V4_5_0                   0.00(0,0ms)         0.00(0,0ms)          0 471030.34 -1.0000
+			// broker            broker-0                1     192.168.137.89:10911   V4_5_0                   0.00(0,0ms)         0.00(0,0ms)          0 471030.34 0.2673
+			clusterListCmd := exec.Command("sh", cons.AdminToolDir, cons.ClusterList, "-n", oldNameServerListStr)
+			clusterListOutput, err := clusterListCmd.Output()
+			if err != nil {
+				reqLogger.Error(err, "Get cluster list failed, command: "+cons.AdminToolDir+" "+cons.ClusterList+" -n "+oldNameServerListStr)
+				return reconcile.Result{Requeue: true}, err
+			}
+			// get cluster of output
+			clusterName := ""
+			for _, line := range strings.Split(string(clusterListOutput), "\n") {
+				if strings.HasPrefix(line, "#Cluster Name") {
+					continue
+				}
+				for _, f := range strings.Fields(line) {
+					clusterName = f
+					break
+				}
+			}
+			if clusterName == "" {
+				reqLogger.Error(err, "Get empty cluster name, command: "+cons.AdminToolDir+" "+cons.ClusterList+" -n "+oldNameServerListStr)
+				return reconcile.Result{Requeue: true}, err
+			}
+
 			mqAdmin := cons.AdminToolDir
 			subCmd := cons.UpdateBrokerConfig
 			key := cons.ParamNameServiceAddress
 
 			reqLogger.Info("share.GroupNum=broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
-
-			clusterName := share.BrokerClusterName
 			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
 			command := mqAdmin + " " + subCmd + " -c " + clusterName + " -k " + key + " -n " + oldNameServerListStr + " -v " + share.NameServersStr
 			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldNameServerListStr, "-v", share.NameServersStr)
@@ -249,7 +273,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 
 	reqLogger.Info("Share variables", "GroupNum", share.GroupNum,
 		"NameServersStr", share.NameServersStr, "IsNameServersStrUpdated", share.IsNameServersStrUpdated,
-		"IsNameServersStrInitialized", share.IsNameServersStrInitialized, "BrokerClusterName", share.BrokerClusterName)
+		"IsNameServersStrInitialized", share.IsNameServersStrInitialized)
 
 	if requeue {
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil

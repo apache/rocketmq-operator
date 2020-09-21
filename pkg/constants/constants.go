@@ -55,6 +55,9 @@ const (
 	// UpdateBrokerConfig is update broker config command
 	UpdateBrokerConfig = "updateBrokerConfig"
 
+	// ClusterList is the command of cluster list
+	ClusterList = "clusterList"
+
 	// ParamNameServiceAddress is the name of name server list parameter
 	ParamNameServiceAddress = "namesrvAddr"
 
