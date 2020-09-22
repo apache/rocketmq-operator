@@ -174,7 +174,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	}
 	hostIps := getNameServers(podList.Items)
 
-	if len(hostIps) != int(instance.Spec.Size) {
+	if len(hostIps) != int(instance.Spec.Size) || len(hostIps) == 0 {
 		reqLogger.Info("nameService hostIps size must equal to spec size, hostIp size: " +
 			strconv.FormatInt(int64(len(hostIps)), 10) +
 			" spec size:" +
