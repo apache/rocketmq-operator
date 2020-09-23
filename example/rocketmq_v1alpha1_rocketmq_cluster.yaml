@@ -17,6 +17,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: broker-config
+  namespace: default
 data:
   # BROKER_MEM sets the broker JVM, if set to "" then Xms = Xmx = max(min(1/2 ram, 1024MB), min(1/4 ram, 8GB))
   BROKER_MEM: " -Xms2g -Xmx2g -Xmn1g "
@@ -126,3 +127,34 @@ spec:
           resources:
             requests:
               storage: 1Gi
+---
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: Console
+metadata:
+  name: console
+  namespace: default
+spec:
+  # nameServers is the [ip:port] list of name service
+  nameServers: ""
+  # consoleDeployment define the console deployment
+  consoleDeployment:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: rocketmq-console
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: rocketmq-console
+      template:
+        metadata:
+          labels:
+            app: rocketmq-console
+        spec:
+          containers:
+            - name: console
+              image: apacherocketmq/rocketmq-console:2.0.0
+              ports:
+                - containerPort: 8080

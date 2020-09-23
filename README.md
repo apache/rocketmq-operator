@@ -155,14 +155,15 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 
 ### Define Your RocketMQ Cluster
 
-RocketMQ Operator provides several CRDs to allow users define their RocketMQ service component cluster, which includes the Name Server cluster and the Broker cluster.
+RocketMQ Operator provides several CRDs to allow users define their RocketMQ service component cluster, which includes the Name Server, Broker cluster, Console, etc.
 
-1. Check the file ```rocketmq_v1alpha1_rocketmq_cluster.yaml``` in the ```example``` directory, for example:
+1. Check the file ```rocketmq_v1alpha1_rocketmq_cluster.yaml``` in the ```example``` directory which we put these CR together:
 ```
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: broker-config
+  namespace: default
 data:
   # BROKER_MEM sets the broker JVM, if set to "" then Xms = Xmx = max(min(1/2 ram, 1024MB), min(1/4 ram, 8GB))
   BROKER_MEM: " -Xms2g -Xmx2g -Xmn1g "
@@ -272,9 +273,40 @@ spec:
           resources:
             requests:
               storage: 1Gi
+---
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: Console
+metadata:
+  name: console
+  namespace: default
+spec:
+  # nameServers is the [ip:port] list of name service
+  nameServers: ""
+  # consoleDeployment define the console deployment
+  consoleDeployment:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: rocketmq-console
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: rocketmq-console
+      template:
+        metadata:
+          labels:
+            app: rocketmq-console
+        spec:
+          containers:
+            - name: console
+              image: apacherocketmq/rocketmq-console:2.0.0
+              ports:
+                - containerPort: 8080
 ```
 
-which defines the RocketMQ name server cluster and the broker cluster scale, the [ip:port] list of name service and so on. By default, the nameServers is an empty string which means it is automatically obtained by the operator.
+The yaml defines the RocketMQ name server and broker cluster scale, the [ip:port] list of name service and so on. By default, the nameServers is an empty string which means it is automatically obtained by the operator.
 
 > Notice: Currently the broker image use the formula ```max(min(1/2 ram, 1024MB), min(1/4 ram, 8GB))``` to calculate JVM Xmx size in which ```ram``` is the host memory size. If the memory resource limit is lower than the container requirement, it may occur the ```OOMkilled``` error.
 
@@ -301,14 +333,15 @@ rocketmq-1-name-service-0            1/1     Running   0          27s     192.16
 rocketmq-operator-76b4b9f4db-x52mz   1/1     Running   0          3h25m   10.1.2.17      docker-desktop   <none>           <none>
 ```
 
-Using the default yaml, we can see that there are 2 name server Pods and 1 master broker 1 replica(slave) broker running on the k8s cluster.
+Using the default yaml, we can see that there are 2 name-server Pods and 1 master broker 1 replica(slave) broker running on the k8s cluster.
 
-2. By default, the name server cluster uses host network IP (because ```hostNetwork: true```). If you set ```hostNetwork: true```, and need to exposure the name server cluster to the outside, you can use the Service:
+2. Apply Service and visit the RocketMQ Console.
 
+By default, we use nodePort service to expose the console service outside the k8s cluster:
 ```
 $ kubectl apply -f example/rocketmq_v1alpha1_cluster_service.yaml
-service/rocketmq-service created
 ```
+Then you can visit the RocketMQ Console (by default) by the URL ```any-k8s-node-IP:30000```, or ```localhost:30000``` if you are currently on the k8s node.
 
 3. If you are using storage class, check the PV and PVC status:
 ```
@@ -522,5 +555,9 @@ $ ./build-broker-image.sh
 $ cd images/alpine/namesrv
 $ ./build-namesrv-image.sh
 ```
+
+#### Console
+
+The Console CR directly uses the RocketMQ-Console image from https://github.com/apache/rocketmq-externals/tree/master/rocketmq-console, which has no customization for the operator. 
 
 > Note: for users who just want to use the operator, there is no need to build the operator and customized broker and name server images themselves. Users can simply use the default official images which are maintained by the RocketMQ community. 
