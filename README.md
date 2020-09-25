@@ -270,10 +270,6 @@ spec:
   hostPath: /data/rocketmq/nameserver
   exporter:
     enabled: true
-    annotations:
-      prometheus.io/path: /metrics
-      prometheus.io/port: "5557"
-      prometheus.io/scrape: "true"
     env:
       - name: WEB_TELEMETRY_PATH
         value: /metrics
@@ -302,7 +298,6 @@ spec:
 ```
 which defines the RocketMQ name server cluster and the broker cluster. We have added an optional exporter field to the NameService. Through this field, we can inject a rocketmq-exporter as a sidecar into each nameserver in the cluster. 
 
-* exporter.annotations represents that the pod can be captured by prometheus
 * exporter.env contains metrics path and nameserver address
 
 The configuration of prometheus can refer to:

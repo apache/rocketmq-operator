@@ -60,7 +60,6 @@ type RocketmqExporter struct {
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 	Env []corev1.EnvVar `json:"env"`
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // NameServiceStatus defines the observed state of NameService

@@ -346,7 +346,6 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 	if nameService.Spec.Exporter.Enabled {
 		exporter := r.createRocketMQExporterContainer(nameService)
 		dep.Spec.Template.Spec.Containers = append(dep.Spec.Template.Spec.Containers, exporter)
-		dep.Spec.Template.Annotations = nameService.Spec.Exporter.Annotations
 	}
 	// Set Broker instance as the owner and controller
 	controllerutil.SetControllerReference(nameService, dep, r.scheme)
