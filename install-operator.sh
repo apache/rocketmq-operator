@@ -18,6 +18,7 @@
 kubectl create -f deploy/crds/rocketmq_v1alpha1_broker_crd.yaml
 kubectl create -f deploy/crds/rocketmq_v1alpha1_nameservice_crd.yaml
 kubectl create -f deploy/crds/rocketmq_v1alpha1_topictransfer_crd.yaml
+kubectl create -f deploy/crds/rocketmq_v1alpha1_rocketmq_crd.yaml
 kubectl create -f deploy/service_account.yaml
 kubectl create -f deploy/role.yaml
 kubectl create -f deploy/role_binding.yaml

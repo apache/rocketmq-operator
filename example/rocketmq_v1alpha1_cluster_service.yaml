@@ -21,7 +21,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    name_service_cr: name-service
+    name_service_cr: ${rocketmq-name}-name-service
   ports:
     - port: 9876
       targetPort: 9876
