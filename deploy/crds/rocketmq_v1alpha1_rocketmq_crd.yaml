@@ -35,6 +35,9 @@ spec:
             nameService:
               description: NameService defines rocketmq name service spec info
               type: object
+            console:
+              description: Console defines rocketmq console deployment info
+              type: object
         status:
           properties:
             nameService:

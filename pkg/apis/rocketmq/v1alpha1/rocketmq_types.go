@@ -27,9 +27,11 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 // +kubebuilder:subresource:status
 type RocketmqSpec struct {
 	// Broker defines broker info
-	Broker BrokerSpec `json:"broker,omitempty"`
+	Broker BrokerSpec `json:"broker"`
 	// NameService defines name Service info
-	NameService NameServiceSpec `json:"nameService,omitempty"`
+	NameService NameServiceSpec `json:"nameService"`
+	// Console defines console info
+	Console     ConsoleSpec `json:"console,omitempty"`
 }
 
 // RocketmqStatus defines the observed state of Rocketmq

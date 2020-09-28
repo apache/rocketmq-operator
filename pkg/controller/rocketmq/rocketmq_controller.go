@@ -172,6 +172,26 @@ func (r *ReconcileRocketmq) Reconcile(request reconcile.Request) (reconcile.Resu
 			}
 		}
 	}
+	if instance.Spec.Console.ConsoleDeployment.Spec.Replicas != nil {
+		consoleFound := &rocketmqv1alpha1.Console{}
+		consoleDep := r.consoleForRocketmq(instance)
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: consoleDep.Name, Namespace: consoleDep.Namespace}, consoleFound)
+		if err != nil && errors.IsNotFound(err) {
+			err = r.client.Create(context.TODO(), consoleDep)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new console of rocketmq")
+			}
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get rocketmq console.")
+		} else {
+			if !reflect.DeepEqual(consoleDep.Spec.ConsoleDeployment.Spec.Replicas, consoleFound.Spec.ConsoleDeployment.Spec.Replicas) {
+				err = r.client.Update(context.TODO(), consoleDep)
+				if err != nil {
+					reqLogger.Error(err, "should update console resource")
+				}
+			}
+		}
+	}
 	// update instance status
 	if !reflect.DeepEqual(instance.Status.Broker, brokerFound.ObjectMeta.Name) ||
 		!reflect.DeepEqual(instance.Status.NameService, nameServiceFound.ObjectMeta.Name) {
@@ -184,6 +204,25 @@ func (r *ReconcileRocketmq) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 	return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
+}
+
+func (r *ReconcileRocketmq) consoleForRocketmq(rocketmq *rocketmqv1alpha1.Rocketmq) *rocketmqv1alpha1.Console {
+	console := &rocketmqv1alpha1.Console{
+		TypeMeta:   metav1.TypeMeta{
+			Kind: "Console",
+			APIVersion: rocketmq.TypeMeta.APIVersion,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: rocketmq.Name + "-console",
+			Namespace: rocketmq.Namespace,
+		},
+		Spec:       rocketmqv1alpha1.ConsoleSpec{
+			ConsoleDeployment: rocketmq.Spec.Console.ConsoleDeployment,
+			NameServers: rocketmq.Spec.Console.NameServers,
+		},
+	}
+	controllerutil.SetControllerReference(rocketmq, console, r.scheme)
+	return console
 }
 
 func (r *ReconcileRocketmq) nameServiceForRocketmq(rocketmq *rocketmqv1alpha1.Rocketmq) *rocketmqv1alpha1.NameService {
