@@ -273,13 +273,7 @@ spec:
           resources:
             requests:
               storage: 1Gi
----
-apiVersion: rocketmq.apache.org/v1alpha1
-kind: Console
-metadata:
-  name: console
-  namespace: default
-spec:
+console:
   # nameServers is the [ip:port] list of name service
   nameServers: ""
   # consoleDeployment define the console deployment
@@ -330,6 +324,7 @@ NAME                                 READY   STATUS    RESTARTS   AGE     IP    
 rocketmq-1-broker-0-master-0         1/1     Running   0          27s     10.1.2.27      docker-desktop   <none>           <none>
 rocketmq-1-broker-0-replica-1-0      1/1     Running   0          27s     10.1.2.28      docker-desktop   <none>           <none>
 rocketmq-1-name-service-0            1/1     Running   0          27s     192.168.65.3   docker-desktop   <none>           <none>
+rocketmq-1-console-56564554ff-xqv8j  1/1     Running   0          27s     192.168.65.4   docker-desktop   <none>           <none>
 rocketmq-operator-76b4b9f4db-x52mz   1/1     Running   0          3h25m   10.1.2.17      docker-desktop   <none>           <none>
 ```
 

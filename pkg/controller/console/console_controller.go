@@ -192,6 +192,7 @@ func (r *ReconcileConsole) newDeploymentForCR(cr *rocketmqv1alpha1.Console) *app
 		}
 		return selectorLabels, labels
 	}()
+
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name,
