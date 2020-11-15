@@ -56,6 +56,10 @@ type BrokerSpec struct {
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 	// The name of pod where the metadata from
 	ScalePodName string `json:"scalePodName"`
+	// Pod Security Context
+	PodSecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
+	// Container Security Context
+	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
 }
 
 // BrokerStatus defines the observed state of Broker
