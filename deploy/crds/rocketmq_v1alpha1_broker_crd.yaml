@@ -94,6 +94,31 @@ spec:
               items:
                 type: object
               type: array
+            affinity:
+              description: Affinity and anti-affinity scheduling
+              type: object
+            securityContext:
+              description: Defines privilege and access control settings for a Pod or Container.
+              type: object
+            imagePullSecrets:
+              description: Pull an image from a private registry
+              items:
+                type: object
+              type: array
+            tolerations:
+              description: Taints and tolerations work together to ensure that pods are not scheduled onto inappropriate nodes
+              items:
+                type: object
+              type: array
+            nodeSelector:
+              description: The simplest recommended form of node selection constraint.
+              type: object
+            podAnnotations:
+              description: You can use annotations to attach arbitrary non-identifying metadata to objects.
+              type: object
+            priorityClassName:
+              description: Defines priority class's name
+              type: string
           required:
           - size
           - replicaPerGroup

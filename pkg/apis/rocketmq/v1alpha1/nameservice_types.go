@@ -49,6 +49,20 @@ type NameServiceSpec struct {
 	HostPath string `json:"hostPath"`
 	// VolumeClaimTemplates defines the StorageClass
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
+	// Affinity, affinity and anti-affinity scheduling
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// SecurityContext defines privilege and access control settings for a Pod or Container.
+	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
+	// ImagePullSecrets pull an image from a private registry
+	ImagePullSecrets     []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// Tolerations taints and tolerations work together to ensure that pods are not scheduled onto inappropriate nodes
+	Tolerations          []corev1.Toleration           `json:"tolerations,omitempty"`
+	// NodeSelector is the simplest recommended form of node selection constraint.
+	NodeSelector         map[string]string             `json:"nodeSelector,omitempty"`
+	// PodAnnotations you can use annotations to attach arbitrary non-identifying metadata to objects.
+	PodAnnotations       map[string]string             `json:"podAnnotations,omitempty"`
+	// PriorityClassName defines priority class's name
+	PriorityClassName    string                        `json:"priorityClassName,omitempty"`
 }
 
 // NameServiceStatus defines the observed state of NameService
