@@ -37,6 +37,8 @@ type TopicTransferSpec struct {
 	SourceCluster string `json:"sourceCluster,omitempty"`
 	// The cluster where the topic will be transferred to
 	TargetCluster string `json:"targetCluster,omitempty"`
+	// 	// RocketMQ Name, the broker and nameserver in the same cluster must be filled with the same name
+	RocketMQName string `json:"rocketMQName"`
 }
 
 // TopicTransferStatus defines the observed state of TopicTransfer

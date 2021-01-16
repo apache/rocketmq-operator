@@ -187,6 +187,8 @@ spec:
   size: 1
   # nameServers is the [ip:port] list of name service
   nameServers: ""
+  # rocketMQName is the rocketmq name, must equal to nameservice.spec.rocketMQName and and topictransfer.spec.rocketMQName
+  rocketMQName: "rocketmq_name"
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
@@ -248,6 +250,8 @@ spec:
   nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  # rocketMQName is the rocketmq name, must equal to broker.spec.rocketMQName and and topictransfer.spec.rocketMQName
+  rocketMQName: "rocketmq_name"
   # hostNetwork can be true or false
   hostNetwork: true
   #  Set DNS policy for the pod.
@@ -478,6 +482,8 @@ spec:
   sourceCluster: broker-0
   # targetCluster defines the target cluster
   targetCluster: broker-1
+  # rocketMQName is the rocketmq name, must equal to nameservice.spec.rocketMQName and and broker.spec.rocketMQName
+  rocketMQName: "rocketmq_name"
 ```
 
 Then apply the ```TopicTransfer``` resource:

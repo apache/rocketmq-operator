@@ -49,6 +49,8 @@ type NameServiceSpec struct {
 	HostPath string `json:"hostPath"`
 	// VolumeClaimTemplates defines the StorageClass
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
+	// RocketMQ Name, the broker and nameserver in the same cluster must be filled with the same name
+	RocketMQName string `json:"rocketMQName"`
 }
 
 // NameServiceStatus defines the observed state of NameService

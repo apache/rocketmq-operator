@@ -38,6 +38,8 @@ spec:
   size: 1
   # nameServers is the [ip:port] list of name service
   nameServers: ""
+  # rocketMQName is the rocketmq name, must equal to nameserver.spec.rocketMQName and topictransfer.spec.rocketMQName
+  rocketMQName: "rocketmq_name"
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
