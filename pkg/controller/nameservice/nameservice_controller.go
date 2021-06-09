@@ -303,6 +303,24 @@ func labelsForNameService(name string) map[string]string {
 
 func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
 	ls := labelsForNameService(nameService.Name)
+	var affinity corev1.Affinity
+	if nameService.Spec.NodeAffinityKey != "" && nameService.Spec.NodeAffinityOperator != "" && nameService.Spec.NodeAffinityValues != nil {
+		affinity = corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key:      nameService.Spec.NodeAffinityKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.NodeAffinityOperator),
+							Values:   nameService.Spec.NodeAffinityValues,
+						}},
+					}},
+				},
+			},
+		}
+	} else {
+		affinity = corev1.Affinity{}
+	}
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nameService.Name,
@@ -318,11 +336,12 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
+					Affinity:    &affinity,
 					HostNetwork: nameService.Spec.HostNetwork,
-					DNSPolicy: nameService.Spec.DNSPolicy,
+					DNSPolicy:   nameService.Spec.DNSPolicy,
 					Containers: []corev1.Container{{
 						Resources: nameService.Spec.Resources,
-						Image: nameService.Spec.NameServiceImage,
+						Image:     nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",
 						ImagePullPolicy: nameService.Spec.ImagePullPolicy,

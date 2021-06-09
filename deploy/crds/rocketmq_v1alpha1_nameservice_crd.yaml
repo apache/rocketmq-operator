@@ -59,6 +59,17 @@ spec:
             nameServiceImage:
               description: NameServiceImage is the name service image
               type: string
+            nodeAffinityKey:
+              description: NodeAffinityKey defines the key of nodeselector in nodeAffinity.
+              type: string
+            nodeAffinityOperator:
+              description: NodeAffinityOperator defines the operator of nodeselector in nodeAffinity.
+              type: string
+            nodeAffinityValues:
+              description: NodeAffinityValues defines the values of nodeselector in nodeAffinity.
+              items:
+                type: string
+              type: array
             resources:
               description: Resources describes the compute resource requirements
               type: object
