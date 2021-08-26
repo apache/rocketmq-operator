@@ -273,7 +273,14 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		log.Info("subscriptionGroupCommand: " + subscriptionGroupCommand)
 		MakeConfigDirCommand := "mkdir -p " + cons.StoreConfigDir
 		ChmodDirCommand := "chmod a+rw " + cons.StoreConfigDir
-		cmd = []string{"/bin/bash", "-c", MakeConfigDirCommand + " && " + ChmodDirCommand + " && " + topicsCommand + " && " + subscriptionGroupCommand}
+		cmdContent := MakeConfigDirCommand + " && " + ChmodDirCommand
+		if topicsCommand != "" {
+			cmdContent = cmdContent + " && " + topicsCommand
+		}
+		if subscriptionGroupCommand != "" {
+			cmdContent = cmdContent + " && " + subscriptionGroupCommand
+		}
+		cmd = []string{"/bin/bash", "-c", cmdContent}
 	}
 
 	// Update status.Size if needed
@@ -324,7 +331,11 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 
 func getCopyMetadataJsonCommand(dir string, sourcePodName string, namespace string, k8s *tool.K8sClient) string {
 	cmdOpts := buildInputCommand(dir)
-	topicsJsonStr := exec(cmdOpts, sourcePodName, k8s, namespace)
+	topicsJsonStr, err := exec(cmdOpts, sourcePodName, k8s, namespace)
+	if err != nil {
+		log.Error(err, "exec command failed, output is: "+output)
+		return ""
+	}
 	topicsCommand := buildOutputCommand(topicsJsonStr, dir)
 	return strings.Join(topicsCommand, " ")
 }
@@ -349,7 +360,7 @@ func buildOutputCommand(content string, dest string) []string {
 	return cmdOpts
 }
 
-func exec(cmdOpts []string, podName string, k8s *tool.K8sClient, namespace string) string {
+func exec(cmdOpts []string, podName string, k8s *tool.K8sClient, namespace string) (string, error) {
 	log.Info("On pod " + podName + ", command being run: " + strings.Join(cmdOpts, " "))
 	container := cons.BrokerContainerName
 	outputBytes, stderrBytes, err := k8s.Exec(namespace, podName, container, cmdOpts, nil)
@@ -359,14 +370,14 @@ func exec(cmdOpts []string, podName string, k8s *tool.K8sClient, namespace strin
 	if stderrBytes != nil {
 		log.Info("STDERR: " + stderr)
 	}
+	log.Info("output: " + output)
 
 	if err != nil {
 		log.Error(err, "Error occurred while running command: "+strings.Join(cmdOpts, " "))
-		log.Info("stdout: " + output)
-	} else {
-		log.Info("output: " + output)
+		return output, err
 	}
-	return output
+
+	return output, nil
 }
 
 func getBrokerName(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int) string {
