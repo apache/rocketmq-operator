@@ -303,16 +303,63 @@ func labelsForNameService(name string) map[string]string {
 
 func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
 	ls := labelsForNameService(nameService.Name)
+	isReqDurSchIgnDurExe := false
+	isPreDurSchIgnDurExe := false
 	var affinity corev1.Affinity
-	if nameService.Spec.NodeAffinityKey != "" && nameService.Spec.NodeAffinityOperator != "" && nameService.Spec.NodeAffinityValues != nil {
+	if nameService.Spec.ReqDurSchIgnDurExeKey != "" && nameService.Spec.ReqDurSchIgnDurExeOperator != "" && nameService.Spec.ReqDurSchIgnDurExeValues != nil {
+		isReqDurSchIgnDurExe = true
+	}
+	if nameService.Spec.PreDurSchIgnDurExeKey != "" && nameService.Spec.PreDurSchIgnDurExeOperator != "" && nameService.Spec.PreDurSchIgnDurExeValues != nil {
+		isPreDurSchIgnDurExe = true
+	}
+	if isPreDurSchIgnDurExe && isReqDurSchIgnDurExe {
 		affinity = corev1.Affinity{
 			NodeAffinity: &corev1.NodeAffinity{
 				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
 					NodeSelectorTerms: []corev1.NodeSelectorTerm{{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
-							Key:      nameService.Spec.NodeAffinityKey,
-							Operator: corev1.NodeSelectorOperator(nameService.Spec.NodeAffinityOperator),
-							Values:   nameService.Spec.NodeAffinityValues,
+							Key:      nameService.Spec.ReqDurSchIgnDurExeKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.ReqDurSchIgnDurExeOperator),
+							Values:   nameService.Spec.ReqDurSchIgnDurExeValues,
+						}},
+					}},
+				},
+				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{{
+					Weight: nameService.Spec.PreDurSchIgnDurExeWeight,
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key:      nameService.Spec.PreDurSchIgnDurExeKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.PreDurSchIgnDurExeOperator),
+							Values:   nameService.Spec.PreDurSchIgnDurExeValues,
+						}},
+					}},
+				},
+			},
+		}
+	} else if isReqDurSchIgnDurExe{
+		affinity = corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key:      nameService.Spec.ReqDurSchIgnDurExeKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.ReqDurSchIgnDurExeOperator),
+							Values:   nameService.Spec.ReqDurSchIgnDurExeValues,
+						}},
+					}},
+				},
+			},
+		}
+	} else if isPreDurSchIgnDurExe {
+		affinity = corev1Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{{
+					Weight: nameService.Spec.PreDurSchIgnDurExeWeight,
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key:      nameService.Spec.PreDurSchIgnDurExeKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.PreDurSchIgnDurExeOperator),
+							Values:   nameService.Spec.PreDurSchIgnDurExeValues,
 						}},
 					}},
 				},
@@ -321,6 +368,7 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 	} else {
 		affinity = corev1.Affinity{}
 	}
+
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nameService.Name,

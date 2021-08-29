@@ -41,10 +41,17 @@ type NameServiceSpec struct {
 	HostNetwork bool `json:"hostNetwork"`
 	// dnsPolicy defines how a pod's DNS will be configured
 	DNSPolicy corev1.DNSPolicy `json:"dnsPolicy"`
-	//NodeAffinityKey|NodeAffinityOperator|NodeAffinityValues used to schedule pod to specified node
-	NodeAffinityKey string `json:"nodeAffinityKey"`
-	NodeAffinityOperator string `json:"nodeAffinityOperator"`
-	NodeAffinityValues []string `json:"nodeAffinityValues"`
+	// requiredDuringSchedulingIgnoredDuringExecution nodeAffinity
+	// key|operator|values used to schedule specified nodes
+	ReqDurSchIgnDurExeKey string `json:"reqDurSchIgnDurExeKey"`
+	ReqDurSchIgnDurExeOperator string `json:"reqDurSchIgnDurExeOperator"`
+	ReqDurSchIgnDurExeValues []string `json:"reqDurSchIgnDurExeValues"`
+	// nodeAffinity preferredDuringSchedulingIgnoredDuringExecution
+	// weight|operator|values used to schedule specified nodes
+	PreDurSchIgnDurExeKey string `json:"preDurSchIgnDurExeKey"`
+	PreDurSchIgnExeDurWeight string `json:"preDurSchIgnDurExeWeight"`
+	PreDurSchIgnExeDurOperator string `json:"preDurSchIgnDurExeOperator"`
+	PreDurSchIgnExeDurValues []string `json:"preDurSchIgnDurExeValues"`
 	// Resources describes the compute resource requirements
 	Resources corev1.ResourceRequirements `json:"resources"`
 	// StorageMode can be EmptyDir, HostPath, StorageClass

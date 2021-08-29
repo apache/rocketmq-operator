@@ -43,10 +43,17 @@ spec:
       cpu: "500m"
   # storageMode can be EmptyDir, HostPath, StorageClass
   storageMode: HostPath
-  # nodeAffinityKey|nodeAffinityKey|nodeAffinityValues used to schedule specified nodes
-  nodeAffinityKey: kubernetes.io/hostname
-  nodeAffinityOperator: In
-  nodeAffinityValues: ["k8s-node1","k8s-node2"]
+  # requiredDuringSchedulingIgnoredDuringExecution nodeAffinity
+  # key|operator|values used to schedule specified nodes
+  reqDurSchIgnDurExeKey: kubernetes.io/hostname
+  reqDurSchIgnDurExeOperator: In
+  reqDurSchIgnDurExeValues: ["k8s-node1","k8s-node2"]
+  # nodeAffinity preferredDuringSchedulingIgnoredDuringExecution
+  # weight|operator|values used to schedule specified nodes
+  preDurSchIgnExekey: kubernetes.io/hostname
+  preDurSchIgnExeWeight: 1
+  preDurSchIgnExeOperator: In
+  preDurSchIgnExeValues: ["k8s-node1","k8s-node2"]
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/nameserver
   # volumeClaimTemplates defines the storageClass
