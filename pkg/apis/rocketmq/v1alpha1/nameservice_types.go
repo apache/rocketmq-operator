@@ -43,15 +43,15 @@ type NameServiceSpec struct {
 	DNSPolicy corev1.DNSPolicy `json:"dnsPolicy"`
 	// requiredDuringSchedulingIgnoredDuringExecution nodeAffinity
 	// key|operator|values used to schedule specified nodes
-	ReqDurSchIgnDurExeKey string `json:"reqDurSchIgnDurExeKey"`
-	ReqDurSchIgnDurExeOperator string `json:"reqDurSchIgnDurExeOperator"`
-	ReqDurSchIgnDurExeValues []string `json:"reqDurSchIgnDurExeValues"`
+	RequiredDuringSchedulingIgnoredDuringExecutionKey string `json:"requiredDuringSchedulingIgnoredDuringExecutionKey"`
+	RequiredDuringSchedulingIgnoredDuringExecutionOperator string `json:"requiredDuringSchedulingIgnoredDuringExecutionOperator"`
+	RequiredDuringSchedulingIgnoredDuringExecutionValues []string `json:"requiredDuringSchedulingIgnoredDuringExecutionValues"`
 	// nodeAffinity preferredDuringSchedulingIgnoredDuringExecution
 	// weight|operator|values used to schedule specified nodes
-	PreDurSchIgnDurExeKey string `json:"preDurSchIgnDurExeKey"`
-	PreDurSchIgnExeDurWeight string `json:"preDurSchIgnDurExeWeight"`
-	PreDurSchIgnExeDurOperator string `json:"preDurSchIgnDurExeOperator"`
-	PreDurSchIgnExeDurValues []string `json:"preDurSchIgnDurExeValues"`
+	PreferredDuringSchedulingIgnoredDuringExecutionKey string `json:"preferredDuringSchedulingIgnoredDuringExecutionKey"`
+	PreferredDuringSchedulingIgnoredDuringExecutionWeight string `json:"preferredDuringSchedulingIgnoredDuringExecutionWeight"`
+	PreferredDuringSchedulingIgnoredDuringExecutionOperator string `json:"preferredDuringSchedulingIgnoredDuringExecutionOperator"`
+	PreferredDuringSchedulingIgnoredDuringExecutionValues []string `json:"preferredDuringSchedulingIgnoredDuringExecutionValues"`
 	// Resources describes the compute resource requirements
 	Resources corev1.ResourceRequirements `json:"resources"`
 	// StorageMode can be EmptyDir, HostPath, StorageClass

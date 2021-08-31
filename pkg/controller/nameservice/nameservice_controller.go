@@ -303,63 +303,63 @@ func labelsForNameService(name string) map[string]string {
 
 func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
 	ls := labelsForNameService(nameService.Name)
-	isReqDurSchIgnDurExe := false
-	isPreDurSchIgnDurExe := false
+	isRequiredDuringSchedulingIgnoredDuringExecution := false
+	isPreferredDuringSchedulingIgnoredDuringExecution := false
 	var affinity corev1.Affinity
-	if nameService.Spec.ReqDurSchIgnDurExeKey != "" && nameService.Spec.ReqDurSchIgnDurExeOperator != "" && nameService.Spec.ReqDurSchIgnDurExeValues != nil {
-		isReqDurSchIgnDurExe = true
+	if nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionKey != "" && nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionOperator != "" && nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionValues != nil {
+		isRequiredDuringSchedulingIgnoredDuringExecution = true
 	}
-	if nameService.Spec.PreDurSchIgnDurExeKey != "" && nameService.Spec.PreDurSchIgnDurExeOperator != "" && nameService.Spec.PreDurSchIgnDurExeValues != nil {
-		isPreDurSchIgnDurExe = true
+	if nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionKey != "" && nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionWeight > 0 && nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionWeight < 100 && nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionOperator != "" && nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionValues != nil {
+		isPreferredDuringSchedulingIgnoredDuringExecution = true
 	}
-	if isPreDurSchIgnDurExe && isReqDurSchIgnDurExe {
+	if isRequiredDuringSchedulingIgnoredDuringExecution && isPreferredDuringSchedulingIgnoredDuringExecution {
 		affinity = corev1.Affinity{
 			NodeAffinity: &corev1.NodeAffinity{
 				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
 					NodeSelectorTerms: []corev1.NodeSelectorTerm{{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
-							Key:      nameService.Spec.ReqDurSchIgnDurExeKey,
-							Operator: corev1.NodeSelectorOperator(nameService.Spec.ReqDurSchIgnDurExeOperator),
-							Values:   nameService.Spec.ReqDurSchIgnDurExeValues,
+							Key:      nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionOperator),
+							Values:   nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionValues,
 						}},
 					}},
 				},
 				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{{
-					Weight: nameService.Spec.PreDurSchIgnDurExeWeight,
+					Weight: nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionWeight,
 					Preference: corev1.NodeSelectorTerm{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
-							Key:      nameService.Spec.PreDurSchIgnDurExeKey,
-							Operator: corev1.NodeSelectorOperator(nameService.Spec.PreDurSchIgnDurExeOperator),
-							Values:   nameService.Spec.PreDurSchIgnDurExeValues,
+							Key:      nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionOperator),
+							Values:   nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionValues,
 						}},
 					}},
 				},
 			},
 		}
-	} else if isReqDurSchIgnDurExe{
+	} else if isRequiredDuringSchedulingIgnoredDuringExecution{
 		affinity = corev1.Affinity{
 			NodeAffinity: &corev1.NodeAffinity{
 				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
 					NodeSelectorTerms: []corev1.NodeSelectorTerm{{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
-							Key:      nameService.Spec.ReqDurSchIgnDurExeKey,
-							Operator: corev1.NodeSelectorOperator(nameService.Spec.ReqDurSchIgnDurExeOperator),
-							Values:   nameService.Spec.ReqDurSchIgnDurExeValues,
+							Key:      nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionOperator),
+							Values:   nameService.Spec.RequiredDuringSchedulingIgnoredDuringExecutionValues,
 						}},
 					}},
 				},
 			},
 		}
-	} else if isPreDurSchIgnDurExe {
+	} else if isPreferredDuringSchedulingIgnoredDuringExecution {
 		affinity = corev1Affinity{
 			NodeAffinity: &corev1.NodeAffinity{
 				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{{
-					Weight: nameService.Spec.PreDurSchIgnDurExeWeight,
+					Weight: nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionWeight,
 					Preference: corev1.NodeSelectorTerm{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
-							Key:      nameService.Spec.PreDurSchIgnDurExeKey,
-							Operator: corev1.NodeSelectorOperator(nameService.Spec.PreDurSchIgnDurExeOperator),
-							Values:   nameService.Spec.PreDurSchIgnDurExeValues,
+							Key:      nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionKey,
+							Operator: corev1.NodeSelectorOperator(nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionOperator),
+							Values:   nameService.Spec.PreferredDuringSchedulingIgnoredDuringExecutionValues,
 						}},
 					}},
 				},

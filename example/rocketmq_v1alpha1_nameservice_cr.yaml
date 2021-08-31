@@ -45,15 +45,15 @@ spec:
   storageMode: HostPath
   # requiredDuringSchedulingIgnoredDuringExecution nodeAffinity
   # key|operator|values used to schedule specified nodes
-  reqDurSchIgnDurExeKey: kubernetes.io/hostname
-  reqDurSchIgnDurExeOperator: In
-  reqDurSchIgnDurExeValues: ["k8s-node1","k8s-node2"]
+  requiredDuringSchedulingIgnoredDuringExecutionKey: kubernetes.io/hostname
+  requiredDuringSchedulingIgnoredDuringExecutionOperator: In
+  requiredDuringSchedulingIgnoredDuringExecutionExeValues: ["k8s-node1","k8s-node2"]
   # nodeAffinity preferredDuringSchedulingIgnoredDuringExecution
   # weight|operator|values used to schedule specified nodes
-  preDurSchIgnExekey: kubernetes.io/hostname
-  preDurSchIgnExeWeight: 1
-  preDurSchIgnExeOperator: In
-  preDurSchIgnExeValues: ["k8s-node1","k8s-node2"]
+  preferredDuringSchedulingIgnoredDuringExecutionExekey: kubernetes.io/hostname
+  preferredDuringSchedulingIgnoredDuringExecutionWeight: 1
+  preferredDuringSchedulingIgnoredDuringExecutionOperator: In
+  preferredDuringSchedulingIgnoredDuringExecutionValues: ["k8s-node1","k8s-node2"]
   # hostPath is the local path to store data
   hostPath: /data/rocketmq/nameserver
   # volumeClaimTemplates defines the storageClass

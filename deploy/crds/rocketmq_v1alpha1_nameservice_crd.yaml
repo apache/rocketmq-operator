@@ -59,30 +59,27 @@ spec:
             nameServiceImage:
               description: NameServiceImage is the name service image
               type: string
-            reqDurSchIgnDurExe:
-              description: ReqDurSchIgnDurExe can be true or false
-              type: boolean
-            reqDurSchIgnDurExeKey:
+            requiredDuringSchedulingIgnoredDuringExecutionKey:
               description: ReqDurSchIgnDurExeKey defines the key of nodeselector in requiredDuringSchedulingIgnoredDuringExecution nodeAffinity.
               type: string
-            reqDurSchIgnDurExeOperator:
+            requiredDuringSchedulingIgnoredDuringExecutionOperator:
               description: ReqDurSchIgnDurExeOperator defines the operator of nodeselector in requiredDuringSchedulingIgnoredDuringExecution nodeAffinity.
               type: string
-            reqDurSchIgnDurExeValues:
+            requiredDuringSchedulingIgnoredDuringExecutionValues:
               description: ReqDurSchIgnDurExeValues defines the values of nodeselector in requiredDuringSchedulingIgnoredDuringExecution nodeAffinity.
               items:
                 type: string
               type: array
-            preDurSchIgnDurExeKey:
+            preferredDuringSchedulingIgnoredDuringExecutionKey:
               description: PreDurSchIgnDurExeKey defines the key of nodeselector in preferredDuringSchedulingIgnoredDuringExecution nodeAffinity.
               type: string
-            preDurSchIgnDurExeWeight:
+            preferredDuringSchedulingIgnoredDuringExecutionWeight:
               description: PreDurSchIgnDurExeWeight defines the key of nodeselector in preferredDuringSchedulingIgnoredDuringExecution nodeAffinity.
               type: string
-            preDurSchIgnDurExeOperator:
+            preferredDuringSchedulingIgnoredDuringExecutionOperator:
               description: PreDurSchIgnDurExeOperator defines the operator of nodeselector in preferredDuringSchedulingIgnoredDuringExecution nodeAffinity.
               type: string
-            preDurSchIgnDurExeValues:
+            preferredDuringSchedulingIgnoredDuringExecutionExeValues:
               description: PreDurSchIgnDurExeValues defines the values of nodeselector in preferredDuringSchedulingIgnoredDuringExecution nodeAffinity.
               items:
                 type: string
