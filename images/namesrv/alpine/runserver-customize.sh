@@ -54,8 +54,16 @@ calculate_heap_sizes()
 {
     case "`uname`" in
         Linux)
-            system_memory_in_mb=$(($(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)/1024/1024))
-            system_cpu_cores=$(($(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)/100000))
+            system_memory_in_mb=`free -m| sed -n '2p' | awk '{print $2}'`
+            system_memory_in_mb_in_docker=$(($(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)/1024/1024))
+            if [ $system_memory_in_mb_in_docker -lt $system_memory_in_mb ];then
+              system_memory_in_mb=$system_memory_in_mb_in_docker
+            fi
+            system_cpu_cores=`egrep -c 'processor([[:space:]]+):.*' /proc/cpuinfo`
+            system_cpu_cores_in_docker=$(($(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)/100000))
+            if [ $system_cpu_cores_in_docker -lt $system_cpu_cores -a $system_cpu_cores_in_docker -ne 0 ];then
+              system_cpu_cores=$system_cpu_cores_in_docker
+            fi
         ;;
         FreeBSD)
             system_memory_in_bytes=`sysctl hw.physmem | awk '{print $2}'`
