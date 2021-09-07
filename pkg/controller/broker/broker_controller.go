@@ -375,43 +375,14 @@ func getBrokerName(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int) string
 
 // getBrokerStatefulSet returns a broker StatefulSet object
 func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *appsv1.StatefulSet {
-	ls := labelsForBrokerWithRole(broker.Name,replicaIndex)
+	ls := labelsForBroker(broker.Name)
 	var a int32 = 1
 	var c = &a
 	var statefulSetName string
-	var podAntiAffinity *corev1.PodAntiAffinity
 	if replicaIndex == 0 {
 		statefulSetName = broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master"
-		podAntiAffinity = &corev1.PodAntiAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution:  []corev1.PodAffinityTerm{corev1.PodAffinityTerm{
-				TopologyKey: "kubernetes.io/hostname",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: ls,
-					},
-				}},
-			PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{corev1.WeightedPodAffinityTerm{
-				Weight: 100,
-				PodAffinityTerm: corev1.PodAffinityTerm{
-					TopologyKey: "kubernetes.io/hostname",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: labelsForBroker(broker.Name),
-					},
-				},
-			}},
-		}
 	} else {
 		statefulSetName = broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
-		podAntiAffinity = &corev1.PodAntiAffinity{
-			PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{corev1.WeightedPodAffinityTerm{
-				Weight: 100,
-				PodAffinityTerm: corev1.PodAffinityTerm{
-					TopologyKey: "kubernetes.io/hostname",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: labelsForBroker(broker.Name),
-					},
-				},
-			}},
-		}
 	}
 
 	dep := &appsv1.StatefulSet{
@@ -432,9 +403,6 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
-					Affinity: &corev1.Affinity{
-						PodAntiAffinity: podAntiAffinity,
-					},
 					Containers: []corev1.Container{{
 						Resources: broker.Spec.Resources,
 						Image: broker.Spec.BrokerImage,
@@ -551,15 +519,7 @@ func getPathSuffix(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replic
 // labelsForBroker returns the labels for selecting the resources
 // belonging to the given broker CR name.
 func labelsForBroker(name string) map[string]string {
-		return map[string]string{"app": "broker", "broker_cr": name}
-}
-
-func labelsForBrokerWithRole(name string,replicaIndex int) map[string]string {
-	if replicaIndex == 0 {
-		return map[string]string{"app": "broker", "broker_cr": name,"role":"master"}
-	} else {
-		return map[string]string{"app": "broker", "broker_cr": name,"role":"replica"}
-	}
+	return map[string]string{"app": "broker", "broker_cr": name}
 }
 
 // getPodNames returns the pod names of the array of pods passed in
