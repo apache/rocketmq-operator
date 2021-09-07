@@ -34,7 +34,7 @@ RUN set -eux; \
     apk add --virtual .build-deps curl gnupg unzip; \
     curl https://archive.apache.org/dist/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip; \
     curl https://archive.apache.org/dist/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip.asc -o rocketmq.zip.asc; \
-	curl https://www.apache.org/dist/rocketmq/KEYS -o KEYS; \
+	curl -L https://www.apache.org/dist/rocketmq/KEYS -o KEYS; \
 	\
 	gpg --import KEYS; \
     gpg --batch --verify rocketmq.zip.asc rocketmq.zip; \
