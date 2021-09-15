@@ -60,7 +60,7 @@ calculate_heap_sizes()
               system_memory_in_mb=$system_memory_in_mb_in_docker
             fi
             system_cpu_cores=`egrep -c 'processor([[:space:]]+):.*' /proc/cpuinfo`
-            system_cpu_cores_in_docker=$(($(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)/100000))
+            system_cpu_cores_in_docker=$(($(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)/$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)))
             if [ $system_cpu_cores_in_docker -lt $system_cpu_cores -a $system_cpu_cores_in_docker -ne 0 ];then
               system_cpu_cores=$system_cpu_cores_in_docker
             fi
