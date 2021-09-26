@@ -202,6 +202,8 @@ spec:
   nameServers: 192.168.130.33:9876
   # replicationMode is the broker replica sync mode, can be ASYNC or SYNC
   replicationMode: ASYNC
+  # Whether enable rocketmq-on-dleger group deploy
+  enableDLeger: false
   # replicaPerGroup is the number of replica broker in each group
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker

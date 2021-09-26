@@ -64,6 +64,15 @@ const (
 	// EnvBrokerName is the container environment variable name of broker name
 	EnvBrokerName = "BROKER_NAME"
 
+	// EnvEnableDLeger is the container environment variable name of enable dLeger
+	EnvEnableDLeger = "ENABLE_DLEGER"
+
+	// EnvDLegerPeers is the container environment variable name of dLeger peers
+	EnvDLegerPeers = "DLEGER_PEERS"
+
+	// EnvDLegerSelfId is the container environment variable name of dLeger self id
+	EnvDLegerSelfId = "DLEGER_SELF_ID"
+
 	// LogMountPath is the directory of RocketMQ log files
 	LogMountPath = DataPath + "/logs"
 

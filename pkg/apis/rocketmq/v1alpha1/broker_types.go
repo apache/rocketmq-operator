@@ -34,6 +34,8 @@ type BrokerSpec struct {
 	Size int `json:"size"`
 	// NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
 	NameServers string `json:"nameServers,omitempty"`
+	// Whether enable rocketmq-on-dleger group deploy, false in default
+	EnableDLeger bool `json:"enableDLeger"`
 	// ReplicaPerGroup each broker cluster's replica number
 	ReplicaPerGroup int `json:"replicaPerGroup"`
 	// BaseImage is the broker image to use for the Pods

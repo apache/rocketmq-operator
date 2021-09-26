@@ -59,6 +59,9 @@ spec:
             nameServers:
               description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
               type: string
+            enableDLeger:
+              description: Whether enable rocketmq-on-dleger group deploy, false in default
+              type: boolean
             replicaPerGroup:
               description: ReplicaPerGroup each broker cluster's replica number
               format: int64
@@ -96,6 +99,7 @@ spec:
               type: array
           required:
           - size
+          - enableDLeger
           - replicaPerGroup
           - brokerImage
           - imagePullPolicy
