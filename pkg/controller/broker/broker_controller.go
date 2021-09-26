@@ -36,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -104,6 +105,43 @@ type ReconcileBroker struct {
 	scheme *runtime.Scheme
 }
 
+func (r *ReconcileBroker) CreateService(request reconcile.Request, broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) {
+	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger.Info("Create a Broker Service...")
+
+	svc := r.getBrokerService(broker, brokerGroupIndex, replicaIndex)
+	svcObj := &corev1.Service{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: svc.Name, Namespace: svc.Namespace}, svcObj)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a Broker Service.", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
+		err = r.client.Create(context.TODO(), svc)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
+		}
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Broker Service.")
+	}
+}
+
+func (r *ReconcileBroker) DLegerHostIp(request reconcile.Request, broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) string {
+	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger.Info("Get DLeger Host IP lists...")
+
+	statefulSetName := getBrokerStatefulSetName(broker.Name, brokerGroupIndex, replicaIndex)
+
+	svcObj := &corev1.Service{}
+	for {
+		err := r.client.Get(context.TODO(), types.NamespacedName{Name: statefulSetName, Namespace: broker.Namespace}, svcObj)
+		if err != nil && errors.IsNotFound(err) {
+			log.Info("Waiting for broker service created...")
+			time.Sleep(time.Duration(cons.WaitForNameServerReadyInSecond) * time.Second)
+		} else {
+			break
+		}
+	}
+	return svcObj.Spec.ClusterIP
+}
+
 // Reconcile reads that state of the cluster for a Broker object and makes changes based on the state read
 // and what is in the Broker.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
@@ -157,7 +195,16 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 
 	for brokerGroupIndex := 0; brokerGroupIndex < share.GroupNum; brokerGroupIndex++ {
 		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerGroupIndex+1) + "/" + strconv.Itoa(share.GroupNum))
-		brokerDLegerPeers := getDLegerPeers(broker.Name, brokerGroupIndex, replicaPerGroup)
+		// create broker service first as the bug https://github.com/apache/rocketmq/issues/2384.
+		// to avoid the bug, dleger peers should use service IP to replace service name.
+		// so the service resource should be created first before statefulset.
+		r.CreateService(request, broker, brokerGroupIndex, 0)
+		brokerDLegerPeers := "n0-" + r.DLegerHostIp(request, broker, brokerGroupIndex, 0) + ":40911"
+		for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
+			r.CreateService(request, broker, brokerGroupIndex, replicaIndex)
+			brokerDLegerPeers = brokerDLegerPeers + ";n" + strconv.Itoa(replicaIndex) + "-" + r.DLegerHostIp(request, broker, brokerGroupIndex, replicaIndex) + ":40911"
+		}
+
 		dep := r.getBrokerStatefulSet(broker, brokerGroupIndex, 0, brokerDLegerPeers)
 		// Check if the statefulSet already exists, if not create a new one
 		found := &appsv1.StatefulSet{}
@@ -170,20 +217,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			}
 		} else if err != nil {
 			reqLogger.Error(err, "Failed to get broker master StatefulSet.")
-		}
-
-		// create master service
-		svc := r.getBrokerService(broker, brokerGroupIndex, 0)
-		svcObj := &corev1.Service{}
-		err = r.client.Get(context.TODO(), types.NamespacedName{Name: svc.Name, Namespace: svc.Namespace}, svcObj)
-		if err != nil && errors.IsNotFound(err) {
-			reqLogger.Info("Creating a new Master Broker Service.", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
-			err = r.client.Create(context.TODO(), svc)
-			if err != nil {
-				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
-			}
-		} else if err != nil {
-			reqLogger.Error(err, "Failed to get broker master Service.")
 		}
 
 		for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
@@ -199,20 +232,6 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			} else if err != nil {
 				reqLogger.Error(err, "Failed to get broker replica StatefulSet.")
 			}
-
-			// create replica service
-			replicaSvc := r.getBrokerService(broker, brokerGroupIndex, replicaIndex)
-			err = r.client.Get(context.TODO(), types.NamespacedName{Name: replicaSvc.Name, Namespace: replicaSvc.Namespace}, svcObj)
-			if err != nil && errors.IsNotFound(err) {
-				reqLogger.Info("Creating a new Replica Broker Service.", "Service.Namespace", replicaSvc.Namespace, "Service.Name", replicaSvc.Name)
-				err = r.client.Create(context.TODO(), replicaSvc)
-				if err != nil {
-					reqLogger.Error(err, "Failed to create new Service of broker-"+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "Service.Namespace", replicaSvc.Namespace, "Service.Name", replicaSvc.Name)
-				}
-			} else if err != nil {
-				reqLogger.Error(err, "Failed to get broker replica Service.")
-			}
-
 		}
 	}
 
@@ -223,7 +242,10 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			for brokerGroupIndex := 0; brokerGroupIndex < broker.Spec.Size; brokerGroupIndex++ {
 				brokerName := getBrokerName(broker, brokerGroupIndex)
 				// Update master broker
-				brokerDLegerPeers := getDLegerPeers(broker.Name, brokerGroupIndex, replicaPerGroup)
+				brokerDLegerPeers := "n0-" + r.DLegerHostIp(request, broker, brokerGroupIndex, 0) + ":40911"
+				for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
+					brokerDLegerPeers = brokerDLegerPeers + ";n" + strconv.Itoa(replicaIndex) + "-" + r.DLegerHostIp(request, broker, brokerGroupIndex, replicaIndex) + ":40911"
+				}
 				reqLogger.Info("Update Master Broker NAMESRV_ADDR of " + brokerName)
 				dep := r.getBrokerStatefulSet(broker, brokerGroupIndex, 0, brokerDLegerPeers)
 				found := &appsv1.StatefulSet{}
@@ -414,17 +436,9 @@ func getBrokerStatefulSetName(brokerName string, brokerGroupIndex int, replicaIn
 	return statefulSetName
 }
 
-func getDLegerPeers(brokerName string, brokerGroupIndex int, replicaPerGroup int) string {
-	peers := "n0-" + getBrokerStatefulSetName(brokerName, brokerGroupIndex, 0) + "." + getBrokerStatefulSetName(brokerName, brokerGroupIndex, 0) + ":40911"
-	for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
-		peers = peers + ";n" + strconv.Itoa(replicaIndex) + "-" + getBrokerStatefulSetName(brokerName, brokerGroupIndex, replicaIndex) + "." + getBrokerStatefulSetName(brokerName, brokerGroupIndex, replicaIndex) + ":40911"
-	}
-	return peers
-}
-
 func (r *ReconcileBroker) getBrokerService(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *corev1.Service {
-	ls := labelsForBroker(broker.Name)
 	statefulSetName := getBrokerStatefulSetName(broker.Name, brokerGroupIndex, replicaIndex)
+	ls := labelsForBrokerInstance(broker.Name, statefulSetName)
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -433,8 +447,12 @@ func (r *ReconcileBroker) getBrokerService(broker *rocketmqv1alpha1.Broker, brok
 			Namespace: broker.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
-			Selector:  ls,
-			ClusterIP: "None",
+			Selector: ls,
+			Ports: []corev1.ServicePort{{
+				Name:       "dleger-port",
+				Port:       40911,
+				TargetPort: intstr.FromInt(40911),
+			}},
 		},
 	}
 
@@ -446,11 +464,11 @@ func (r *ReconcileBroker) getBrokerService(broker *rocketmqv1alpha1.Broker, brok
 
 // getBrokerStatefulSet returns a broker StatefulSet object
 func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int, dLegerPeers string) *appsv1.StatefulSet {
-	ls := labelsForBroker(broker.Name)
 	var a int32 = 1
 	var c = &a
 
 	statefulSetName := getBrokerStatefulSetName(broker.Name, brokerGroupIndex, replicaIndex)
+	ls := labelsForBrokerInstance(broker.Name, statefulSetName)
 
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -458,8 +476,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 			Namespace: broker.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas:    c,
-			ServiceName: statefulSetName,
+			Replicas: c,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
 			},
@@ -603,6 +620,12 @@ func getPathSuffix(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replic
 // belonging to the given broker CR name.
 func labelsForBroker(name string) map[string]string {
 	return map[string]string{"app": "broker", "broker_cr": name}
+}
+
+// labelsForBrokerInstance returns the labels for selecting the resources
+// belonging to the given broker CR name and broker instance name.
+func labelsForBrokerInstance(name string, instanceName string) map[string]string {
+	return map[string]string{"app": "broker", "broker_cr": name, "name": instanceName}
 }
 
 // getPodNames returns the pod names of the array of pods passed in
