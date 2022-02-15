@@ -43,7 +43,9 @@ type BrokerSpec struct {
 	// ImagePullPolicy defines how the image is pulled
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
 	// AllowRestart defines whether allow pod restart
-	AllowRestart bool `json:"allowRestart"`
+	AllowRestart bool                `json:"allowRestart"`
+	Affinity     corev1.Affinity     `json:"affinity"`
+	Tolerations  []corev1.Toleration `json:"tolerations"`
 	// Resources describes the compute resource requirements
 	Resources corev1.ResourceRequirements `json:"resources"`
 	// StorageMode can be EmptyDir, HostPath, StorageClass

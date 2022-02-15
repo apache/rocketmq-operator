@@ -49,6 +49,16 @@ spec:
   brokerImage: apacherocketmq/rocketmq-broker:4.5.0-alpine-operator-0.3.0
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: broker
+                operator: In
+                values:
+                  - "true"
+  tolerations: []
   # resources describes the compute resource requirements and limits
   resources:
     requests:
@@ -113,6 +123,16 @@ spec:
   #  To have DNS options set along with hostNetwork, you have to specify DNS policy
   #  explicitly to 'ClusterFirstWithHostNet'.
   dnsPolicy: ClusterFirstWithHostNet
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: nameserver
+                operator: In
+                values:
+                  - true
+  tolerations: []
   # resources describes the compute resource requirements and limits
   resources:
     requests:
