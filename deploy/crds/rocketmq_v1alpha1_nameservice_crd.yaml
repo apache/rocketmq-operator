@@ -56,6 +56,11 @@ spec:
             imagePullPolicy:
               description: ImagePullPolicy defines how the image is pulled.
               type: string
+            imagePullSecrets:
+              description: The secrets used to pull image from private registry
+              items:
+                type: object
+              type: array
             nameServiceImage:
               description: NameServiceImage is the name service image
               type: string
