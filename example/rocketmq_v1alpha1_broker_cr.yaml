@@ -69,6 +69,8 @@ spec:
         configMapKeyRef:
           name: broker-config
           key: BROKER_MEM
+    - name: TZ
+      value: Asia/Shanghai
   # volumes defines the broker.conf
   volumes:
     - name: broker-config
@@ -84,7 +86,7 @@ spec:
         annotations:
           volume.beta.kubernetes.io/storage-class: rocketmq-storage
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: 8Gi

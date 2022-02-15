@@ -41,6 +41,7 @@ type NameServiceSpec struct {
 	HostNetwork bool `json:"hostNetwork"`
 	// dnsPolicy defines how a pod's DNS will be configured
 	DNSPolicy   corev1.DNSPolicy    `json:"dnsPolicy"`
+	Env         []corev1.EnvVar     `json:"env"`
 	Affinity    corev1.Affinity     `json:"affinity"`
 	Tolerations []corev1.Toleration `json:"tolerations"`
 	// Resources describes the compute resource requirements

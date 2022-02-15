@@ -19,7 +19,6 @@ package console
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"time"
 
@@ -180,11 +179,6 @@ func (r *ReconcileConsole) Reconcile(request reconcile.Request) (reconcile.Resul
 
 // newDeploymentForCR returns a deployment pod with modifying the ENV
 func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
-	env := corev1.EnvVar{
-		Name:  "JAVA_OPTS",
-		Value: fmt.Sprintf("-Drocketmq.namesrv.addr=%s -Dcom.rocketmq.sendMessageWithVIPChannel=false", share.NameServersServiceStr),
-	}
-
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name,
@@ -205,7 +199,7 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 						Image:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Image,
 						Name:            cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Name,
 						ImagePullPolicy: cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy,
-						Env:             append(cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Env, env),
+						Env:             cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Env,
 						Ports:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Ports,
 					}},
 				},

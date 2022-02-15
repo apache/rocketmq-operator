@@ -28,3 +28,8 @@ spec:
               image: apacherocketmq/rocketmq-console:2.0.0
               ports:
                 - containerPort: 8080
+              env:
+                - name: TZ
+                  value: Asia/Shanghai
+                - name: JAVA_OPTS
+                  value: -Drocketmq.namesrv.addr=rocketmq-name-service:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false

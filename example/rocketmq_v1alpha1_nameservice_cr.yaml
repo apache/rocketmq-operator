@@ -33,6 +33,9 @@ spec:
   #  To have DNS options set along with hostNetwork, you have to specify DNS policy
   #  explicitly to 'ClusterFirstWithHostNet'.
   dnsPolicy: ClusterFirstWithHostNet
+  env:
+    - name: TZ
+      value: Asia/Shanghai
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:

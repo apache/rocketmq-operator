@@ -82,6 +82,8 @@ spec:
         configMapKeyRef:
           name: broker-config
           key: BROKER_MEM
+    - name: TZ
+      value: Asia/Shanghai
   # volumes defines the broker.conf
   volumes:
     - name: broker-config
@@ -123,6 +125,9 @@ spec:
   #  To have DNS options set along with hostNetwork, you have to specify DNS policy
   #  explicitly to 'ClusterFirstWithHostNet'.
   dnsPolicy: ClusterFirstWithHostNet
+  env:
+    - name: TZ
+      value: Asia/Shanghai
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -188,3 +193,8 @@ spec:
               image: apacherocketmq/rocketmq-console:2.0.0
               ports:
                 - containerPort: 8080
+              env:
+                - name: TZ
+                  value: Asia/Shanghai
+                - name: JAVA_OPTS
+                  value: -Drocketmq.namesrv.addr=rocketmq-name-service:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false

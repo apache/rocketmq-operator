@@ -64,6 +64,11 @@ spec:
             resources:
               description: Resources describes the compute resource requirements
               type: object
+            env:
+              description: env defines custom env, e.g. BROKER_MEM
+              items:
+                type: object
+              type: array
             affinity:
               description: If specified, the pod's scheduling constraints
               properties:
