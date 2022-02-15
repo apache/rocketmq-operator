@@ -41,12 +41,24 @@ spec:
   size: 1
   # nameServers is the [ip:port] list of name service
   nameServers: ""
+  # Whether enable rocketmq-on-dleger group deploy
+  enableDLeger: false
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 1
   # brokerImage is the customized docker image repo of the RocketMQ broker
   brokerImage: apacherocketmq/rocketmq-broker:4.5.0-alpine-operator-0.3.0
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: broker
+                operator: In
+                values:
+                  - "true"
+  tolerations: []
   # resources describes the compute resource requirements and limits
   resources:
     requests:
@@ -70,6 +82,8 @@ spec:
         configMapKeyRef:
           name: broker-config
           key: BROKER_MEM
+    - name: TZ
+      value: Asia/Shanghai
   # volumes defines the broker.conf
   volumes:
     - name: broker-config
@@ -111,6 +125,19 @@ spec:
   #  To have DNS options set along with hostNetwork, you have to specify DNS policy
   #  explicitly to 'ClusterFirstWithHostNet'.
   dnsPolicy: ClusterFirstWithHostNet
+  env:
+    - name: TZ
+      value: Asia/Shanghai
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: nameserver
+                operator: In
+                values:
+                  - true
+  tolerations: []
   # resources describes the compute resource requirements and limits
   resources:
     requests:
@@ -166,3 +193,8 @@ spec:
               image: apacherocketmq/rocketmq-console:2.0.0
               ports:
                 - containerPort: 8080
+              env:
+                - name: TZ
+                  value: Asia/Shanghai
+                - name: JAVA_OPTS
+                  value: -Drocketmq.namesrv.addr=rocketmq-name-service:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false

@@ -25,6 +25,9 @@ var (
 	// NameServersStr is the name server list
 	NameServersStr = ""
 
+	// NameServersStr is the name server list
+	NameServersServiceStr = ""
+
 	// IsNameServersStrUpdated is whether the name server list is updated
 	IsNameServersStrUpdated = false
 

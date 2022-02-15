@@ -33,6 +33,19 @@ spec:
   #  To have DNS options set along with hostNetwork, you have to specify DNS policy
   #  explicitly to 'ClusterFirstWithHostNet'.
   dnsPolicy: ClusterFirstWithHostNet
+  env:
+    - name: TZ
+      value: Asia/Shanghai
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: nameserver
+                operator: In
+                values:
+                  - true
+  tolerations: []
   # resources describes the compute resource requirements and limits
   resources:
     requests:
@@ -52,7 +65,7 @@ spec:
         annotations:
           volume.beta.kubernetes.io/storage-class: rocketmq-storage
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: 1Gi

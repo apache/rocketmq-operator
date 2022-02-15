@@ -30,6 +30,17 @@ function create_config() {
     if [ $BROKER_ID != 0 ]; then
         sed -i 's/brokerRole=.*/brokerRole=SLAVE/g' $BROKER_CONFIG_FILE
     fi
+    
+    # Enable RocketMQ-on-DLedger Group
+    if [ ! -z $ENABLE_DLEGER ]; then
+        echo "enableDLegerCommitLog=true" >> $BROKER_CONFIG_FILE
+        echo "dLegerGroup=$BROKER_NAME" >> $BROKER_CONFIG_FILE
+        echo "dLegerPeers=$DLEGER_PEERS" >> $BROKER_CONFIG_FILE
+        echo "dLegerSelfId=$DLEGER_SELF_ID" >> $BROKER_CONFIG_FILE
+        if [ ! -z $DLEGER_THREAD_NUM ]; then
+            echo "sendMessageThreadPoolNums=$DLEGER_THREAD_NUM" >> $BROKER_CONFIG_FILE
+        fi
+    fi
 }
 
 create_config

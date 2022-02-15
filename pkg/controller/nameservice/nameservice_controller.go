@@ -35,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -128,7 +129,7 @@ func (r *ReconcileNameService) Reconcile(request reconcile.Request) (reconcile.R
 
 	// Check if the statefulSet already exists, if not create a new one
 	found := &appsv1.StatefulSet{}
-
+	r.CreateService(request, instance)
 	dep := r.statefulSetForNameService(instance)
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
@@ -157,9 +158,18 @@ func (r *ReconcileNameService) Reconcile(request reconcile.Request) (reconcile.R
 	return r.updateNameServiceStatus(instance, request, true)
 }
 
+func getNameServiceName(nameService *rocketmqv1alpha1.NameService) string {
+	nameserviceName := ""
+	for replicaIndex := 0; replicaIndex < int(nameService.Spec.Size); replicaIndex++ {
+		nameserviceName = nameserviceName + nameService.Name + "-" + strconv.Itoa(replicaIndex) + "." + nameService.Name + ":" + strconv.Itoa(cons.NameServiceMainContainerPort) + ";"
+	}
+	return nameserviceName[:len(nameserviceName)-1]
+}
+
 func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha1.NameService, request reconcile.Request, requeue bool) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Check the NameServers status")
+	share.NameServersServiceStr = getNameServiceName(instance)
 	// List the pods for this nameService's statefulSet
 	podList := &corev1.PodList{}
 	labelSelector := labels.SelectorFromSet(labelsForNameService(instance.Name))
@@ -301,7 +311,53 @@ func labelsForNameService(name string) map[string]string {
 	return map[string]string{"app": "name_service", "name_service_cr": name}
 }
 
+func (r *ReconcileNameService) getNameServiceService(nameService *rocketmqv1alpha1.NameService) *corev1.Service {
+	statefulSetName := nameService.Name
+	ls := labelsForNameService(nameService.Name)
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      statefulSetName,
+			Labels:    ls,
+			Namespace: nameService.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector:  ls,
+			ClusterIP: "None",
+			Ports: []corev1.ServicePort{{
+				Name:       cons.NameServiceMainContainerPortName,
+				Port:       cons.NameServiceMainContainerPort,
+				TargetPort: intstr.FromInt(cons.NameServiceMainContainerPort),
+			}},
+		},
+	}
+
+	// Set bind for broker crd and svc
+	controllerutil.SetControllerReference(nameService, svc, r.scheme)
+
+	return svc
+}
+
+func (r *ReconcileNameService) CreateService(request reconcile.Request, nameService *rocketmqv1alpha1.NameService) {
+	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger.Info("Create a Name Service...")
+
+	svc := r.getNameServiceService(nameService)
+	svcObj := &corev1.Service{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: svc.Name, Namespace: svc.Namespace}, svcObj)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a Name Service.", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
+		err = r.client.Create(context.TODO(), svc)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
+		}
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Name Service.")
+	}
+}
+
 func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
+	serviceName := nameService.Name
 	ls := labelsForNameService(nameService.Name)
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -313,19 +369,23 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
 			},
+			ServiceName: serviceName,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
 					HostNetwork: nameService.Spec.HostNetwork,
-					DNSPolicy: nameService.Spec.DNSPolicy,
+					DNSPolicy:   nameService.Spec.DNSPolicy,
+					Affinity:    &nameService.Spec.Affinity,
+					Tolerations: nameService.Spec.Tolerations,
 					Containers: []corev1.Container{{
 						Resources: nameService.Spec.Resources,
-						Image: nameService.Spec.NameServiceImage,
+						Image:     nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",
 						ImagePullPolicy: nameService.Spec.ImagePullPolicy,
+						Env:             nameService.Spec.Env,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.NameServiceMainContainerPort,
 							Name:          cons.NameServiceMainContainerPortName,

@@ -40,7 +40,10 @@ type NameServiceSpec struct {
 	// HostNetwork can be true or false
 	HostNetwork bool `json:"hostNetwork"`
 	// dnsPolicy defines how a pod's DNS will be configured
-	DNSPolicy corev1.DNSPolicy `json:"dnsPolicy"`
+	DNSPolicy   corev1.DNSPolicy    `json:"dnsPolicy"`
+	Env         []corev1.EnvVar     `json:"env"`
+	Affinity    corev1.Affinity     `json:"affinity"`
+	Tolerations []corev1.Toleration `json:"tolerations"`
 	// Resources describes the compute resource requirements
 	Resources corev1.ResourceRequirements `json:"resources"`
 	// StorageMode can be EmptyDir, HostPath, StorageClass
