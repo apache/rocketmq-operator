@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
@@ -282,7 +283,10 @@ func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
 func getNameServers(pods []corev1.Pod) []string {
 	var nameServers []string
 	for _, pod := range pods {
-		nameServers = append(nameServers, pod.Status.PodIP)
+		if pod.Status.Phase == corev1.PodRunning &&
+			!strings.EqualFold(pod.Status.PodIP, "") {
+			nameServers = append(nameServers, pod.Status.PodIP)
+		}
 	}
 	return nameServers
 }
