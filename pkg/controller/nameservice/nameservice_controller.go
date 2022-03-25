@@ -297,6 +297,22 @@ func getRunningNameServersNum(pods []corev1.Pod) int32 {
 	return num
 }
 
+func getPodSecurityContext(nameService *rocketmqv1alpha1.NameService) *corev1.PodSecurityContext {
+	var securityContext = corev1.PodSecurityContext{}
+	if nameService.Spec.PodSecurityContext != nil {
+		securityContext = *nameService.Spec.PodSecurityContext
+	}
+	return &securityContext
+}
+
+func getContainerSecurityContext(nameService *rocketmqv1alpha1.NameService) *corev1.SecurityContext {
+	var securityContext = corev1.SecurityContext{}
+	if nameService.Spec.ContainerSecurityContext != nil {
+		securityContext = *nameService.Spec.ContainerSecurityContext
+	}
+	return &securityContext
+}
+
 func labelsForNameService(name string) map[string]string {
 	return map[string]string{"app": "name_service", "name_service_cr": name}
 }
@@ -319,10 +335,10 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 				},
 				Spec: corev1.PodSpec{
 					HostNetwork: nameService.Spec.HostNetwork,
-					DNSPolicy: nameService.Spec.DNSPolicy,
+					DNSPolicy:   nameService.Spec.DNSPolicy,
 					Containers: []corev1.Container{{
 						Resources: nameService.Spec.Resources,
-						Image: nameService.Spec.NameServiceImage,
+						Image:     nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",
 						ImagePullPolicy: nameService.Spec.ImagePullPolicy,
@@ -335,8 +351,10 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 							Name:      nameService.Spec.VolumeClaimTemplates[0].Name,
 							SubPath:   cons.LogSubPathName,
 						}},
+						SecurityContext: getContainerSecurityContext(nameService),
 					}},
-					Volumes: getVolumes(nameService),
+					Volumes:         getVolumes(nameService),
+					SecurityContext: getPodSecurityContext(nameService),
 				},
 			},
 			VolumeClaimTemplates: getVolumeClaimTemplates(nameService),

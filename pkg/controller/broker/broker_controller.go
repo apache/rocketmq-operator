@@ -405,8 +405,8 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Resources: broker.Spec.Resources,
-						Image: broker.Spec.BrokerImage,
-						Name:  cons.BrokerContainerName,
+						Image:     broker.Spec.BrokerImage,
+						Name:      cons.BrokerContainerName,
 						Lifecycle: &corev1.Lifecycle{
 							PostStart: &corev1.Handler{
 								Exec: &corev1.ExecAction{
@@ -414,8 +414,9 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 								},
 							},
 						},
+						SecurityContext: getContainerSecurityContext(broker),
 						ImagePullPolicy: broker.Spec.ImagePullPolicy,
-						Env: getENV(broker, replicaIndex, brokerGroupIndex),
+						Env:             getENV(broker, replicaIndex, brokerGroupIndex),
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.BrokerVipContainerPort,
 							Name:          cons.BrokerVipContainerPortName,
@@ -440,7 +441,8 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 							SubPath:   cons.BrokerConfigName,
 						}},
 					}},
-					Volumes: getVolumes(broker),
+					Volumes:         getVolumes(broker),
+					SecurityContext: getPodSecurityContext(broker),
 				},
 			},
 			VolumeClaimTemplates: getVolumeClaimTemplates(broker),
@@ -453,7 +455,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 
 }
 
-func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex int)  []corev1.EnvVar {
+func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex int) []corev1.EnvVar {
 	envs := []corev1.EnvVar{{
 		Name:  cons.EnvNameServiceAddress,
 		Value: share.NameServersStr,
@@ -480,6 +482,22 @@ func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.Persisten
 	default:
 		return nil
 	}
+}
+
+func getPodSecurityContext(broker *rocketmqv1alpha1.Broker) *corev1.PodSecurityContext {
+	var securityContext = corev1.PodSecurityContext{}
+	if broker.Spec.PodSecurityContext != nil {
+		securityContext = *broker.Spec.PodSecurityContext
+	}
+	return &securityContext
+}
+
+func getContainerSecurityContext(broker *rocketmqv1alpha1.Broker) *corev1.SecurityContext {
+	var securityContext = corev1.SecurityContext{}
+	if broker.Spec.ContainerSecurityContext != nil {
+		securityContext = *broker.Spec.ContainerSecurityContext
+	}
+	return &securityContext
 }
 
 func getVolumes(broker *rocketmqv1alpha1.Broker) []corev1.Volume {
