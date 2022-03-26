@@ -40,9 +40,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -55,9 +55,9 @@ var cmd = []string{"/bin/bash", "-c", "echo Initial broker"}
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new Broker Controller and adds it to the Manager. The Manager will set fields on the Controller
+// SetupWithManager creates a new Broker Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func SetupWithManager(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -111,7 +111,7 @@ type ReconcileBroker struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Broker.")
 
@@ -245,7 +245,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		Namespace:     broker.Namespace,
 		LabelSelector: labelSelector,
 	}
-	err = r.client.List(context.TODO(), listOps, podList)
+	err = r.client.List(context.TODO(), podList, listOps)
 	if err != nil {
 		reqLogger.Error(err, "Failed to list pods.", "Broker.Namespace", broker.Namespace, "Broker.Name", broker.Name)
 		return reconcile.Result{}, err
@@ -333,7 +333,7 @@ func getCopyMetadataJsonCommand(dir string, sourcePodName string, namespace stri
 	cmdOpts := buildInputCommand(dir)
 	topicsJsonStr, err := exec(cmdOpts, sourcePodName, k8s, namespace)
 	if err != nil {
-		log.Error(err, "exec command failed, output is: "+output)
+		log.Error(err, "exec command failed, output is: "+topicsJsonStr)
 		return ""
 	}
 	topicsCommand := buildOutputCommand(topicsJsonStr, dir)
@@ -571,7 +571,7 @@ func contains(item string, arr []string) bool {
 
 func checkAndCopyMetadata(newPodNames []string, dir string, sourcePodName string, namespace string, k8s *tool.K8sClient) {
 	cmdOpts := buildInputCommand(dir)
-	jsonStr := exec(cmdOpts, sourcePodName, k8s, namespace)
+	jsonStr, _ := exec(cmdOpts, sourcePodName, k8s, namespace) // TODO handler error
 	if len(jsonStr) < cons.MinMetadataJsonFileSize {
 		log.Info("The file " + dir + " is abnormally too short to execute metadata transmission, please check whether the source broker pod " + sourcePodName + " is correct")
 	} else {

@@ -40,9 +40,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -53,9 +53,9 @@ var log = logf.Log.WithName("controller_nameservice")
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new NameService Controller and adds it to the Manager. The Manager will set fields on the Controller
+// SetupWithManager creates a new NameService Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func SetupWithManager(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -109,7 +109,7 @@ type ReconcileNameService struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileNameService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileNameService) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling NameService")
 
@@ -168,7 +168,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		Namespace:     instance.Namespace,
 		LabelSelector: labelSelector,
 	}
-	err := r.client.List(context.TODO(), listOps, podList)
+	err := r.client.List(context.TODO(), podList, listOps)
 	if err != nil {
 		reqLogger.Error(err, "Failed to list pods.", "NameService.Namespace", instance.Namespace, "NameService.Name", instance.Name)
 		return reconcile.Result{Requeue: true}, err

@@ -34,9 +34,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 )
@@ -48,9 +48,9 @@ var log = logf.Log.WithName("controller_console")
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new Console Controller and adds it to the Manager. The Manager will set fields on the Controller
+// SetupWithManager creates a new Console Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func SetupWithManager(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -104,7 +104,7 @@ type ReconcileConsole struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileConsole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Console")
 
@@ -200,12 +200,12 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Resources: cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources,
-						Image: cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Image,
-						Name:  cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Name,
+						Resources:       cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources,
+						Image:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Image,
+						Name:            cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Name,
 						ImagePullPolicy: cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy,
-						Env: append(cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Env, env),
-						Ports: cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Ports,
+						Env:             append(cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Env, env),
+						Ports:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Ports,
 					}},
 				},
 			},

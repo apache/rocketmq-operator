@@ -21,11 +21,13 @@ import (
 	"context"
 	"math/rand"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strconv"
 	"testing"
 
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 
+	. "github.com/onsi/ginkgo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,20 +35,20 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 // TestBrokerController runs ReconcileBroker.Reconcile() against a
 // fake client that tracks a Broker object.
 func TestBrokerController(t *testing.T) {
 	// Set the logger to development mode for verbose logs.
-	logf.SetLogger(logf.ZapLogger(true))
+	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	var (
-		name            = "rocketmq-operator"
-		namespace       = "broker"
-		replicas   		= 3
+		name      = "rocketmq-operator"
+		namespace = "broker"
+		replicas  = 3
 	)
 
 	// A Broker resource with metadata and spec.
@@ -66,7 +68,7 @@ func TestBrokerController(t *testing.T) {
 
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(rocketmqv1alpha1.SchemeGroupVersion, broker)
+	s.AddKnownTypes(rocketmqv1alpha1.GroupVersion, broker)
 	// Create a fake client to mock API calls.
 	cl := fake.NewFakeClient(objs...)
 	// Create a ReconcileBroker object with the scheme and fake client.
@@ -80,7 +82,7 @@ func TestBrokerController(t *testing.T) {
 			Namespace: namespace,
 		},
 	}
-	res, err := r.Reconcile(req)
+	res, err := r.Reconcile(context.Background(), req)
 	if err != nil {
 		t.Fatalf("reconcile: (%v)", err)
 	}
@@ -120,7 +122,7 @@ func TestBrokerController(t *testing.T) {
 
 	// Reconcile again so Reconcile() checks pods and updates the Broker
 	// resources' Status.
-	res, err = r.Reconcile(req)
+	res, err = r.Reconcile(context.Background(), req)
 	if err != nil {
 		t.Fatalf("reconcile: (%v)", err)
 	}
