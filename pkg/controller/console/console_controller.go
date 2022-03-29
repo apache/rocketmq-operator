@@ -86,8 +86,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileConsole implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileConsole{}
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=console,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=console/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=console/finalizers,verbs=update
 
 // ReconcileConsole reconciles a Console object
 type ReconcileConsole struct {

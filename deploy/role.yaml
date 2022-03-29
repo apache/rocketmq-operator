@@ -1,74 +1,112 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: rocketmq-operator
+  name: manager-role
 rules:
 - apiGroups:
-  - ""
+  - rocketmq.apache.org
   resources:
-  - pods
-  - services
-  - endpoints
-  - persistentvolumeclaims
-  - events
-  - configmaps
-  - secrets
-  - pods/exec
+  - brokers
   verbs:
-  - '*'
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - daemonsets
-  - replicasets
-  - statefulsets
-  verbs:
-  - '*'
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  verbs:
-  - get
   - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-  - apps
-  resourceNames:
-  - rocketmq-operator
+  - rocketmq.apache.org
   resources:
-  - deployments/finalizers
+  - brokers/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - '*'
-  - brokers
-  - pods/exec
-  - topictransfers
-  - consoles
+  - brokers/status
   verbs:
-  - '*'
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - console
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - console/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - console/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - nameservice
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - nameservice/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - nameservice/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - topictransfer
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - topictransfer/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - topictransfer/status
+  verbs:
+  - get
+  - patch
+  - update

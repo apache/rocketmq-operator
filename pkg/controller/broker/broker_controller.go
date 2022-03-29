@@ -93,8 +93,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileBroker implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileBroker{}
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=brokers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=brokers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=brokers/finalizers,verbs=update
 
 // ReconcileBroker reconciles a Broker object
 type ReconcileBroker struct {

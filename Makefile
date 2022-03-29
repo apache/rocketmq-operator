@@ -77,7 +77,7 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:dir=deploy output:crd:artifacts:config=deploy/crds
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -121,20 +121,31 @@ endif
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	kubectl create -f deploy/crds/rocketmq.apache.org_brokers.yaml
+	kubectl create -f deploy/crds/rocketmq.apache.org_nameservices.yaml
+	kubectl create -f deploy/crds/rocketmq.apache.org_consoles.yaml
+	kubectl create -f deploy/crds/rocketmq.apache.org_topictransfers.yaml
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_brokers.yaml
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_nameservices.yaml
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_consoles.yaml
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_topictransfers.yaml
 
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+deploy: manifests install ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	kubectl create -f deploy/service_account.yaml
+	kubectl create -f deploy/role.yaml
+	kubectl create -f deploy/role_binding.yaml
+	kubectl create -f deploy/operator.yaml
 
 .PHONY: undeploy
-undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+undeploy: uninstall ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/service_account.yaml
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/role.yaml
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/role_binding.yaml
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/operator.yaml
 
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 .PHONY: controller-gen
@@ -165,20 +176,20 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-.PHONY: bundle
-bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle
-
-.PHONY: bundle-build
-bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
-
-.PHONY: bundle-push
-bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+#.PHONY: bundle
+#bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+#	operator-sdk generate kustomize manifests -q
+#	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+#	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+#	operator-sdk bundle validate ./bundle
+#
+#.PHONY: bundle-build
+#bundle-build: ## Build the bundle image.
+#	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+#
+#.PHONY: bundle-push
+#bundle-push: ## Push the bundle image.
+#	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
 OPM = ./bin/opm

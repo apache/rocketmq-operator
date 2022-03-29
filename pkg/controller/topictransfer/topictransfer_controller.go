@@ -87,8 +87,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileTopicTransfer implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileTopicTransfer{}
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=topictransfer,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=topictransfer/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=topictransfer/finalizers,verbs=update
 
 // ReconcileTopicTransfer reconciles a TopicTransfer object
 type ReconcileTopicTransfer struct {
