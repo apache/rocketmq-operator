@@ -96,6 +96,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 //+kubebuilder:rbac:groups=rocketmq.apache.org,resources=brokers,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=rocketmq.apache.org,resources=brokers/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=rocketmq.apache.org,resources=brokers/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=pods/exec,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="apps",resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 
 // ReconcileBroker reconciles a Broker object
 type ReconcileBroker struct {
