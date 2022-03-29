@@ -20,6 +20,7 @@ package broker
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"reflect"
 	"strconv"
 	"strings"
@@ -398,6 +399,13 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 		statefulSetName = broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-master"
 	} else {
 		statefulSetName = broker.Name + "-" + strconv.Itoa(brokerGroupIndex) + "-replica-" + strconv.Itoa(replicaIndex)
+	}
+
+	// After CustomResourceDefinition version upgraded from v1beta1 to v1
+	// `broker.spec.VolumeClaimTemplates.metadata` declared in yaml will not be stored by kubernetes.
+	// Here is a temporary repair method: to generate a random name
+	if strings.EqualFold(broker.Spec.VolumeClaimTemplates[0].Name, "") {
+		broker.Spec.VolumeClaimTemplates[0].Name = uuid.New().String()
 	}
 
 	dep := &appsv1.StatefulSet{

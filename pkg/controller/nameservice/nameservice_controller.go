@@ -20,6 +20,7 @@ package nameservice
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"os/exec"
 	"reflect"
 	"strconv"
@@ -326,6 +327,14 @@ func labelsForNameService(name string) map[string]string {
 
 func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
 	ls := labelsForNameService(nameService.Name)
+
+	// After CustomResourceDefinition version upgraded from v1beta1 to v1
+	// `broker.spec.VolumeClaimTemplates.metadata` declared in yaml will not be stored by kubernetes.
+	// Here is a temporary repair method: to generate a random name
+	if strings.EqualFold(nameService.Spec.VolumeClaimTemplates[0].Name, "") {
+		nameService.Spec.VolumeClaimTemplates[0].Name = uuid.New().String()
+	}
+
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nameService.Name,
