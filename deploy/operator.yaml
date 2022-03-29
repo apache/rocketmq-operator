@@ -28,6 +28,7 @@ spec:
         name: rocketmq-operator
     spec:
       serviceAccountName: rocketmq-operator
+      terminationGracePeriodSeconds: 10
       containers:
       - name: manager
         # Replace this with the built image name
@@ -36,7 +37,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
         livenessProbe:
