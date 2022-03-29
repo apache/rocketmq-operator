@@ -418,6 +418,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
+					ImagePullSecrets: broker.Spec.ImagePullSecrets,
 					Containers: []corev1.Container{{
 						Resources: broker.Spec.Resources,
 						Image:     broker.Spec.BrokerImage,

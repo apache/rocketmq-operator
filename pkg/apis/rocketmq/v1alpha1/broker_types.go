@@ -60,6 +60,8 @@ type BrokerSpec struct {
 	PodSecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
 	// Container Security Context
 	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
+	// The secrets used to pull image from private registry
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 }
 
 // BrokerStatus defines the observed state of Broker

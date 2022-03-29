@@ -201,6 +201,7 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 					Labels: cr.Spec.ConsoleDeployment.Spec.Template.ObjectMeta.Labels,
 				},
 				Spec: corev1.PodSpec{
+					ImagePullSecrets: cr.Spec.ConsoleDeployment.Spec.Template.Spec.ImagePullSecrets,
 					Containers: []corev1.Container{{
 						Resources:       cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources,
 						Image:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Image,

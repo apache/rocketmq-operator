@@ -302,6 +302,18 @@ spec:
               imagePullPolicy:
                 description: ImagePullPolicy defines how the image is pulled
                 type: string
+              imagePullSecrets:
+                description: The secrets used to pull image from private registry
+                items:
+                  description: LocalObjectReference contains enough information to
+                    let you locate the referenced object inside the same namespace.
+                  properties:
+                    name:
+                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        TODO: Add other useful fields. apiVersion, kind, uid?'
+                      type: string
+                  type: object
+                type: array
               nameServers:
                 description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
                 type: string
