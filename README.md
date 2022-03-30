@@ -177,117 +177,103 @@ data:
 
 ---
 apiVersion: rocketmq.apache.org/v1alpha1
-kind: Broker
+kind: Rocketmq
 metadata:
-  # name of broker cluster
-  name: broker
-  namespace: default
+  name: rocketmq-1
 spec:
-  # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
-  size: 1
-  # nameServers is the [ip:port] list of name service
-  nameServers: ""
-  # replicaPerGroup is the number of each broker cluster
-  replicaPerGroup: 1
-  # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: apacherocketmq/rocketmq-broker:4.5.0-alpine-operator-0.3.0
-  # imagePullPolicy is the image pull policy
-  imagePullPolicy: Always
-  # resources describes the compute resource requirements and limits
-  resources:
-    requests:
-      memory: "2048Mi"
-      cpu: "250m"
-    limits:
-      memory: "12288Mi"
-      cpu: "500m"
-  # allowRestart defines whether allow pod restart
-  allowRestart: true
-  # storageMode can be EmptyDir, HostPath, StorageClass
-  storageMode: EmptyDir
-  # hostPath is the local path to store data
-  hostPath: /data/rocketmq/broker
-  # scalePodName is [Broker name]-[broker group number]-master-0
-  scalePodName: broker-0-master-0
-  # env defines custom env, e.g. BROKER_MEM
-  env:
-    - name: BROKER_MEM
-      valueFrom:
-        configMapKeyRef:
+  broker:
+    # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
+    size: 1
+    # nameServers is the [ip:port] list of name service
+    nameServers: ""
+    # replicaPerGroup is the number of each broker cluster
+    replicaPerGroup: 1
+    # brokerImage is the customized docker image repo of the RocketMQ broker
+    brokerImage: apacherocketmq/rocketmq-broker:4.5.0-alpine-operator-0.3.0
+    # imagePullPolicy is the image pull policy
+    imagePullPolicy: Always
+    # resources describes the compute resource requirements and limits
+    resources:
+      requests:
+        memory: "2048Mi"
+        cpu: "250m"
+      limits:
+        memory: "12288Mi"
+        cpu: "500m"
+    # allowRestart defines whether allow pod restart
+    allowRestart: true
+    # storageMode can be EmptyDir, HostPath, StorageClass
+    storageMode: EmptyDir
+    # hostPath is the local path to store data
+    hostPath: /data/rocketmq/broker
+    # scalePodName is [Broker name]-[broker group number]-master-0
+    scalePodName: broker-0-master-0
+    # env defines custom env, e.g. BROKER_MEM
+    env:
+      - name: BROKER_MEM
+        valueFrom:
+          configMapKeyRef:
+            name: broker-config
+            key: BROKER_MEM
+    # volumes defines the broker.conf
+    volumes:
+      - name: broker-config
+        configMap:
           name: broker-config
-          key: BROKER_MEM
-  # volumes defines the broker.conf
-  volumes:
-    - name: broker-config
-      configMap:
-        name: broker-config
-        items:
-          - key: broker-common.conf
-            path: broker-common.conf
-  # volumeClaimTemplates defines the storageClass
-  volumeClaimTemplates:
-    - metadata:
-        name: broker-storage
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: rocketmq-storage
-        resources:
-          requests:
-            storage: 8Gi
----
-apiVersion: rocketmq.apache.org/v1alpha1
-kind: NameService
-metadata:
-  name: name-service
-  namespace: default
-spec:
-  # size is the the name service instance number of the name service cluster
-  size: 1
-  # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
-  # imagePullPolicy is the image pull policy
-  imagePullPolicy: Always
-  # hostNetwork can be true or false
-  hostNetwork: true
-  #  Set DNS policy for the pod.
-  #  Defaults to "ClusterFirst".
-  #  Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.
-  #  DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy.
-  #  To have DNS options set along with hostNetwork, you have to specify DNS policy
-  #  explicitly to 'ClusterFirstWithHostNet'.
-  dnsPolicy: ClusterFirstWithHostNet
-  # resources describes the compute resource requirements and limits
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1024Mi"
-      cpu: "500m"
-  # storageMode can be EmptyDir, HostPath, StorageClass
-  storageMode: EmptyDir
-  # hostPath is the local path to store data
-  hostPath: /data/rocketmq/nameserver
-  # volumeClaimTemplates defines the storageClass
-  volumeClaimTemplates:
-    - metadata:
-        name: namesrv-storage
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: rocketmq-storage
-        resources:
-          requests:
-            storage: 1Gi
-
----
-apiVersion: rocketmq.apache.org/v1alpha1
-kind: Console
-metadata:
-  name: console
-  namespace: default
-spec:
+          items:
+            - key: broker-common.conf
+              path: broker-common.conf
+    # volumeClaimTemplates defines the storageClass
+    volumeClaimTemplates:
+      - metadata:
+          name: broker-storage
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: rocketmq-storage
+          resources:
+            requests:
+              storage: 8Gi
+  nameService:
+    # size is the the name service instance number of the name service cluster
+    size: 1
+    # nameServiceImage is the customized docker image repo of the RocketMQ name service
+    nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
+    # imagePullPolicy is the image pull policy
+    imagePullPolicy: Always
+    # hostNetwork can be true or false
+    hostNetwork: true
+    #  Set DNS policy for the pod.
+    #  Defaults to "ClusterFirst".
+    #  Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.
+    #  DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy.
+    #  To have DNS options set along with hostNetwork, you have to specify DNS policy
+    #  explicitly to 'ClusterFirstWithHostNet'.
+    dnsPolicy: ClusterFirstWithHostNet
+    # resources describes the compute resource requirements and limits
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1024Mi"
+        cpu: "500m"
+    # storageMode can be EmptyDir, HostPath, StorageClass
+    storageMode: EmptyDir
+    # hostPath is the local path to store data
+    hostPath: /data/rocketmq/nameserver
+    # volumeClaimTemplates defines the storageClass
+    volumeClaimTemplates:
+      - metadata:
+          name: namesrv-storage
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: rocketmq-storage
+          resources:
+            requests:
+              storage: 1Gi
+console:
   # nameServers is the [ip:port] list of name service
   nameServers: ""
   # consoleDeployment define the console deployment
@@ -324,9 +310,8 @@ The yaml defines the RocketMQ name server and broker cluster scale, the [ip:port
 
 ``` 
 $ kubectl apply -f example/rocketmq_v1alpha1_rocketmq_cluster.yaml
-broker.rocketmq.apache.org/broker created
-nameservice.rocketmq.apache.org/name-service created
-console.rocketmq.apache.org/console created
+configmap/broker-config created
+rocketmq.rocketmq.apache.org/rocketmq-1 created
 ```
 
 The name server cluster will be created first, after all name server cluster is in running state, the operator will create the broker cluster.
@@ -335,12 +320,12 @@ Check the status:
 
 ```
 $ kubectl get pods -owide
-NAME                                 READY   STATUS    RESTARTS   AGE    IP             NODE             NOMINATED NODE   READINESS GATES
-broker-0-master-0                    1/1     Running   0          71s    10.1.5.91      docker-desktop   <none>           <none>
-broker-0-replica-1-0                 1/1     Running   0          71s    10.1.5.92      docker-desktop   <none>           <none>
-console-5c4c9d5757-jnsbq             1/1     Running   0          71s    10.1.5.93      docker-desktop   <none>           <none>
-name-service-0                       1/1     Running   0          78s    192.168.65.3   docker-desktop   <none>           <none>
-rocketmq-operator-758bb9c774-jrfw4   1/1     Running   0          106s   10.1.5.90      docker-desktop   <none>           <none>
+NAME                                 READY   STATUS    RESTARTS   AGE     IP             NODE             NOMINATED NODE   READINESS GATES
+rocketmq-1-broker-0-master-0         1/1     Running   0          27s     10.1.2.27      docker-desktop   <none>           <none>
+rocketmq-1-broker-0-replica-1-0      1/1     Running   0          27s     10.1.2.28      docker-desktop   <none>           <none>
+rocketmq-1-name-service-0            1/1     Running   0          27s     192.168.65.3   docker-desktop   <none>           <none>
+rocketmq-1-console-56564554ff-xqv8j  1/1     Running   0          27s     192.168.65.4   docker-desktop   <none>           <none>
+rocketmq-operator-76b4b9f4db-x52mz   1/1     Running   0          3h25m   10.1.2.17      docker-desktop   <none>           <none>
 ```
 
 Using the default yaml, we can see that there are 2 name-server Pods and 1 master broker 1 replica(slave) broker running on the k8s cluster.

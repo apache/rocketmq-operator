@@ -33,7 +33,7 @@ type BrokerSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	Size int `json:"size"`
 	// NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
-	NameServers string `json:"nameServers,omitempty"`
+	NameServers string `json:"nameServers"`
 	// ReplicaPerGroup each broker cluster's replica number
 	ReplicaPerGroup int `json:"replicaPerGroup"`
 	// BaseImage is the broker image to use for the Pods

@@ -31,138 +31,124 @@ data:
 
 ---
 apiVersion: rocketmq.apache.org/v1alpha1
-kind: Broker
+kind: Rocketmq
 metadata:
-  # name of broker cluster
-  name: broker
-  namespace: default
+  name: rocketmq-1
 spec:
-  # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
-  size: 1
-  # nameServers is the [ip:port] list of name service
-  nameServers: ""
-  # replicaPerGroup is the number of each broker cluster
-  replicaPerGroup: 1
-  # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: apacherocketmq/rocketmq-broker:4.5.0-alpine-operator-0.3.0
-  # imagePullPolicy is the image pull policy
-  imagePullPolicy: Always
-  # resources describes the compute resource requirements and limits
-  resources:
-    requests:
-      memory: "2048Mi"
-      cpu: "250m"
-    limits:
-      memory: "12288Mi"
-      cpu: "500m"
-  # allowRestart defines whether allow pod restart
-  allowRestart: true
-  # storageMode can be EmptyDir, HostPath, StorageClass
-  storageMode: EmptyDir
-  # hostPath is the local path to store data
-  hostPath: /data/rocketmq/broker
-  # scalePodName is [Broker name]-[broker group number]-master-0
-  scalePodName: broker-0-master-0
-  # env defines custom env, e.g. BROKER_MEM
-  env:
-    - name: BROKER_MEM
-      valueFrom:
-        configMapKeyRef:
+  broker:
+    # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
+    size: 1
+    # nameServers is the [ip:port] list of name service
+    nameServers: ""
+    # replicaPerGroup is the number of each broker cluster
+    replicaPerGroup: 1
+    # brokerImage is the customized docker image repo of the RocketMQ broker
+    brokerImage: apacherocketmq/rocketmq-broker:4.5.0-alpine-operator-0.3.0
+    # imagePullPolicy is the image pull policy
+    imagePullPolicy: Always
+    # resources describes the compute resource requirements and limits
+    resources:
+      requests:
+        memory: "2048Mi"
+        cpu: "250m"
+      limits:
+        memory: "12288Mi"
+        cpu: "500m"
+    # allowRestart defines whether allow pod restart
+    allowRestart: true
+    # storageMode can be EmptyDir, HostPath, StorageClass
+    storageMode: EmptyDir
+    # hostPath is the local path to store data
+    hostPath: /data/rocketmq/broker
+    # scalePodName is [Broker name]-[broker group number]-master-0
+    scalePodName: broker-0-master-0
+    # env defines custom env, e.g. BROKER_MEM
+    env:
+      - name: BROKER_MEM
+        valueFrom:
+          configMapKeyRef:
+            name: broker-config
+            key: BROKER_MEM
+    # volumes defines the broker.conf
+    volumes:
+      - name: broker-config
+        configMap:
           name: broker-config
-          key: BROKER_MEM
-  # volumes defines the broker.conf
-  volumes:
-    - name: broker-config
-      configMap:
-        name: broker-config
-        items:
-          - key: broker-common.conf
-            path: broker-common.conf
-  # volumeClaimTemplates defines the storageClass
-  volumeClaimTemplates:
-    - metadata:
-        name: broker-storage
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: rocketmq-storage
-        resources:
-          requests:
-            storage: 8Gi
----
-apiVersion: rocketmq.apache.org/v1alpha1
-kind: NameService
-metadata:
-  name: name-service
-  namespace: default
-spec:
-  # size is the the name service instance number of the name service cluster
-  size: 1
-  # nameServiceImage is the customized docker image repo of the RocketMQ name service
-  nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
-  # imagePullPolicy is the image pull policy
-  imagePullPolicy: Always
-  # hostNetwork can be true or false
-  hostNetwork: true
-  #  Set DNS policy for the pod.
-  #  Defaults to "ClusterFirst".
-  #  Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.
-  #  DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy.
-  #  To have DNS options set along with hostNetwork, you have to specify DNS policy
-  #  explicitly to 'ClusterFirstWithHostNet'.
-  dnsPolicy: ClusterFirstWithHostNet
-  # resources describes the compute resource requirements and limits
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1024Mi"
-      cpu: "500m"
-  # storageMode can be EmptyDir, HostPath, StorageClass
-  storageMode: EmptyDir
-  # hostPath is the local path to store data
-  hostPath: /data/rocketmq/nameserver
-  # volumeClaimTemplates defines the storageClass
-  volumeClaimTemplates:
-    - metadata:
-        name: namesrv-storage
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: rocketmq-storage
-        resources:
-          requests:
-            storage: 1Gi
-
----
-apiVersion: rocketmq.apache.org/v1alpha1
-kind: Console
-metadata:
-  name: console
-  namespace: default
-spec:
-  # nameServers is the [ip:port] list of name service
-  nameServers: ""
-  # consoleDeployment define the console deployment
-  consoleDeployment:
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      labels:
-        app: rocketmq-console
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: rocketmq-console
-      template:
-        metadata:
-          labels:
-            app: rocketmq-console
+          items:
+            - key: broker-common.conf
+              path: broker-common.conf
+    # volumeClaimTemplates defines the storageClass
+    volumeClaimTemplates:
+      - metadata:
+          name: broker-storage
         spec:
-          containers:
-            - name: console
-              image: apacherocketmq/rocketmq-console:2.0.0
-              ports:
-                - containerPort: 8080
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: rocketmq-storage
+          resources:
+            requests:
+              storage: 8Gi
+  nameService:
+    # size is the the name service instance number of the name service cluster
+    size: 1
+    # nameServiceImage is the customized docker image repo of the RocketMQ name service
+    nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
+    # imagePullPolicy is the image pull policy
+    imagePullPolicy: Always
+    # hostNetwork can be true or false
+    hostNetwork: true
+    #  Set DNS policy for the pod.
+    #  Defaults to "ClusterFirst".
+    #  Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'.
+    #  DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy.
+    #  To have DNS options set along with hostNetwork, you have to specify DNS policy
+    #  explicitly to 'ClusterFirstWithHostNet'.
+    dnsPolicy: ClusterFirstWithHostNet
+    # resources describes the compute resource requirements and limits
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1024Mi"
+        cpu: "500m"
+    # storageMode can be EmptyDir, HostPath, StorageClass
+    storageMode: EmptyDir
+    # hostPath is the local path to store data
+    hostPath: /data/rocketmq/nameserver
+    # volumeClaimTemplates defines the storageClass
+    volumeClaimTemplates:
+      - metadata:
+          name: namesrv-storage
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: rocketmq-storage
+          resources:
+            requests:
+              storage: 1Gi
+  console:
+    # nameServers is the [ip:port] list of name service
+    nameServers: ""
+    # consoleDeployment define the console deployment
+    consoleDeployment:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        labels:
+          app: rocketmq-console
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: rocketmq-console
+        template:
+          metadata:
+            labels:
+              app: rocketmq-console
+          spec:
+            containers:
+              - name: console
+                image: apacherocketmq/rocketmq-console:2.0.0
+                ports:
+                  - containerPort: 8080

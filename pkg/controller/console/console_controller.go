@@ -136,7 +136,7 @@ func (r *ReconcileConsole) Reconcile(request reconcile.Request) (reconcile.Resul
 		share.NameServersStr = instance.Spec.NameServers
 	}
 
-	consoleDeployment := newDeploymentForCR(instance)
+	consoleDeployment := r.newDeploymentForCR(instance)
 
 	// Set Console instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, consoleDeployment, r.scheme); err != nil {
@@ -178,11 +178,20 @@ func (r *ReconcileConsole) Reconcile(request reconcile.Request) (reconcile.Resul
 }
 
 // newDeploymentForCR returns a deployment pod with modifying the ENV
-func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
+func (r *ReconcileConsole) newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 	env := corev1.EnvVar{
 		Name:  "JAVA_OPTS",
 		Value: fmt.Sprintf("-Drocketmq.namesrv.addr=%s -Dcom.rocketmq.sendMessageWithVIPChannel=false", share.NameServersStr),
 	}
+	selectLabels, matchLabels := func() (map[string]string, map[string]string) {
+		selectorLabels := cr.Spec.ConsoleDeployment.Spec.Selector.MatchLabels
+		labels := cr.Spec.ConsoleDeployment.Spec.Template.Labels
+		if selectorLabels != nil && labels != nil {
+			selectorLabels["console-cr"] = cr.Name
+			labels["console-cr"] = cr.Name
+		}
+		return selectorLabels, labels
+	}()
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -192,11 +201,11 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 		Spec: appsv1.DeploymentSpec{
 			Replicas: cr.Spec.ConsoleDeployment.Spec.Replicas,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: cr.Spec.ConsoleDeployment.Spec.Selector.MatchLabels,
+				MatchLabels: selectLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: cr.Spec.ConsoleDeployment.Spec.Template.ObjectMeta.Labels,
+					Labels: matchLabels,
 				},
 				Spec: corev1.PodSpec{
 					ImagePullSecrets: cr.Spec.ConsoleDeployment.Spec.Template.Spec.ImagePullSecrets,
@@ -212,6 +221,6 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 			},
 		},
 	}
-
+	controllerutil.SetControllerReference(cr, dep, r.scheme)
 	return dep
 }

@@ -22,6 +22,7 @@ metadata:
 spec:
   type: NodePort
   selector:
+    name_service_cr: ${rocketmq-name}-name-service
     app: rocketmq-console
   ports:
     - port: 8080
