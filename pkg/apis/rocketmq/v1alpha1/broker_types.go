@@ -62,6 +62,14 @@ type BrokerSpec struct {
 	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
 	// The secrets used to pull image from private registry
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// Affinity the pod's scheduling constraints
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// Tolerations the pod's tolerations.
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+	// NodeSelector is a selector which must be true for the pod to fit on a node
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// PriorityClassName indicates the pod's priority
+	PriorityClassName string `json:"priorityClassName,omitempty"`
 }
 
 // BrokerStatus defines the observed state of Broker
