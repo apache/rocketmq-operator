@@ -48,10 +48,10 @@ $ git clone https://github.com/apache/rocketmq-operator.git
 $ cd rocketmq-operator
 ```
 
-2. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following script:
+2. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following command:
 
 ```
-$ ./install-operator.sh
+$ make deploy
 ```
 
 3. Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
@@ -62,7 +62,14 @@ NAME                                      READY   STATUS    RESTARTS   AGE
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 ```
 
-Now you can use the CRDs provide by RocketMQ Operator to deploy your RocketMQ cluster.
+If you find that pod image is not found, run the following command to build a new one locally,
+the image tag is specified by the `IMG` parameter.
+
+```shell
+$ make docker-build IMG=apacherocketmq/rocketmq-operator:0.3.0-snapshot
+```
+
+Now you can use the CRDs provided by RocketMQ Operator to deploy your RocketMQ cluster.
 
 ### Prepare Volume Persistence
 
