@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
@@ -282,7 +283,10 @@ func getVolumes(nameService *rocketmqv1alpha1.NameService) []corev1.Volume {
 func getNameServers(pods []corev1.Pod) []string {
 	var nameServers []string
 	for _, pod := range pods {
-		nameServers = append(nameServers, pod.Status.PodIP)
+		if pod.Status.Phase == corev1.PodRunning &&
+			!strings.EqualFold(pod.Status.PodIP, "") {
+			nameServers = append(nameServers, pod.Status.PodIP)
+		}
 	}
 	return nameServers
 }
@@ -295,6 +299,22 @@ func getRunningNameServersNum(pods []corev1.Pod) int32 {
 		}
 	}
 	return num
+}
+
+func getPodSecurityContext(nameService *rocketmqv1alpha1.NameService) *corev1.PodSecurityContext {
+	var securityContext = corev1.PodSecurityContext{}
+	if nameService.Spec.PodSecurityContext != nil {
+		securityContext = *nameService.Spec.PodSecurityContext
+	}
+	return &securityContext
+}
+
+func getContainerSecurityContext(nameService *rocketmqv1alpha1.NameService) *corev1.SecurityContext {
+	var securityContext = corev1.SecurityContext{}
+	if nameService.Spec.ContainerSecurityContext != nil {
+		securityContext = *nameService.Spec.ContainerSecurityContext
+	}
+	return &securityContext
 }
 
 func labelsForNameService(name string) map[string]string {
@@ -318,11 +338,12 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
-					HostNetwork: nameService.Spec.HostNetwork,
-					DNSPolicy: nameService.Spec.DNSPolicy,
+					HostNetwork:      nameService.Spec.HostNetwork,
+					DNSPolicy:        nameService.Spec.DNSPolicy,
+					ImagePullSecrets: nameService.Spec.ImagePullSecrets,
 					Containers: []corev1.Container{{
 						Resources: nameService.Spec.Resources,
-						Image: nameService.Spec.NameServiceImage,
+						Image:     nameService.Spec.NameServiceImage,
 						// Name must be lower case !
 						Name:            "name-service",
 						ImagePullPolicy: nameService.Spec.ImagePullPolicy,
@@ -335,8 +356,10 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 							Name:      nameService.Spec.VolumeClaimTemplates[0].Name,
 							SubPath:   cons.LogSubPathName,
 						}},
+						SecurityContext: getContainerSecurityContext(nameService),
 					}},
-					Volumes: getVolumes(nameService),
+					Volumes:         getVolumes(nameService),
+					SecurityContext: getPodSecurityContext(nameService),
 				},
 			},
 			VolumeClaimTemplates: getVolumeClaimTemplates(nameService),
