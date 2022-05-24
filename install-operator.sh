@@ -15,13 +15,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-kubectl create -f deploy/crds/rocketmq_v1alpha1_broker_crd.yaml
-kubectl create -f deploy/crds/rocketmq_v1alpha1_nameservice_crd.yaml
-kubectl create -f deploy/crds/rocketmq_v1alpha1_consoles_crd.yaml
-kubectl create -f deploy/crds/rocketmq_v1alpha1_topictransfer_crd.yaml
-kubectl create -f deploy/service_account.yaml
-kubectl create -f deploy/role.yaml
-kubectl create -f deploy/role_binding.yaml
-kubectl create -f deploy/operator.yaml
+make deploy
 
-#kubectl create -f example/rocketmq_v1alpha1_rocketmq_cluster.yaml

@@ -13,62 +13,162 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: rocketmq-operator
+  name: manager-role
 rules:
 - apiGroups:
   - ""
   resources:
   - pods
-  - services
-  - endpoints
-  - persistentvolumeclaims
-  - events
-  - configmaps
-  - secrets
-  - pods/exec
   verbs:
-  - '*'
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - ""
   resources:
-  - namespaces
+  - pods/exec
   verbs:
+  - create
+  - delete
   - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - apps
   resources:
   - deployments
-  - daemonsets
-  - replicasets
-  - statefulsets
   verbs:
-  - '*'
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  verbs:
-  - get
   - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - apps
-  resourceNames:
-  - rocketmq-operator
   resources:
-  - deployments/finalizers
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - brokers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - brokers/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - '*'
-  - brokers
-  - pods/exec
-  - topictransfers
-  - consoles
+  - brokers/status
   verbs:
-  - '*'
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - console
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - console/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - console/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - nameservice
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - nameservice/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - nameservice/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - topictransfer
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - topictransfer/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - topictransfer/status
+  verbs:
+  - get
+  - patch
+  - update
