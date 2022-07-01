@@ -23,6 +23,7 @@ import (
 	"github.com/google/uuid"
 	"os/exec"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -178,6 +179,9 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		return reconcile.Result{Requeue: true}, err
 	}
 	hostIps := getNameServers(podList.Items)
+
+	sort.Strings(hostIps)
+	sort.Strings(instance.Status.NameServers)
 
 	// Update status.NameServers if needed
 	if !reflect.DeepEqual(hostIps, instance.Status.NameServers) {
