@@ -1121,6 +1121,9 @@ spec:
                   - name
                   type: object
                 type: array
+              hostNetwork:
+                description: HostNetwork can be true or false
+                type: boolean
               hostPath:
                 description: HostPath is the local path to store data
                 type: string
