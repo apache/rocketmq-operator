@@ -36,6 +36,9 @@ spec:
           spec:
             description: BrokerSpec defines the desired state of Broker
             properties:
+              ServiceAccountName:
+                description: ServiceAccountName
+                type: string
               affinity:
                 description: Affinity the pod's scheduling constraints
                 properties:
