@@ -108,7 +108,7 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - console
+  - consoles
   verbs:
   - create
   - delete
@@ -120,13 +120,13 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - console/finalizers
+  - consoles/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - console/status
+  - consoles/status
   verbs:
   - get
   - patch
@@ -134,7 +134,7 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - nameservice
+  - nameservices
   verbs:
   - create
   - delete
@@ -146,13 +146,13 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - nameservice/finalizers
+  - nameservices/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - nameservice/status
+  - nameservices/status
   verbs:
   - get
   - patch
@@ -160,7 +160,7 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - topictransfer
+  - topictransfers
   verbs:
   - create
   - delete
@@ -172,13 +172,13 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - topictransfer/finalizers
+  - topictransfers/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - topictransfer/status
+  - topictransfers/status
   verbs:
   - get
   - patch

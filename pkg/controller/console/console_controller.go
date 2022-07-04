@@ -86,9 +86,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=console,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=console/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=console/finalizers,verbs=update
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=consoles,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=consoles/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=consoles/finalizers,verbs=update
 //+kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;watch;create;update;patch;delete
 
 // ReconcileConsole reconciles a Console object
