@@ -86,6 +86,10 @@ type BrokerStatus struct {
 
 // Broker is the Schema for the brokers API
 // +k8s:openapi-gen=true
+// +kubebuilder:printcolumn:name="Size",type="integer",JSONPath=".spec.size"
+// +kubebuilder:printcolumn:name="Replica-Per-Group",type="integer",JSONPath=".spec.replicaPerGroup"
+// +kubebuilder:printcolumn:name="Allow-Restart",type="boolean",JSONPath=".spec.allowRestart"
+// +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 type Broker struct {
 	metav1.TypeMeta   `json:",inline"`

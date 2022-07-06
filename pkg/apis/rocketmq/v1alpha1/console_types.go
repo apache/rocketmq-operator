@@ -49,6 +49,8 @@ type ConsoleStatus struct {
 // Console is the Schema for the consoles API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Size",type="integer",JSONPath=".spec.consoleDeployment.spec.replicas"
+// +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:resource:path=consoles,scope=Namespaced
 type Console struct {
 	metav1.TypeMeta   `json:",inline"`
