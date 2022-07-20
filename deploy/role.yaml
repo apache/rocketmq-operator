@@ -12,14 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: manager-role
+  name: rocketmq-operator
 rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - ""
   resources:
@@ -69,6 +80,18 @@ rules:
   - update
   - watch
 - apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - rocketmq.apache.org
   resources:
   - brokers
@@ -97,7 +120,7 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - console
+  - consoles
   verbs:
   - create
   - delete
@@ -109,13 +132,13 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - console/finalizers
+  - consoles/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - console/status
+  - consoles/status
   verbs:
   - get
   - patch
@@ -123,7 +146,7 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - nameservice
+  - nameservices
   verbs:
   - create
   - delete
@@ -135,13 +158,13 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - nameservice/finalizers
+  - nameservices/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - nameservice/status
+  - nameservices/status
   verbs:
   - get
   - patch
@@ -149,7 +172,7 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - topictransfer
+  - topictransfers
   verbs:
   - create
   - delete
@@ -161,13 +184,13 @@ rules:
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - topictransfer/finalizers
+  - topictransfers/finalizers
   verbs:
   - update
 - apiGroups:
   - rocketmq.apache.org
   resources:
-  - topictransfer/status
+  - topictransfers/status
   verbs:
   - get
   - patch
