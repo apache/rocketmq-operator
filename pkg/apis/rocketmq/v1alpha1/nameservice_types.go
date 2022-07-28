@@ -81,10 +81,10 @@ type NameServiceStatus struct {
 
 // NameService is the Schema for the nameservices API
 // +k8s:openapi-gen=true
-// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Size",type="integer",JSONPath=".spec.size"
 // +kubebuilder:printcolumn:name="Host-Network",type="boolean",JSONPath=".spec.hostNetwork"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:subresource:status
 type NameService struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
