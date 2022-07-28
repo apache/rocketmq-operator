@@ -16,7 +16,20 @@ spec:
     singular: broker
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.size
+      name: Size
+      type: integer
+    - jsonPath: .spec.replicaPerGroup
+      name: Replica-Per-Group
+      type: integer
+    - jsonPath: .spec.allowRestart
+      name: Allow-Restart
+      type: boolean
+    - jsonPath: .metadata.creationTimestamp
+      name: AGE
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Broker is the Schema for the brokers API
@@ -1124,6 +1137,9 @@ spec:
                   - name
                   type: object
                 type: array
+              hostNetwork:
+                description: HostNetwork can be true or false
+                type: boolean
               hostPath:
                 description: HostPath is the local path to store data
                 type: string

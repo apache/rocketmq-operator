@@ -427,6 +427,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: broker.Spec.ServiceAccountName,
+					HostNetwork:        broker.Spec.HostNetwork,
 					Affinity:           broker.Spec.Affinity,
 					Tolerations:        broker.Spec.Tolerations,
 					NodeSelector:       broker.Spec.NodeSelector,

@@ -16,7 +16,17 @@ spec:
     singular: nameservice
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.size
+      name: Size
+      type: integer
+    - jsonPath: .spec.hostNetwork
+      name: Host-Network
+      type: boolean
+    - jsonPath: .metadata.creationTimestamp
+      name: AGE
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: NameService is the Schema for the nameservices API

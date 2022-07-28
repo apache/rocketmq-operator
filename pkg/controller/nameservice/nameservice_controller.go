@@ -92,9 +92,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservice,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservice/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservice/finalizers,verbs=update
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservices,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservices/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservices/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups="apps",resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 
