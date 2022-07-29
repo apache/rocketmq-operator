@@ -1,6 +1,7 @@
 ## RocketMQ Operator
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
+![Go Version](https://img.shields.io/github/go-mod/go-version/apache/rocketmq-operator)
 [![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/apache/rocketmq-operator/pkg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/apache/rocketmq-operator)](https://goreportcard.com/report/github.com/apache/rocketmq-operator)
 [![GitHub release](https://img.shields.io/github/release-date-pre/apache/rocketmq-operator)](https://github.com/apache/rocketmq-operator/releases)
