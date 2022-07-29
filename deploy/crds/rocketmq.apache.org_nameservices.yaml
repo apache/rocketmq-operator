@@ -46,6 +46,9 @@ spec:
           spec:
             description: NameServiceSpec defines the desired state of NameService
             properties:
+              ServiceAccountName:
+                description: ServiceAccountName
+                type: string
               affinity:
                 description: Affinity the pod's scheduling constraints
                 properties:

@@ -72,6 +72,8 @@ type BrokerSpec struct {
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// PriorityClassName indicates the pod's priority
 	PriorityClassName string `json:"priorityClassName,omitempty"`
+	// ServiceAccountName
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // BrokerStatus defines the observed state of Broker
