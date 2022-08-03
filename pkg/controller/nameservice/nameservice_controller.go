@@ -183,6 +183,11 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	sort.Strings(hostIps)
 	sort.Strings(instance.Status.NameServers)
 
+	nameServerListStr := ""
+	for _, value := range hostIps {
+		nameServerListStr = nameServerListStr + value + ":9876;"
+	}
+
 	// Update status.NameServers if needed
 	if !reflect.DeepEqual(hostIps, instance.Status.NameServers) {
 		oldNameServerListStr := ""
@@ -190,10 +195,6 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			oldNameServerListStr = oldNameServerListStr + value + ":9876;"
 		}
 
-		nameServerListStr := ""
-		for _, value := range hostIps {
-			nameServerListStr = nameServerListStr + value + ":9876;"
-		}
 		share.NameServersStr = nameServerListStr[:len(nameServerListStr)-1]
 		reqLogger.Info("share.NameServersStr:" + share.NameServersStr)
 
@@ -243,7 +244,12 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	runningNameServerNum := getRunningNameServersNum(podList.Items)
 	if runningNameServerNum == instance.Spec.Size {
 		share.IsNameServersStrInitialized = true
+		share.NameServersStr = nameServerListStr // reassign if operator restarts
 	}
+
+	reqLogger.Info("Share variables", "GroupNum", share.GroupNum,
+		"NameServersStr", share.NameServersStr, "IsNameServersStrUpdated", share.IsNameServersStrUpdated,
+		"IsNameServersStrInitialized", share.IsNameServersStrInitialized, "BrokerClusterName", share.BrokerClusterName)
 
 	if requeue {
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
