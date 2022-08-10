@@ -46,9 +46,6 @@ spec:
           spec:
             description: NameServiceSpec defines the desired state of NameService
             properties:
-              ServiceAccountName:
-                description: ServiceAccountName
-                type: string
               affinity:
                 description: Affinity the pod's scheduling constraints
                 properties:
@@ -1239,6 +1236,9 @@ spec:
                         type: string
                     type: object
                 type: object
+              serviceAccountName:
+                description: ServiceAccountName
+                type: string
               size:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "operator-sdk generate k8s" to regenerate code after
@@ -1310,6 +1310,23 @@ spec:
                       type: string
                     metadata:
                       description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata'
+                      properties:
+                        annotations:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        finalizers:
+                          items:
+                            type: string
+                          type: array
+                        labels:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        name:
+                          type: string
+                        namespace:
+                          type: string
                       type: object
                     spec:
                       description: 'Spec defines the desired characteristics of a
