@@ -32,7 +32,7 @@ spec:
       containers:
       - name: manager
         # Replace this with the built image name
-        image: apacherocketmq/rocketmq-operator:0.3.0-snapshot
+        image: apache/rocketmq-operator:0.3.0-snapshot
         command:
         - /manager
         args:
