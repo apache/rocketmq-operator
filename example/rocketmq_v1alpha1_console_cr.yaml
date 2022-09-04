@@ -1,3 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: console-config
+data:
+  application.yml: |
+    server:
+      port: 8080
+      servlet:
+        encoding:
+          charset: UTF-8
+          enabled: true
+          force: true
+    spring:
+      application:
+        name: rocketmq-dashboard
+    logging:
+      config: classpath:logback.xml
+    rocketmq:
+      config:
+        isVIPChannel:
+        timeoutMillis:
+        dataPath: /tmp/rocketmq-console/data
+        enableDashBoardCollect: true
+        msgTrackTopicName:
+        ticketKey: ticket
+        loginRequired: false
+        useTLS: false
+    threadpool:
+      config:
+        coreSize: 10
+        maxSize: 10
+        keepAliveTime: 3000
+        queueSize: 5000
+---
+
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: Console
 metadata:
