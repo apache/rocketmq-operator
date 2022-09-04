@@ -24,7 +24,7 @@ FROM openjdk:8-alpine
 # Install rocketmq release into image
 RUN apk add --no-cache bash gettext nmap-ncat openssl busybox-extras
 ENV ROCKETMQ_HOME  /home/rocketmq
-ENV ROCKETMQ_VERSION 4.5.0
+ENV ROCKETMQ_VERSION 4.9.4
 WORKDIR  ${ROCKETMQ_HOME}
 RUN set -eux; \
     apk add --virtual .build-deps curl gnupg unzip; \
