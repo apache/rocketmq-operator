@@ -74,7 +74,7 @@ If you find that pod image is not found, run the following command to build a ne
 the image tag is specified by the `IMG` parameter.
 
 ```shell
-$ make docker-build IMG=apache/rocketmq-operator:0.3.0-snapshot
+$ make docker-build IMG=apache/rocketmq-operator:0.3.0
 ```
 
 Now you can use the CRDs provided by RocketMQ Operator to deploy your RocketMQ cluster.
