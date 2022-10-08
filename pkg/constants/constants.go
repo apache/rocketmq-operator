@@ -147,4 +147,23 @@ const (
 
 	// TopicListConsumerGroup is the consumer group field index of the output when using command check topic list
 	TopicListConsumerGroup = 2
+
+	// ControllerContainerName is the name of Controller container
+	ControllerContainerName = "controller"
+
+	// EnvControllerDLegerPeers is the container environment variable name of DLeger peers
+	// Format: {unique id}-{IP of that controller}
+	EnvControllerDLegerPeers = "controllerDLegerPeers"
+
+	// the container environment variable name of persistent storage directory
+	EnvControllerStorePath = "controllerStorePath"
+
+	// the container environment variable name of DLeger group
+	EnvControllerDLegerGroup = "controllerDLegerGroup"
+
+	// the container environment variable name of in Broker
+	EnvEnableControllerMode = "enableControllerMode"
+
+	// EnvControllerAddr is the container environment variable name of Controller address in Broker
+	EnvControllerAddr = "controllerAddr"
 )

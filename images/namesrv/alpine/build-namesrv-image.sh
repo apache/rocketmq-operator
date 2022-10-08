@@ -34,10 +34,10 @@ fi
 
 ROCKETMQ_VERSION=$1
 DOCKERHUB_REPO=apacherocketmq/rocketmq-nameserver
-IMAGE_NAME=${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine-operator-0.3.0
+IMAGE_NAME=${DOCKERHUB_REPO}:${ROCKETMQ_VERSION}-alpine-operator-0.4.0
 
 checkVersion $ROCKETMQ_VERSION
 
 docker build -t $IMAGE_NAME --build-arg version=${ROCKETMQ_VERSION} .
 
-docker push $IMAGE_NAME
+#docker push $IMAGE_NAME

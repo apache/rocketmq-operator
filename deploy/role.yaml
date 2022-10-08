@@ -64,6 +64,18 @@ rules:
   - update
   - watch
 - apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - apps
   resources:
   - deployments
@@ -147,6 +159,32 @@ rules:
   - rocketmq.apache.org
   resources:
   - consoles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - controllers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - controllers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rocketmq.apache.org
+  resources:
+  - controllers/status
   verbs:
   - get
   - patch

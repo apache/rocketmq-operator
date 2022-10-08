@@ -151,8 +151,26 @@ JAVA_OPT="${JAVA_OPT} -verbose:gc -Xloggc:/dev/shm/rmq_srv_gc.log -XX:+PrintGCDe
 JAVA_OPT="${JAVA_OPT} -XX:-OmitStackTraceInFastThrow"
 JAVA_OPT="${JAVA_OPT}  -XX:-UseLargePages"
 JAVA_OPT="${JAVA_OPT} -Djava.ext.dirs=${JAVA_HOME}/jre/lib/ext:${BASE_DIR}/lib"
-#JAVA_OPT="${JAVA_OPT} -Xdebug -Xrunjdwp:transport=dt_socket,address=9555,server=y,suspend=n"
 JAVA_OPT="${JAVA_OPT} ${JAVA_OPT_EXT}"
 JAVA_OPT="${JAVA_OPT} -cp ${CLASSPATH}"
+
+echo "=============env beg============="
+env
+echo "=============env end============="
+
+#TODO cp from config map
+cp ${ROCKETMQ_HOME}/conf/controller/controller-standalone.conf ${ROCKETMQ_HOME}/conf/controller/controller.conf
+
+
+sed -i "s/^controllerDLegerGroup.*$/controllerDLegerGroup=${controllerDLegerGroup}/" ${ROCKETMQ_HOME}/conf/controller/controller.conf
+
+sed -i "s/^controllerDLegerPeers.*$/controllerDLegerPeers=${controllerDLegerPeers}/" ${ROCKETMQ_HOME}/conf/controller/controller.conf
+
+sed -i "s/^controllerDLegerSelfId.*$/controllerDLegerSelfId=${controllerDLegerSelfId}/" ${ROCKETMQ_HOME}/conf/controller/controller.conf
+
+#perl not exists, sed can't process 
+#perl -pi -e "s|controllerStorePath.*$|controllerStorePath=${controllerStorePath}|g" ${ROCKETMQ_HOME}/conf/controller/controller.conf
+echo "" >> ${ROCKETMQ_HOME}/conf/controller/controller.conf
+echo "controllerStorePath=${controllerStorePath}" >> ${ROCKETMQ_HOME}/conf/controller/controller.conf
 
 $JAVA ${JAVA_OPT} $@

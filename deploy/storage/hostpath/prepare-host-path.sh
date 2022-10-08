@@ -24,6 +24,8 @@
 NAME_SERVER_DATA_PATH=/data/rocketmq/nameserver
 # BROKER_DATA_PATH should be the same with the hostPath field in rocketmq_v1alpha1_broker_cr.yaml
 BROKER_DATA_PATH=/data/rocketmq/broker
+# CONTROLLER_DATA_PATH should be the same with the hostPath field in rocketmq_v1alpha1_controller_cr.yaml
+CONTROLLER_DATA_PATH=/data/rocketmq/controller
 # ROCKETMQ_UID and ROCKETMQ_GID should be the same with docker image settings
 ROCKETMQ_UID=3000
 ROCKETMQ_GID=3000
@@ -40,7 +42,8 @@ prepare_dir()
 
 prepare_dir $BROKER_DATA_PATH $ROCKETMQ_UID $ROCKETMQ_GID
 prepare_dir $NAME_SERVER_DATA_PATH $ROCKETMQ_UID $ROCKETMQ_GID
+prepare_dir $CONTROLLER_DATA_PATH $ROCKETMQ_UID $ROCKETMQ_GID
 
 echo "Changed hostPath $NAME_SERVER_DATA_PATH uid to $ROCKETMQ_UID, gid to $ROCKETMQ_GID"
 echo "Changed hostPath $BROKER_DATA_PATH uid to $ROCKETMQ_UID, gid to $ROCKETMQ_GID"
-
+echo "Changed hostPath $CONTROLLER_DATA_PATH uid to $ROCKETMQ_UID, gid to $ROCKETMQ_GID"

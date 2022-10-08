@@ -31,6 +31,11 @@ function create_config() {
     if [ $BROKER_ID != 0 ]; then
         sed -i 's/brokerRole=.*/brokerRole=SLAVE/g' $BROKER_CONFIG_FILE
     fi
+
+    if [ "${enableControllerMode}" = "true" ]; then
+        echo "enableControllerMode=true" >> $BROKER_CONFIG_FILE
+        echo "controllerAddr=${controllerAddr}" >> $BROKER_CONFIG_FILE
+    fi
 }
 
 create_config
