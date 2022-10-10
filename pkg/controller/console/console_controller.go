@@ -19,10 +19,7 @@ package console
 
 import (
 	"context"
-	"fmt"
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
-	cons "github.com/apache/rocketmq-operator/pkg/constants"
-	"github.com/apache/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -38,7 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
 )
 
 var log = logf.Log.WithName("controller_console")
@@ -124,20 +120,6 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
-	if instance.Spec.NameServers == "" {
-		// wait for name server ready if nameServers is omitted
-		for {
-			if share.IsNameServersStrInitialized {
-				break
-			} else {
-				log.Info("Waiting for name server ready...")
-				time.Sleep(time.Duration(cons.WaitForNameServerReadyInSecond) * time.Second)
-			}
-		}
-	} else {
-		share.NameServersStr = instance.Spec.NameServers
-	}
-
 	consoleDeployment := newDeploymentForCR(instance)
 
 	// Set Console instance as the owner and controller
@@ -181,11 +163,6 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 
 // newDeploymentForCR returns a deployment pod with modifying the ENV
 func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
-	env := corev1.EnvVar{
-		Name:  "JAVA_OPTS",
-		Value: fmt.Sprintf("-Drocketmq.namesrv.addr=%s -Dcom.rocketmq.sendMessageWithVIPChannel=false", share.NameServersStr),
-	}
-
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name,
@@ -207,11 +184,13 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 					Containers: []corev1.Container{{
 						Resources:       cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources,
 						Image:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Image,
+						Args:            cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Args,
 						Name:            cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Name,
 						ImagePullPolicy: cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy,
-						Env:             append(cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Env, env),
 						Ports:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Ports,
+						VolumeMounts:    cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].VolumeMounts,
 					}},
+					Volumes:             cr.Spec.ConsoleDeployment.Spec.Template.Spec.Volumes,
 				},
 			},
 		},
