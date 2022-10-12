@@ -62,5 +62,13 @@ spec:
           containers:
             - name: console
               image: apacherocketmq/rocketmq-console:2.0.0
+              args: ["--spring.config.location=/apps/data/console/config/"]
               ports:
                 - containerPort: 8080
+              volumeMounts:
+                - mountPath: "/apps/data/console/config"
+                  name: console-config
+          volumes:
+            - name: console-config
+                configMap:
+                  name: console-config
