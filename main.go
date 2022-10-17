@@ -23,6 +23,7 @@ import (
 	"github.com/apache/rocketmq-operator/pkg/controller/broker"
 	"github.com/apache/rocketmq-operator/pkg/controller/console"
 	"github.com/apache/rocketmq-operator/pkg/controller/nameservice"
+	"github.com/apache/rocketmq-operator/pkg/controller/proxy"
 	"github.com/apache/rocketmq-operator/pkg/controller/topictransfer"
 	"os"
 
@@ -105,6 +106,12 @@ func main() {
 		setupLog.Error(err, "unable to add topictransfer controller to manager")
 		os.Exit(1)
 	}
+
+	if err := proxy.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to add proxy controller to manager")
+		os.Exit(1)
+	}
+
 
 	//+kubebuilder:scaffold:builder
 
