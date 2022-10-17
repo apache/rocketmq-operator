@@ -1,8 +1,14 @@
 ## RocketMQ Operator
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
+![Go Version](https://img.shields.io/github/go-mod/go-version/apache/rocketmq-operator)
 [![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/apache/rocketmq-operator/pkg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/apache/rocketmq-operator)](https://goreportcard.com/report/github.com/apache/rocketmq-operator)
+[![GitHub release](https://img.shields.io/github/release-date-pre/apache/rocketmq-operator)](https://github.com/apache/rocketmq-operator/releases)
+![Docker Automated](https://img.shields.io/docker/automated/apache/rocketmq-operator)
+[![Docker Pulls](https://img.shields.io/docker/pulls/apache/rocketmq-operator)](https://hub.docker.com/r/apache/rocketmq-operator)
+[![Docker TAG](https://img.shields.io/docker/v/apache/rocketmq-operator?label=tags&sort=date)](https://hub.docker.com/r/apache/rocketmq-operator/tags)
+![Docker Iamge](https://img.shields.io/docker/image-size/apache/rocketmq-operator)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/apache/rocketmq-operator.svg)](http://isitmaintained.com/project/apache/rocketmq-operator "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/apache/rocketmq-operator.svg)](http://isitmaintained.com/project/apache/rocketmq-operator "Percentage of issues still open")
 [![Twitter Follow](https://img.shields.io/twitter/follow/ApacheRocketMQ?style=social)](https://twitter.com/intent/follow?screen_name=ApacheRocketMQ)
@@ -12,8 +18,9 @@
 - [Quick Start](#quick-start)
   - [Deploy RocketMQ Operator](#deploy-rocketmq-operator)
   - [Prepare Volume Persistence](#prepare-volume-persistence)
-    - [Prepare HostPath](#prepare-hostpath)
-    - [Prepare Storage Class of NFS](#prepare-storage-class-of-nfs)
+    - [EmptyDir](#emptydir)
+    - [HostPath](#hostpath)
+    - [StorageClass (Use NFS for Example)](#storageclass-use-nfs-for-example)
   - [Define Your RocketMQ Cluster](#define-your-rocketmq-cluster)
   - [Create RocketMQ Cluster](#create-rocketmq-cluster)
   - [Verify the Data Storage](#verify-the-data-storage)
@@ -30,6 +37,7 @@
   - [Build](#build)
     - [Operator](#operator)
     - [Broker and Name Server Images](#broker-and-name-server-images)
+    - [Dashboard](#dashboard)
 
 ## Overview
 
@@ -48,10 +56,10 @@ $ git clone https://github.com/apache/rocketmq-operator.git
 $ cd rocketmq-operator
 ```
 
-2. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following script:
+2. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following command:
 
 ```
-$ ./install-operator.sh
+$ make deploy
 ```
 
 3. Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
@@ -62,7 +70,14 @@ NAME                                      READY   STATUS    RESTARTS   AGE
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 ```
 
-Now you can use the CRDs provide by RocketMQ Operator to deploy your RocketMQ cluster.
+If you find that pod image is not found, run the following command to build a new one locally,
+the image tag is specified by the `IMG` parameter.
+
+```shell
+$ make docker-build IMG=apache/rocketmq-operator:0.4.0-snaphost
+```
+
+Now you can use the CRDs provided by RocketMQ Operator to deploy your RocketMQ cluster.
 
 ### Prepare Volume Persistence
 
@@ -529,12 +544,12 @@ $ ./remove-storage-class.sh
 ### Prerequisites
 
 + [git](https://git-scm.com/downloads)
-+ [go](https://golang.org/dl/) version v1.12+.
++ [go](https://golang.org/dl/) version v1.16.
 + [mercurial](https://www.mercurial-scm.org/downloads) version 3.9+
-+ [docker](https://docs.docker.com/install/) version 17.03+.
-+ Access to a Kubernetes v1.11.3+ cluster.
++ [docker](https://docs.docker.com/install/) version 19.03+.
++ Access to a Kubernetes v1.19 or above cluster.
 + [dep](https://golang.github.io/dep/docs/installation.html) version v0.5.0+.
-+ [operator-sdk](https://github.com/operator-framework/operator-sdk) version v0.11.0+
++ [operator-sdk](https://github.com/operator-framework/operator-sdk) version v1.16.0-v1.21.0
 
 ### Build
 
@@ -542,12 +557,12 @@ For developers who want to build and push the operator-related images to the doc
 
 #### Operator
 
-RocketMQ-Operator uses ```operator-sdk``` to generate the scaffolding and build the operator image. You can refer to the [operator-sdk user guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) for more details.
+RocketMQ-Operator uses ```operator-sdk``` to generate the scaffolding and build the operator image. You can refer to the [operator-sdk user guide](https://sdk.operatorframework.io/docs/) for more details.
 
-If you want to push the newly build operator image to your own docker hub, please modify the ```DOCKERHUB_REPO``` variable in the ```create-operator.sh``` script using your own repository. Then run the build script:
 
-```
-$ ./create-operator.sh
+If you want to build your own operator image and push it to your own docker hub, please specify `IMG` as your image url and run `make docker-build` and `make docker-push`. For example: 
+```shell
+$ make docker-build IMG={YOUR_IMAGE_URL} && make docker-push IMG={YOUR_IMAGE_URL}
 ```
 
 #### Broker and Name Server Images
@@ -566,8 +581,8 @@ $ cd images/alpine/namesrv
 $ ./build-namesrv-image.sh
 ```
 
-#### Console
+#### Dashboard
 
-The Console CR directly uses the RocketMQ-Console image from https://github.com/apache/rocketmq-externals/tree/master/rocketmq-console, which has no customization for the operator. 
+The Console CR directly uses the RocketMQ Dashboard image from https://github.com/apache/rocketmq-docker/blob/master/image-build/Dockerfile-centos-dashboard, which has no customization for the operator. 
 
-> Note: for users who just want to use the operator, there is no need to build the operator and customized broker and name server images themselves. Users can simply use the default official images which are maintained by the RocketMQ community. 
+> Note: For users who just want to use the operator, there is no need to build the operator and customized broker and name server images themselves. Users can simply use the default official images which are maintained by the RocketMQ community. 

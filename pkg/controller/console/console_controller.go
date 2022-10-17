@@ -34,9 +34,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 )
@@ -48,9 +48,9 @@ var log = logf.Log.WithName("controller_console")
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new Console Controller and adds it to the Manager. The Manager will set fields on the Controller
+// SetupWithManager creates a new Console Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func SetupWithManager(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -86,8 +86,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileConsole implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileConsole{}
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=consoles,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=consoles/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=consoles/finalizers,verbs=update
+//+kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;watch;create;update;patch;delete
 
 // ReconcileConsole reconciles a Console object
 type ReconcileConsole struct {
@@ -104,7 +106,7 @@ type ReconcileConsole struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileConsole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Console")
 
@@ -199,7 +201,9 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 					Labels: cr.Spec.ConsoleDeployment.Spec.Template.ObjectMeta.Labels,
 				},
 				Spec: corev1.PodSpec{
-					ImagePullSecrets: cr.Spec.ConsoleDeployment.Spec.Template.Spec.ImagePullSecrets,
+					ServiceAccountName: cr.Spec.ConsoleDeployment.Spec.Template.Spec.ServiceAccountName,
+					Affinity:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Affinity,
+					ImagePullSecrets:   cr.Spec.ConsoleDeployment.Spec.Template.Spec.ImagePullSecrets,
 					Containers: []corev1.Container{{
 						Resources:       cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources,
 						Image:           cr.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Image,

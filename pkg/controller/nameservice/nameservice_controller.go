@@ -20,8 +20,10 @@ package nameservice
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"os/exec"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -40,9 +42,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -53,9 +55,9 @@ var log = logf.Log.WithName("controller_nameservice")
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new NameService Controller and adds it to the Manager. The Manager will set fields on the Controller
+// SetupWithManager creates a new NameService Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func SetupWithManager(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -91,8 +93,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileNameService implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileNameService{}
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservices,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservices/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rocketmq.apache.org,resources=nameservices/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="apps",resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 
 // ReconcileNameService reconciles a NameService object
 type ReconcileNameService struct {
@@ -109,7 +114,7 @@ type ReconcileNameService struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileNameService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileNameService) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling NameService")
 
@@ -168,12 +173,20 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		Namespace:     instance.Namespace,
 		LabelSelector: labelSelector,
 	}
-	err := r.client.List(context.TODO(), listOps, podList)
+	err := r.client.List(context.TODO(), podList, listOps)
 	if err != nil {
 		reqLogger.Error(err, "Failed to list pods.", "NameService.Namespace", instance.Namespace, "NameService.Name", instance.Name)
 		return reconcile.Result{Requeue: true}, err
 	}
 	hostIps := getNameServers(podList.Items)
+
+	sort.Strings(hostIps)
+	sort.Strings(instance.Status.NameServers)
+
+	nameServerListStr := ""
+	for _, value := range hostIps {
+		nameServerListStr = nameServerListStr + value + ":9876;"
+	}
 
 	// Update status.NameServers if needed
 	if !reflect.DeepEqual(hostIps, instance.Status.NameServers) {
@@ -182,10 +195,6 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			oldNameServerListStr = oldNameServerListStr + value + ":9876;"
 		}
 
-		nameServerListStr := ""
-		for _, value := range hostIps {
-			nameServerListStr = nameServerListStr + value + ":9876;"
-		}
 		share.NameServersStr = nameServerListStr[:len(nameServerListStr)-1]
 		reqLogger.Info("share.NameServersStr:" + share.NameServersStr)
 
@@ -235,7 +244,12 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	runningNameServerNum := getRunningNameServersNum(podList.Items)
 	if runningNameServerNum == instance.Spec.Size {
 		share.IsNameServersStrInitialized = true
+		share.NameServersStr = nameServerListStr // reassign if operator restarts
 	}
+
+	reqLogger.Info("Share variables", "GroupNum", share.GroupNum,
+		"NameServersStr", share.NameServersStr, "IsNameServersStrUpdated", share.IsNameServersStrUpdated,
+		"IsNameServersStrInitialized", share.IsNameServersStrInitialized, "BrokerClusterName", share.BrokerClusterName)
 
 	if requeue {
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
@@ -323,6 +337,14 @@ func labelsForNameService(name string) map[string]string {
 
 func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1alpha1.NameService) *appsv1.StatefulSet {
 	ls := labelsForNameService(nameService.Name)
+
+	// After CustomResourceDefinition version upgraded from v1beta1 to v1
+	// `broker.spec.VolumeClaimTemplates.metadata` declared in yaml will not be stored by kubernetes.
+	// Here is a temporary repair method: to generate a random name
+	if strings.EqualFold(nameService.Spec.VolumeClaimTemplates[0].Name, "") {
+		nameService.Spec.VolumeClaimTemplates[0].Name = uuid.New().String()
+	}
+
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nameService.Name,
@@ -338,9 +360,14 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
-					HostNetwork:      nameService.Spec.HostNetwork,
-					DNSPolicy:        nameService.Spec.DNSPolicy,
-					ImagePullSecrets: nameService.Spec.ImagePullSecrets,
+					ServiceAccountName: nameService.Spec.ServiceAccountName,
+					Affinity:           nameService.Spec.Affinity,
+					Tolerations:        nameService.Spec.Tolerations,
+					NodeSelector:       nameService.Spec.NodeSelector,
+					PriorityClassName:  nameService.Spec.PriorityClassName,
+					HostNetwork:        nameService.Spec.HostNetwork,
+					DNSPolicy:          nameService.Spec.DNSPolicy,
+					ImagePullSecrets:   nameService.Spec.ImagePullSecrets,
 					Containers: []corev1.Container{{
 						Resources: nameService.Spec.Resources,
 						Image:     nameService.Spec.NameServiceImage,

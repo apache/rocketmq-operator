@@ -55,6 +55,16 @@ type NameServiceSpec struct {
 	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
 	// The secrets used to pull image from private registry
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// Affinity the pod's scheduling constraints
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// Tolerations the pod's tolerations.
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+	// NodeSelector is a selector which must be true for the pod to fit on a node
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// PriorityClassName indicates the pod's priority
+	PriorityClassName string `json:"priorityClassName,omitempty"`
+	// ServiceAccountName
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // NameServiceStatus defines the observed state of NameService
@@ -71,6 +81,9 @@ type NameServiceStatus struct {
 
 // NameService is the Schema for the nameservices API
 // +k8s:openapi-gen=true
+// +kubebuilder:printcolumn:name="Size",type="integer",JSONPath=".spec.size"
+// +kubebuilder:printcolumn:name="Host-Network",type="boolean",JSONPath=".spec.hostNetwork"
+// +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 type NameService struct {
 	metav1.TypeMeta   `json:",inline"`

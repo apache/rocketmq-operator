@@ -40,6 +40,8 @@ type BrokerSpec struct {
 	BrokerImage string `json:"brokerImage"`
 	// ImagePullPolicy defines how the image is pulled
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
+	// HostNetwork can be true or false
+	HostNetwork bool `json:"hostNetwork,omitempty"`
 	// AllowRestart defines whether allow pod restart
 	AllowRestart bool `json:"allowRestart"`
 	// Resources describes the compute resource requirements
@@ -62,6 +64,16 @@ type BrokerSpec struct {
 	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
 	// The secrets used to pull image from private registry
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// Affinity the pod's scheduling constraints
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// Tolerations the pod's tolerations.
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+	// NodeSelector is a selector which must be true for the pod to fit on a node
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// PriorityClassName indicates the pod's priority
+	PriorityClassName string `json:"priorityClassName,omitempty"`
+	// ServiceAccountName
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // BrokerStatus defines the observed state of Broker
@@ -78,6 +90,10 @@ type BrokerStatus struct {
 
 // Broker is the Schema for the brokers API
 // +k8s:openapi-gen=true
+// +kubebuilder:printcolumn:name="Size",type="integer",JSONPath=".spec.size"
+// +kubebuilder:printcolumn:name="Replica-Per-Group",type="integer",JSONPath=".spec.replicaPerGroup"
+// +kubebuilder:printcolumn:name="Allow-Restart",type="boolean",JSONPath=".spec.allowRestart"
+// +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 type Broker struct {
 	metav1.TypeMeta   `json:",inline"`

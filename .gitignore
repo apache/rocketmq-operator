@@ -90,3 +90,6 @@ tags
 **/zz_generated.openapi.go
 **/*.sum
 *.sum
+
+
+bin
