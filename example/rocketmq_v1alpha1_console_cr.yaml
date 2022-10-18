@@ -1,47 +1,11 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: console-config
-data:
-  application.yml: |
-    server:
-      port: 8080
-      servlet:
-        encoding:
-          charset: UTF-8
-          enabled: true
-          force: true
-    spring:
-      application:
-        name: rocketmq-dashboard
-    logging:
-      config: classpath:logback.xml
-    rocketmq:
-      config:
-        namesrvAddrs:
-          - XXX:XXX
-        isVIPChannel:
-        timeoutMillis:
-        dataPath: /tmp/rocketmq-console/data
-        enableDashBoardCollect: true
-        msgTrackTopicName:
-        ticketKey: ticket
-        loginRequired: false
-        useTLS: false
-    threadpool:
-      config:
-        coreSize: 10
-        maxSize: 10
-        keepAliveTime: 3000
-        queueSize: 5000
-
----
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: Console
 metadata:
   name: console
   namespace: default
 spec:
+  # nameServers is the [ip:port] list of name service
+  nameServers: ""
   # consoleDeployment define the console deployment
   consoleDeployment:
     apiVersion: apps/v1
@@ -62,13 +26,5 @@ spec:
           containers:
             - name: console
               image: apacherocketmq/rocketmq-console:2.0.0
-              args: ["--spring.config.location=/apps/data/console/config/"]
               ports:
                 - containerPort: 8080
-              volumeMounts:
-                - mountPath: "/apps/data/console/config"
-                  name: console-config
-          volumes:
-            - name: console-config
-               configMap:
-                name: console-config
