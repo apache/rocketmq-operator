@@ -86,7 +86,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 //+kubebuilder:rbac:groups=rocketmq.apache.org,resources=proxys,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=rocketmq.apache.org,resources=proxys/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=rocketmq.apache.org,resources=proxys/finalizers,verbs=update
-//+kubebuilder:rbac:groups="apps",resources=statefulSets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="apps",resources=Deployments,verbs=get;list;watch;create;update;patch;delete
 
 // ReconcileProxy reconciles a Proxy object
 type ReconcileProxy struct {
@@ -122,23 +122,25 @@ func (r *ReconcileProxy) Reconcile(ctx context.Context, request reconcile.Reques
 	}
 	if instance.Spec.ProxyConfigPath == "" || instance.Spec.ProxyMode == "" {
 		reqLogger.Error(err, "The value of proxyConfigPath and proxyMode must be not empty.")
+		return reconcile.Result{}, nil
 	}
 	if instance.Spec.BrokerConfigPath == "" && instance.Spec.ProxyMode == "LOCAL" {
 		reqLogger.Error(err, "ProxyMode is LOCAL, the value of brokerConfigPath must be not empty.")
+		return reconcile.Result{}, nil
 	}
-	proxyStatefulSet := newStatefulSetForCR(instance)
+	proxyDeployment := newDeploymentForCR(instance)
 
 	// Set Proxy instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, proxyStatefulSet, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(instance, proxyDeployment, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
 	// Check if this Pod already exists
-	found := &appsv1.StatefulSet{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: proxyStatefulSet.Name, Namespace: proxyStatefulSet.Namespace}, found)
+	found := &appsv1.Deployment{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: proxyDeployment.Name, Namespace: proxyDeployment.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating RocketMQ Proxy StatefulSet", "Namespace", proxyStatefulSet, "Name", proxyStatefulSet.Name)
-		err = r.client.Create(context.TODO(), proxyStatefulSet)
+		reqLogger.Info("Creating RocketMQ Proxy Deployment", "Namespace", proxyDeployment, "Name", proxyDeployment.Name)
+		err = r.client.Create(context.TODO(), proxyDeployment)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -149,9 +151,9 @@ func (r *ReconcileProxy) Reconcile(ctx context.Context, request reconcile.Reques
 		return reconcile.Result{}, err
 	}
 
-	// Support proxy statefulSet scaling
-	if !reflect.DeepEqual(instance.Spec.ProxyStatefulSet.Spec.Replicas, found.Spec.Replicas) {
-		found.Spec.Replicas = instance.Spec.ProxyStatefulSet.Spec.Replicas
+	// Support proxy Deployment scaling
+	if !reflect.DeepEqual(instance.Spec.ProxyDeployment.Spec.Replicas, found.Spec.Replicas) {
+		found.Spec.Replicas = instance.Spec.ProxyDeployment.Spec.Replicas
 		err = r.client.Update(context.TODO(), found)
 		if err != nil {
 			reqLogger.Error(err, "Failed to update proxy CR ", "Namespace", found.Namespace, "Name", found.Name)
@@ -160,41 +162,41 @@ func (r *ReconcileProxy) Reconcile(ctx context.Context, request reconcile.Reques
 		}
 	}
 	// CR already exists - don't requeue
-	reqLogger.Info("Skip reconcile: RocketMQ Proxy StatefulSet already exists", "Namespace", found.Namespace, "Name", found.Name)
+	reqLogger.Info("Skip reconcile: RocketMQ Proxy Deployment already exists", "Namespace", found.Namespace, "Name", found.Name)
 	return reconcile.Result{}, nil
 }
 
-// newStatefulSetForCR returns a StatefulSet pod with modifying the ENV
-func newStatefulSetForCR(cr *rocketmqv1alpha1.Proxy) *appsv1.StatefulSet {
-	dep := &appsv1.StatefulSet{
+// newDeploymentForCR returns a Deployment pod with modifying the ENV
+func newDeploymentForCR(cr *rocketmqv1alpha1.Proxy) *appsv1.Deployment {
+	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name,
 			Namespace: cr.Namespace,
 		},
-		Spec: appsv1.StatefulSetSpec{
-			Replicas: cr.Spec.ProxyStatefulSet.Spec.Replicas,
+		Spec: appsv1.DeploymentSpec{
+			Replicas: cr.Spec.ProxyDeployment.Spec.Replicas,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: cr.Spec.ProxyStatefulSet.Spec.Selector.MatchLabels,
+				MatchLabels: cr.Spec.ProxyDeployment.Spec.Selector.MatchLabels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: cr.Spec.ProxyStatefulSet.Spec.Template.ObjectMeta.Labels,
+					Labels: cr.Spec.ProxyDeployment.Spec.Template.ObjectMeta.Labels,
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: cr.Spec.ProxyStatefulSet.Spec.Template.Spec.ServiceAccountName,
-					Affinity:           cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Affinity,
-					ImagePullSecrets:   cr.Spec.ProxyStatefulSet.Spec.Template.Spec.ImagePullSecrets,
+					ServiceAccountName: cr.Spec.ProxyDeployment.Spec.Template.Spec.ServiceAccountName,
+					Affinity:           cr.Spec.ProxyDeployment.Spec.Template.Spec.Affinity,
+					ImagePullSecrets:   cr.Spec.ProxyDeployment.Spec.Template.Spec.ImagePullSecrets,
 					Containers: []corev1.Container{{
-						Resources:       cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].Resources,
-						Image:           cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].Image,
-						Name:            cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].Name,
-						ImagePullPolicy: cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].ImagePullPolicy,
-						Ports:           cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].Ports,
+						Resources:       cr.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].Resources,
+						Image:           cr.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].Image,
+						Name:            cr.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].Name,
+						ImagePullPolicy: cr.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy,
+						Ports:           cr.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].Ports,
 						Env:             getENV(cr),
-						VolumeMounts:    cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
+						VolumeMounts:    cr.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts,
 						SecurityContext: getContainerSecurityContext(cr),
 					}},
-					Volumes:         cr.Spec.ProxyStatefulSet.Spec.Template.Spec.Volumes,
+					Volumes:         cr.Spec.ProxyDeployment.Spec.Template.Spec.Volumes,
 					SecurityContext: getPodSecurityContext(cr),
 				},
 			},
@@ -206,16 +208,16 @@ func newStatefulSetForCR(cr *rocketmqv1alpha1.Proxy) *appsv1.StatefulSet {
 
 func getPodSecurityContext(proxy *rocketmqv1alpha1.Proxy) *corev1.PodSecurityContext {
 	var securityContext = corev1.PodSecurityContext{}
-	if proxy.Spec.ProxyStatefulSet.Spec.Template.Spec.SecurityContext != nil {
-		securityContext = *proxy.Spec.ProxyStatefulSet.Spec.Template.Spec.SecurityContext
+	if proxy.Spec.ProxyDeployment.Spec.Template.Spec.SecurityContext != nil {
+		securityContext = *proxy.Spec.ProxyDeployment.Spec.Template.Spec.SecurityContext
 	}
 	return &securityContext
 }
 
 func getContainerSecurityContext(proxy *rocketmqv1alpha1.Proxy) *corev1.SecurityContext {
 	var securityContext = corev1.SecurityContext{}
-	if proxy.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].SecurityContext != nil {
-		securityContext = *proxy.Spec.ProxyStatefulSet.Spec.Template.Spec.Containers[0].SecurityContext
+	if proxy.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].SecurityContext != nil {
+		securityContext = *proxy.Spec.ProxyDeployment.Spec.Template.Spec.Containers[0].SecurityContext
 	}
 	return &securityContext
 }

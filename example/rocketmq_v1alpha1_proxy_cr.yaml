@@ -30,10 +30,10 @@ spec:
   brokerConfigPath: "/root/rocketmq/broker/conf/broker.conf"
   proxyConfigPath: "/root/rocketmq/proxy/conf/rmq-proxy.json"
   proxyMode: "LOCAL"
-  # proxyStatefulSet define the proxy StatefulSet
-  proxyStatefulSet:
+  # proxyDeployment define the proxy Deployment
+  proxyDeployment:
     apiVersion: apps/v1
-    kind: StatefulSet
+    kind: Deployment
     metadata:
       labels:
         app: rocketmq-proxy

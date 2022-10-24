@@ -31,7 +31,7 @@ type ProxySpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	ProxyStatefulSet v1.StatefulSet `json:"proxyStatefulSet"`
+	ProxyDeployment v1.Deployment `json:"proxyDeployment"`
 	BrokerConfigPath string `json:"brokerConfigPath,omitempty"`
 	ProxyConfigPath string `json:"proxyConfigPath,omitempty"`
 	ProxyMode string `json:"proxyMode,omitempty"`
@@ -50,7 +50,7 @@ type ProxyStatus struct {
 // Proxy is the Schema for the proxys API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Size",type="integer",JSONPath=".spec.proxyStatefulSet.spec.replicas"
+// +kubebuilder:printcolumn:name="Size",type="integer",JSONPath=".spec.proxyDeployment.spec.replicas"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:resource:path=proxys,scope=Namespaced
 type Proxy struct {
