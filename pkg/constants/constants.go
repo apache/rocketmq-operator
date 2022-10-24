@@ -64,6 +64,15 @@ const (
 	// EnvBrokerName is the container environment variable name of broker name
 	EnvBrokerName = "BROKER_NAME"
 
+	// EnvBrokerConfigPath is the container environment variable name of brokerConfigPath
+	EnvBrokerConfigPath = "BROKER_CONFIG_PATH"
+
+	// EnvProxyConfigPath is the container environment variable name of proxyConfigPath
+	EnvProxyConfigPath = "PROXY_CONFIG_PATH"
+
+	// EnvProxyMode is the container environment variable name of proxyMode
+	EnvProxyMode = "PROXY_MODE"
+
 	// LogMountPath is the directory of RocketMQ log files
 	LogMountPath = DataPath + "/logs"
 

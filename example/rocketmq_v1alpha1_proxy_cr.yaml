@@ -1,0 +1,85 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-config
+data:
+  rmq-proxy.json: |
+    {
+      "rocketMQClsuterName": "DefaultCluster",
+      "namesrvAddr": "127.0.0.1:9876",
+      "proxyMode": "CLUSTER"
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: broker-config
+data:
+  broker.conf: |
+    deleteWhen = 04
+    fileReservedTime = 48
+    flushDiskType = ASYNC_FLUSH
+    namesrvAddr = 127.0.0.1:9876
+---
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: Proxy
+metadata:
+  name: proxy
+  namespace: default
+spec:
+  brokerConfigPath: "/root/rocketmq/broker/conf/broker.conf"
+  proxyConfigPath: "/root/rocketmq/proxy/conf/rmq-proxy.json"
+  proxyMode: "LOCAL"
+  # proxyDeployment define the proxy Deployment
+  proxyDeployment:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: rocketmq-proxy
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: rocketmq-proxy
+      template:
+        metadata:
+          labels:
+            app: rocketmq-proxy
+        spec:
+          containers:
+            - name: proxy
+              image: apacherocketmq/rocketmq-proxy:5.0.0-alpine-operator-0.3.0
+              ports:
+                - containerPort: 8081
+              volumeMounts:
+                # Consistent with proxyConfigPath
+                - mountPath: "/root/rocketmq/proxy/conf/rmq-proxy.json"
+                  subPath: rmq-proxy.json
+                  name: proxy-config
+                # Consistent with brokerConfigPath
+                - mountPath: "/root/rocketmq/proxy/conf/broker.conf"
+                  subPath: broker.conf
+                  name: broker-config
+          volumes:
+            - name: proxy-config
+              configMap:
+                name: proxy-config
+            - name: broker-config
+              configMap:
+                name: broker-config
