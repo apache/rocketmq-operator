@@ -19,12 +19,14 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	"github.com/apache/rocketmq-operator/pkg/controller/broker"
 	"github.com/apache/rocketmq-operator/pkg/controller/console"
+	rmqcontroller "github.com/apache/rocketmq-operator/pkg/controller/controller"
 	"github.com/apache/rocketmq-operator/pkg/controller/nameservice"
 	"github.com/apache/rocketmq-operator/pkg/controller/topictransfer"
-	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -103,6 +105,11 @@ func main() {
 
 	if err := topictransfer.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to add topictransfer controller to manager")
+		os.Exit(1)
+	}
+
+	if err := rmqcontroller.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to add dledger controller to manager")
 		os.Exit(1)
 	}
 

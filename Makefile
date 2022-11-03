@@ -124,6 +124,7 @@ endif
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+	kubectl apply -f deploy/crds/rocketmq.apache.org_controllers.yaml
 	kubectl create -f deploy/crds/rocketmq.apache.org_brokers.yaml
 	kubectl create -f deploy/crds/rocketmq.apache.org_nameservices.yaml
 	kubectl create -f deploy/crds/rocketmq.apache.org_consoles.yaml
@@ -132,6 +133,7 @@ install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_brokers.yaml
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_controllers.yaml
 	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_nameservices.yaml
 	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_consoles.yaml
 	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/crds/rocketmq.apache.org_topictransfers.yaml
