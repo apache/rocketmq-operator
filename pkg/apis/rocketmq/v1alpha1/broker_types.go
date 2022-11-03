@@ -36,7 +36,9 @@ type BrokerSpec struct {
 	// NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
 	NameServers string `json:"nameServers,omitempty"`
 	// ClusterMode defines the way to be a broker cluster, valid values can be one of the following:
-	// STATIC(default), CONTROLLER, CONTAINER
+	// - STATIC: default clusters with static broker roles
+	// - CONTROLLER: clusters with DLedger Controller since RocketMQ 5.0
+	// - CONTAINER: [NOT implemented yet] enabling broker containers since RocketMQ 5.0
 	ClusterMode string `json:"clusterMode,omitempty"`
 	// ReplicaPerGroup each broker cluster's replica number
 	ReplicaPerGroup int `json:"replicaPerGroup"`
