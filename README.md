@@ -62,6 +62,8 @@ $ cd rocketmq-operator
 $ make deploy
 ```
 
+If you get error `rocketmq-operator/bin/controller-gen: No such file or directory`, please run `go version` to check the version of Golang, the main version should be 1.16. Then run `go mode tidy` before run `make deploy`.
+
 3. Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
 
 ```
