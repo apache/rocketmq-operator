@@ -555,6 +555,11 @@ $ ./remove-storage-class.sh
 
 ### Build
 
+If you encounter this compile error:
+>Cannot use '&Broker{}' (type *Broker) as the type runtime.Object Type does not implement 'runtime.Object' as some methods are missing: DeepCopyObject() Object
+
+you can use `make generate` and `make build` to fix it.
+
 For developers who want to build and push the operator-related images to the docker hub, please follow the instructions below.
 
 #### Operator
