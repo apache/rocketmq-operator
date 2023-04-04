@@ -108,8 +108,12 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+.PHONY: docker-buildx
+docker-buildx: ## Create a new docker builder to support --platform
+	docker buildx create --name multiarch --driver docker-container --use
+
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
+docker-build: test docker-buildx ## Build docker image with the manager.
 	docker buildx build --platform linux/amd64 --load -t ${IMG} .
 
 .PHONY: docker-push
@@ -117,7 +121,7 @@ docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
 .PHONY: docker-image-release
-docker-build: test ## Build docker image with the manager.
+docker-build: test docker-buildx ## Build docker image with the manager.
 	docker buildx build --platform linux/amd64,linux/arm64 --push -t ${IMG} .
 
 ##@ Deployment
