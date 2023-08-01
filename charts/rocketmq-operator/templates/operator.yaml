@@ -18,7 +18,7 @@ kind: Deployment
 metadata:
   name: rocketmq-operator
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       name: rocketmq-operator
@@ -32,12 +32,12 @@ spec:
       containers:
       - name: manager
         # Replace this with the built image name
-        image: apache/rocketmq-operator:latest
+        image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
         command:
         - /manager
         args:
         - --leader-elect
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         securityContext:
           allowPrivilegeEscalation: false
         livenessProbe:
