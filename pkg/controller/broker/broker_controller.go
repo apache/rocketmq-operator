@@ -214,8 +214,7 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 				if err != nil {
 					reqLogger.Error(err, "Failed to get broker master StatefulSet of "+brokerName)
 				} else {
-					found.Spec.Template.Spec.Containers[0].Env[0].Value = share.NameServersStr
-					err = r.client.Update(context.TODO(), found)
+					err = r.client.Update(context.TODO(), updateBrokerNameServerAddress(found, share.NameServersStr))
 					if err != nil {
 						reqLogger.Error(err, "Failed to update NAMESRV_ADDR of master broker "+brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
 					} else {
@@ -232,13 +231,7 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 					if err != nil {
 						reqLogger.Error(err, "Failed to get broker replica StatefulSet of "+brokerName)
 					} else {
-						for index := range replicaFound.Spec.Template.Spec.Containers[0].Env {
-							if cons.EnvNameServiceAddress == replicaFound.Spec.Template.Spec.Containers[0].Env[index].Name {
-								replicaFound.Spec.Template.Spec.Containers[0].Env[index].Value = share.NameServersStr
-								break
-							}
-						}
-						err = r.client.Update(context.TODO(), replicaFound)
+						err = r.client.Update(context.TODO(), updateBrokerNameServerAddress(replicaFound, share.NameServersStr))
 						if err != nil {
 							reqLogger.Error(err, "Failed to update NAMESRV_ADDR of "+strconv.Itoa(brokerGroupIndex)+"-replica-"+strconv.Itoa(replicaIndex), "StatefulSet.Namespace", replicaFound.Namespace, "StatefulSet.Name", replicaFound.Name)
 						} else {
@@ -519,6 +512,20 @@ func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex 
 	}
 	envs = append(envs, broker.Spec.Env...)
 	return envs
+}
+
+func updateBrokerNameServerAddress(sts *appsv1.StatefulSet, addr string) *appsv1.StatefulSet {
+	for i := range sts.Spec.Template.Spec.Containers {
+		if sts.Spec.Template.Spec.Containers[i].Name == cons.BrokerContainerName {
+			for j := range sts.Spec.Template.Spec.Containers[i].Env {
+				if sts.Spec.Template.Spec.Containers[i].Env[j].Name == cons.EnvNameServiceAddress {
+					sts.Spec.Template.Spec.Containers[i].Env[j].Value = addr
+					return sts
+				}
+			}
+		}
+	}
+	return sts
 }
 
 func getVolumeClaimTemplates(broker *rocketmqv1alpha1.Broker) []corev1.PersistentVolumeClaim {
