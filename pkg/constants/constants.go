@@ -18,6 +18,15 @@
 // Package constants defines some global constants
 package constants
 
+import "os"
+
+var (
+	rocketmqHome = os.Getenv("ROCKETMQ_HOME")
+
+	// AdminToolDir is the RocketMQ Admin directory in operator image
+	AdminToolDir = rocketmqHome + "/bin/mqadmin"
+)
+
 const (
 	// TODO: get paths by container ENV or actual value instead of fixed constant
 	DataPath = "/root"
@@ -27,9 +36,6 @@ const (
 
 	// BasicCommand is basic command of exec function
 	BasicCommand = "sh"
-
-	// AdminToolDir is the RocketMQ Admin directory in operator image
-	AdminToolDir = "/home/rocketmq/operator/bin/mqadmin"
 
 	// StoreConfigDir is the directory of config file
 	StoreConfigDir = DataPath + "/store/config"
