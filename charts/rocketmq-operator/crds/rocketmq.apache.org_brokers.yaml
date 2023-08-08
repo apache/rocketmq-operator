@@ -882,8 +882,10 @@ spec:
                 type: string
               clusterMode:
                 description: 'ClusterMode defines the way to be a broker cluster,
-                  valid values can be one of the following: STATIC(default), CONTROLLER,
-                  CONTAINER'
+                  valid values can be one of the following: - STATIC: default clusters
+                  with static broker roles - CONTROLLER: clusters with DLedger Controller
+                  since RocketMQ 5.0 - CONTAINER: [NOT implemented yet] enabling broker
+                  containers since RocketMQ 5.0'
                 type: string
               containerSecurityContext:
                 description: Container Security Context
