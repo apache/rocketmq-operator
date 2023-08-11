@@ -85,7 +85,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
     cp deploy/operator.yaml charts/rocketmq-operator/templates/operator.yaml && \
     cp deploy/role_binding.yaml charts/rocketmq-operator/templates/role_binding.yaml && \
     cp deploy/service_account.yaml charts/rocketmq-operator/templates/service_account.yaml && \
-    cp deploy/crds/* charts/rocketmq-operator/templates/crds/
+    cp deploy/crds/* charts/rocketmq-operator/crds/
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
