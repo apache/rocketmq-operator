@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-FROM openjdk:8-alpine
+FROM --platform=$TARGETPLATFORM openjdk:8-alpine
 
 RUN apk add --no-cache bash gettext nmap-ncat openssl busybox-extras
 
