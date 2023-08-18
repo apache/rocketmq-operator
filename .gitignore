@@ -86,7 +86,6 @@ tags
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 
 **/*.zip
-**/zz_generated.deepcopy.go
 **/zz_generated.openapi.go
 **/*.sum
 *.sum
