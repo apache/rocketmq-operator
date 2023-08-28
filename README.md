@@ -523,7 +523,7 @@ If you want to tear down the RocketMQ cluster, to remove the name server and bro
 
 ```
 $ kubectl delete -f example/rocketmq_v1alpha1_rocketmq_cluster.yaml
-$ kubectl delete -f example/rocketmq_cluster_service.yaml
+$ kubectl delete -f example/rocketmq_v1alpha1_cluster_service.yaml
 ```
 
 to remove the RocketMQ Operator:
