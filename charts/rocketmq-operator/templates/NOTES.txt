@@ -1,0 +1,4 @@
+Your release is named {{ .Release.Name }}. To check the status of the release, run:
+
+  $ kubectl -n {{ .Release.Namespace }} get pods -l "name=rocketmq-operator"
+
