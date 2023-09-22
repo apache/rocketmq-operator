@@ -165,7 +165,8 @@ spec:
             - name: console
               env:
                 - name: ROCKETMQ_CONFIG_LOGINREQUIRED
-                  value: "true"
+                  # if you want to enable login, set value to "true"
+                  value: "false"
               image: apacherocketmq/rocketmq-console:2.0.0
               ports:
                 - containerPort: 8080
