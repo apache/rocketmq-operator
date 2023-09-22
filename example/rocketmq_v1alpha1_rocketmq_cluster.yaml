@@ -163,30 +163,6 @@ spec:
         spec:
           containers:
             - name: console
-              env:
-                - name: ROCKETMQ_CONFIG_LOGINREQUIRED
-                  # if you want to enable login, set value to "true"
-                  value: "false"
               image: apacherocketmq/rocketmq-console:2.0.0
               ports:
                 - containerPort: 8080
-              volumeMounts:
-                - name: console-config
-                  # It should be the same as rocketmq.config.dataPath
-                  mountPath: /tmp/rocketmq-console/data
-          volumes:
-            - name: console-config
-              configMap:
-                name: console-config
-                items:
-                  - key: users.properties
-                    path: users.properties
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: console-config
-  namespace: default
-data:
-  users.properties: |
-    adminuser=adminpass,1
