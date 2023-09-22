@@ -172,6 +172,7 @@ spec:
                 - containerPort: 8080
               volumeMounts:
                 - name: console-config
+                  # It should be the same as rocketmq.config.dataPath
                   mountPath: /tmp/rocketmq-console/data
           volumes:
             - name: console-config
