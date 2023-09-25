@@ -1,3 +1,57 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: console-config
+data:
+  application.yml: |
+    server:
+      port: 8080
+      servlet:
+        encoding:
+          charset: UTF-8
+          enabled: true
+          force: true
+    spring:
+      application:
+        name: rocketmq-dashboard
+    logging:
+      config: classpath:logback.xml
+    rocketmq:
+      config:
+        isVIPChannel:
+        timeoutMillis:
+        dataPath: /tmp/rocketmq-console/data
+        enableDashBoardCollect: true
+        msgTrackTopicName:
+        ticketKey: ticket
+        loginRequired: false
+        useTLS: false
+    threadpool:
+      config:
+        coreSize: 10
+        maxSize: 10
+        keepAliveTime: 3000
+        queueSize: 5000
+  role-permission.yml: |
+    rolePerms:
+      ordinary:
+        - /rocketmq/*.query
+        - /ops/*.query
+        - /dashboard/*.query
+        - /topic/*.query
+        - /topic/sendTopicMessage.do
+        - /producer/*.query
+        - /message/*.query
+        - /messageTrace/*.query
+        - /monitor/*.query
+        - /consumer/*.query
+        - /cluster/*.query
+        - /dlqMessage/*.query
+        - /dlqMessage/exportDlqMessage.do
+        - /dlqMessage/batchResendDlqMessage.do
+        - /acl/*.query
+---
+
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: Console
 metadata:
@@ -26,5 +80,13 @@ spec:
           containers:
             - name: console
               image: apacherocketmq/rocketmq-console:2.0.0
+              args: ["--spring.config.location=/apps/data/console/config/"]
               ports:
                 - containerPort: 8080
+              volumeMounts:
+                - mountPath: "/apps/data/console/config"
+                  name: console-config
+          volumes:
+            - name: console-config
+              configMap:
+                name: console-config
