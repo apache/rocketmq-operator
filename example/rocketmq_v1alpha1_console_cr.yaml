@@ -32,24 +32,24 @@ data:
         maxSize: 10
         keepAliveTime: 3000
         queueSize: 5000
-    role-permission.yml: |+
-      rolePerms:
-        ordinary:
-          - /rocketmq/*.query
-          - /ops/*.query
-          - /dashboard/*.query
-          - /topic/*.query
-          - /topic/sendTopicMessage.do
-          - /producer/*.query
-          - /message/*.query
-          - /messageTrace/*.query
-          - /monitor/*.query
-          - /consumer/*.query
-          - /cluster/*.query
-          - /dlqMessage/*.query
-          - /dlqMessage/exportDlqMessage.do
-          - /dlqMessage/batchResendDlqMessage.do
-          - /acl/*.query
+  role-permission.yml: |
+    rolePerms:
+      ordinary:
+        - /rocketmq/*.query
+        - /ops/*.query
+        - /dashboard/*.query
+        - /topic/*.query
+        - /topic/sendTopicMessage.do
+        - /producer/*.query
+        - /message/*.query
+        - /messageTrace/*.query
+        - /monitor/*.query
+        - /consumer/*.query
+        - /cluster/*.query
+        - /dlqMessage/*.query
+        - /dlqMessage/exportDlqMessage.do
+        - /dlqMessage/batchResendDlqMessage.do
+        - /acl/*.query
 ---
 
 apiVersion: rocketmq.apache.org/v1alpha1
@@ -88,5 +88,5 @@ spec:
                   name: console-config
           volumes:
             - name: console-config
-                configMap:
-                  name: console-config
+              configMap:
+                name: console-config
