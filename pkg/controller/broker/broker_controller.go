@@ -138,10 +138,11 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 		return reconcile.Result{}, err
 	}
 
+	var groupNum int
 	if broker.Status.Size == 0 {
-		share.GroupNum = broker.Spec.Size
+		groupNum = broker.Spec.Size
 	} else {
-		share.GroupNum = broker.Status.Size
+		groupNum = broker.Status.Size
 	}
 
 	if broker.Spec.NameServers == "" {
@@ -169,9 +170,9 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 	}
 
 	replicaPerGroup := broker.Spec.ReplicaPerGroup
-	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(share.GroupNum) + ", replicaPerGroup=" + strconv.Itoa(replicaPerGroup))
-	for brokerGroupIndex := 0; brokerGroupIndex < share.GroupNum; brokerGroupIndex++ {
-		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerGroupIndex+1) + "/" + strconv.Itoa(share.GroupNum))
+	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(groupNum) + ", replicaPerGroup=" + strconv.Itoa(replicaPerGroup))
+	for brokerGroupIndex := 0; brokerGroupIndex < groupNum; brokerGroupIndex++ {
+		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerGroupIndex+1) + "/" + strconv.Itoa(groupNum))
 		dep := r.getBrokerStatefulSet(broker, brokerGroupIndex, 0, controllerAccessPoint)
 		// Check if the statefulSet already exists, if not create a new one
 		found := &appsv1.StatefulSet{}

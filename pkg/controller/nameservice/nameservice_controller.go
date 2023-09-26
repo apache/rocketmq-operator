@@ -247,7 +247,6 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			subCmd := cons.UpdateBrokerConfig
 			key := cons.ParamNameServiceAddress
 
-			reqLogger.Info("share.GroupNum=broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
 			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
 			command := mqAdmin + " " + subCmd + " -c " + clusterName + " -k " + key + " -n " + oldNameServerListStr + " -v " + share.NameServersStr
 			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldNameServerListStr, "-v", share.NameServersStr)
@@ -271,7 +270,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		share.NameServersStr = nameServerListStr // reassign if operator restarts
 	}
 
-	reqLogger.Info("Share variables", "GroupNum", share.GroupNum,
+	reqLogger.Info("Share variables",
 		"NameServersStr", share.NameServersStr, "IsNameServersStrUpdated", share.IsNameServersStrUpdated,
 		"IsNameServersStrInitialized", share.IsNameServersStrInitialized)
 

@@ -19,9 +19,6 @@
 package share
 
 var (
-	// GroupNum is the number of broker group
-	GroupNum = 0
-
 	// NameServersStr is the name server list
 	NameServersStr = ""
 
