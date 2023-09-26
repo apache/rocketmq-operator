@@ -25,8 +25,6 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/apimachinery/pkg/fields"
-
 	"github.com/google/uuid"
 
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
@@ -348,11 +346,8 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 
 func (r *ReconcileBroker) getControllerAccessPoint(namespace string, rocketMqName string) string {
 	controllerList := &rocketmqv1alpha1.ControllerList{}
-	err := r.client.List(context.TODO(), controllerList, &client.ListOptions{
-		Namespace: namespace,
-		FieldSelector: fields.SelectorFromSet(fields.Set{
-			"spec.rocketMqName": rocketMqName,
-		}),
+	err := r.client.List(context.TODO(), controllerList, &client.MatchingFields{
+		rocketmqv1alpha1.ControllerRocketMqNameIndexKey: rocketMqName + "-" + namespace,
 	})
 	if err != nil {
 		log.Error(err, "Failed to list controller.", "Controller.Namespace", namespace, "Controller.Name", rocketMqName)

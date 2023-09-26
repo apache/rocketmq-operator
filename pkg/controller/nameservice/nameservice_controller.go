@@ -68,6 +68,19 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	err := mgr.GetFieldIndexer().IndexField(context.TODO(), &rocketmqv1alpha1.NameService{}, rocketmqv1alpha1.NameServiceRocketMqNameIndexKey,
+		func(rawObj client.Object) []string {
+			n, ok := rawObj.(*rocketmqv1alpha1.NameService)
+			if !ok {
+				return nil
+			}
+			return []string{n.Spec.RocketMqName + "-" + n.Namespace}
+		},
+	)
+	if err != nil {
+		return err
+	}
+
 	// Create a new controller
 	c, err := controller.New("nameservice-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
