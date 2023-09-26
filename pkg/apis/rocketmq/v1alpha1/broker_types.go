@@ -28,6 +28,10 @@ import (
 // BrokerSpec defines the desired state of Broker
 // +k8s:openapi-gen=true
 type BrokerSpec struct {
+	// RocketMqName is the name of the RocketMQ cluster.
+	// +kubebuilder:default:="rocketmq"
+	RocketMqName string `json:"rocketMqName"`
+
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
