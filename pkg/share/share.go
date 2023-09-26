@@ -30,7 +30,4 @@ var (
 
 	// IsNameServersStrInitialized is whether the name server list is initialized
 	IsNameServersStrInitialized = false
-
-	// svc of controller for brokers
-	ControllerAccessPoint = ""
 )
