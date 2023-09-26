@@ -7880,6 +7880,9 @@ spec:
               nameServers:
                 description: NameServers defines the name service list e.g. 192.168.1.1:9876;192.168.1.2:9876
                 type: string
+              rocketMqName:
+                description: RocketMqName is the name of the RocketMQ cluster
+                type: string
             required:
             - consoleDeployment
             type: object

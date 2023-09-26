@@ -29,7 +29,7 @@ import (
 // +k8s:openapi-gen=true
 type ControllerSpec struct {
 	// RocketMqName is the name of the RocketMQ cluster
-	RocketMqName string `json:"rocketMqName"`
+	RocketMqName string `json:"rocketMqName,omitempty"`
 
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
