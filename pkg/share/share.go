@@ -18,13 +18,57 @@
 // Package share defines some variables shared by different packages
 package share
 
-var (
-	// NameServersStr is the name server list
-	NameServersStr = ""
+import (
+	"context"
+	"sort"
+	"strings"
 
-	// IsNameServersStrUpdated is whether the name server list is updated
-	IsNameServersStrUpdated = false
-
-	// IsNameServersStrInitialized is whether the name server list is initialized
-	IsNameServersStrInitialized = false
+	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	"github.com/apache/rocketmq-operator/pkg/tool"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+func GetNameServersStr(r client.Reader, namespace, rocketMqName string) string {
+	nameserviceList := &rocketmqv1alpha1.NameServiceList{}
+	err := r.List(context.TODO(), nameserviceList, &client.MatchingFields{
+		rocketmqv1alpha1.NameServiceRocketMqNameIndexKey: rocketMqName + "-" + namespace,
+	})
+	if err != nil {
+		return ""
+	}
+	if len(nameserviceList.Items) != 1 {
+		return ""
+	}
+
+	nameservice := nameserviceList.Items[0]
+	labelSelector := labels.SelectorFromSet(tool.LabelsForNameService(nameservice.Name))
+	listOps := &client.ListOptions{
+		Namespace:     nameservice.Namespace,
+		LabelSelector: labelSelector,
+	}
+	podList := &corev1.PodList{}
+	err = r.List(context.Background(), podList, listOps)
+	if err != nil {
+		return ""
+	}
+	if len(podList.Items) == 0 {
+		return ""
+	}
+
+	var hostIps []string
+	for _, pod := range podList.Items {
+		if pod.Status.Phase == corev1.PodRunning && !strings.EqualFold(pod.Status.PodIP, "") {
+			hostIps = append(hostIps, pod.Status.PodIP)
+		}
+	}
+	sort.Strings(hostIps)
+
+	nameServerListStr := ""
+	for _, value := range hostIps {
+		nameServerListStr = nameServerListStr + value + ":9876;"
+	}
+
+	return nameServerListStr[:len(nameServerListStr)-1]
+}

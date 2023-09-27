@@ -128,7 +128,7 @@ func (r *ReconcileTopicTransfer) Reconcile(ctx context.Context, request reconcil
 	targetCluster := topicTransfer.Spec.TargetCluster
 	sourceCluster := topicTransfer.Spec.SourceCluster
 
-	nameServer := strings.Split(share.NameServersStr, ";")[0]
+	nameServer := strings.Split(share.GetNameServersStr(r.client, topicTransfer.Namespace, topicTransfer.Spec.RocketMqName), ";")[0]
 	if len(nameServer) < cons.MinIpListLength {
 		reqLogger.Info("There is no available name server now thus the topic transfer process is terminated.")
 		// terminate the transfer process
