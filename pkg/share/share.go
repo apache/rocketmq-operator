@@ -63,6 +63,10 @@ func GetNameServersStr(r client.Reader, namespace, rocketMqName string) string {
 			hostIps = append(hostIps, pod.Status.PodIP)
 		}
 	}
+	if len(hostIps) == 0 {
+		return ""
+	}
+
 	sort.Strings(hostIps)
 
 	nameServerListStr := ""
