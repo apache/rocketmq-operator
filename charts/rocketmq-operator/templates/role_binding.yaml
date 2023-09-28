@@ -13,17 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ include "rocketmq-operator.fullname" . }}
-  labels:
-    {{- include "rocketmq-operator.labels" . | nindent 4 }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ template "rocketmq-operator.fullname" . }}
+  name: rocketmq-operator
 subjects:
-  - name: {{ template "rocketmq-operator.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace | quote }}
-    kind: ServiceAccount
+- kind: ServiceAccount
+  name: rocketmq-operator
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: rocketmq-operator
+  apiGroup: rbac.authorization.k8s.io
