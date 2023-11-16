@@ -302,7 +302,7 @@ func (r *ReconcileController) getControllerStatefulSet(controller *rocketmqv1alp
 func getENV(controller *rocketmqv1alpha1.Controller) []corev1.EnvVar {
 	var controllerDLegerPeersStr string
 	for controllerIndex := 0; controllerIndex < int(controller.Spec.Size); controllerIndex++ {
-		controllerDLegerPeersStr += controller.Name + strconv.Itoa(controllerIndex) + "-" + controller.Name + "-" + strconv.Itoa(controllerIndex) + "." + tool.BuildHeadlessSvcResourceName(controller.Name) + ":9878"
+		controllerDLegerPeersStr += controller.Name + "-" + strconv.Itoa(controllerIndex) + "." + tool.BuildHeadlessSvcResourceName(controller.Name) + ":9878"
 		if controllerIndex < int(controller.Spec.Size)-1 {
 			controllerDLegerPeersStr += ";"
 		}
