@@ -55,12 +55,27 @@ calculate_heap_sizes()
     case "`uname`" in
         Linux)
             system_memory_in_mb=`free -m| sed -n '2p' | awk '{print $2}'`
-            system_memory_in_mb_in_docker=$(($(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)/1024/1024))
+            if [ -f /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then
+                system_memory_in_mb_in_docker=$(($(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)/1024/1024))
+            elif [ -f /sys/fs/cgroup/memory.max ]; then
+                system_memory_in_mb_in_docker=$(($(cat /sys/fs/cgroup/memory.max)/1024/1024))
+            else
+                error_exit "Can not get memory, please check cgroup"
+            fi
             if [ $system_memory_in_mb_in_docker -lt $system_memory_in_mb ];then
               system_memory_in_mb=$system_memory_in_mb_in_docker
             fi
+
             system_cpu_cores=`egrep -c 'processor([[:space:]]+):.*' /proc/cpuinfo`
-            system_cpu_cores_in_docker=$(($(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)/$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)))
+            if [ -f /sys/fs/cgroup/cpu/cpu.cfs_quota_us ]; then
+                system_cpu_cores_in_docker=$(($(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)/$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)))
+            elif [ -f /sys/fs/cgroup/cpu.max ]; then
+                QUOTA=$(cut -d ' ' -f 1 /sys/fs/cgroup/cpu.max)
+                PERIOD=$(cut -d ' ' -f 2 /sys/fs/cgroup/cpu.max)
+                system_cpu_cores_in_docker=$(($QUOTA/$PERIOD))
+            else
+                error_exit "Can not get cpu, please check cgroup"
+            fi
             if [ $system_cpu_cores_in_docker -lt $system_cpu_cores -a $system_cpu_cores_in_docker -ne 0 ];then
               system_cpu_cores=$system_cpu_cores_in_docker
             fi
