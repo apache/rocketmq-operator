@@ -72,7 +72,11 @@ calculate_heap_sizes()
             elif [ -f /sys/fs/cgroup/cpu.max ]; then
                 QUOTA=$(cut -d ' ' -f 1 /sys/fs/cgroup/cpu.max)
                 PERIOD=$(cut -d ' ' -f 2 /sys/fs/cgroup/cpu.max)
-                system_cpu_cores_in_docker=$(($QUOTA/$PERIOD))
+                if [ "$QUOTA" == "max" ]; then # no limit, see https://docs.kernel.org/admin-guide/cgroup-v2.html#cgroup-v2-cpu
+                  system_cpu_cores_in_docker=$system_cpu_cores
+                else
+                  system_cpu_cores_in_docker=$(($QUOTA/$PERIOD))
+                fi
             else
                 error_exit "Can not get cpu, please check cgroup"
             fi
