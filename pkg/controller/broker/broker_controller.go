@@ -267,10 +267,14 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 	podNames := getPodNames(podList.Items)
 	log.Info("broker.Status.Nodes length = " + strconv.Itoa(len(broker.Status.Nodes)))
 	log.Info("podNames length = " + strconv.Itoa(len(podNames)))
-	// Ensure every pod is in running phase
+	// Ensure every pod is in ready
 	for _, pod := range podList.Items {
 		if !reflect.DeepEqual(pod.Status.Phase, corev1.PodRunning) {
 			log.Info("pod " + pod.Name + " phase is " + string(pod.Status.Phase) + ", wait for a moment...")
+		}
+		if !isReady(pod) {
+			reqLogger.Info("pod " + pod.Name + " is not ready, wait for a moment...")
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 		}
 	}
 
@@ -396,6 +400,15 @@ func exec(cmdOpts []string, podName string, k8s *tool.K8sClient, namespace strin
 
 func getBrokerName(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int) string {
 	return broker.Name + "-" + strconv.Itoa(brokerGroupIndex)
+}
+
+func isReady(po corev1.Pod) bool {
+	for _, cond := range po.Status.Conditions {
+		if cond.Type == corev1.PodReady {
+			return cond.Status == corev1.ConditionTrue
+		}
+	}
+	return false
 }
 
 // getBrokerStatefulSet returns a broker StatefulSet object
