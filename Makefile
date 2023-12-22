@@ -126,7 +126,7 @@ docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
 .PHONY: docker-image-release
-docker-build: test docker-buildx ## Build docker image with the manager.
+docker-image-release: test docker-buildx ## Build docker image with the manager.
 	docker buildx build --platform linux/amd64,linux/arm64 --push -t ${IMG} .
 
 ##@ Deployment
