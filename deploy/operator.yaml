@@ -27,7 +27,7 @@ spec:
       labels:
         name: rocketmq-operator
     spec:
-      serviceAccountName: rocketmq-operator
+      serviceAccountName: {{ template "rocketmq-operator.serviceAccountName" . }}
       terminationGracePeriodSeconds: 10
       containers:
       - name: manager

@@ -19,7 +19,7 @@ metadata:
   name: rocketmq-operator
 subjects:
 - kind: ServiceAccount
-  name: rocketmq-operator
+  name: {{ template "rocketmq-operator.serviceAccountName" . }}
   namespace: default
 roleRef:
   kind: ClusterRole
