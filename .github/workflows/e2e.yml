@@ -2,8 +2,8 @@ name: E2E tests
 
 on:
   pull_request:
-    branches:
-      - master
+    # The branches below must be a subset of the branches above
+    branches: [ "master" ]
 
 jobs:
   test:
@@ -21,14 +21,12 @@ jobs:
     - name: Build Dockerfile
       run: docker build . --file Dockerfile --tag rocketmq-operator:e2e
 
-    - name: Install chainsaw
-      uses: kyverno/chainsaw/.github/actions/install@v0.1.2
-      with:
-        release: v0.1.2
+    - name: Install Chainsaw
+      uses: kyverno/action-install-chainsaw@v0.1.0
 
     - name: Check install
       run: chainsaw version
-    
+
     - name: Install kubectl
       run: |
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
