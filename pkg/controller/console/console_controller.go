@@ -124,10 +124,11 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
+	var nameserverStr string
 	if instance.Spec.NameServers == "" {
 		// wait for name server ready if nameServers is omitted
 		for {
-			if share.IsNameServersStrInitialized {
+			if nameserverStr = share.GetNameServersStr(r.client, instance.Namespace, instance.Spec.RocketMqName); nameserverStr != "" {
 				break
 			} else {
 				log.Info("Waiting for name server ready...")
@@ -135,10 +136,10 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 			}
 		}
 	} else {
-		share.NameServersStr = instance.Spec.NameServers
+		nameserverStr = instance.Spec.NameServers
 	}
 
-	consoleDeployment := newDeploymentForCR(instance)
+	consoleDeployment := newDeploymentForCR(instance, nameserverStr)
 
 	// Set Console instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, consoleDeployment, r.scheme); err != nil {
@@ -180,10 +181,10 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 }
 
 // newDeploymentForCR returns a deployment pod with modifying the ENV
-func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
+func newDeploymentForCR(cr *rocketmqv1alpha1.Console, nameServersStr string) *appsv1.Deployment {
 	env := corev1.EnvVar{
 		Name:  "JAVA_OPTS",
-		Value: fmt.Sprintf("-Drocketmq.namesrv.addr=%s -Dcom.rocketmq.sendMessageWithVIPChannel=false", share.NameServersStr),
+		Value: fmt.Sprintf("-Drocketmq.namesrv.addr=%s -Dcom.rocketmq.sendMessageWithVIPChannel=false", nameServersStr),
 	}
 
 	dep := &appsv1.Deployment{

@@ -30,7 +30,6 @@ import (
 
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/apache/rocketmq-operator/pkg/constants"
-	"github.com/apache/rocketmq-operator/pkg/share"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -68,6 +67,19 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	err := mgr.GetFieldIndexer().IndexField(context.TODO(), &rocketmqv1alpha1.NameService{}, rocketmqv1alpha1.NameServiceRocketMqNameIndexKey,
+		func(rawObj client.Object) []string {
+			n, ok := rawObj.(*rocketmqv1alpha1.NameService)
+			if !ok {
+				return nil
+			}
+			return []string{n.Spec.RocketMqName + "-" + n.Namespace}
+		},
+	)
+	if err != nil {
+		return err
+	}
+
 	// Create a new controller
 	c, err := controller.New("nameservice-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -187,7 +199,7 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	for _, value := range hostIps {
 		nameServerListStr = nameServerListStr + value + ":9876;"
 	}
-
+	newNameServerListStr := ""
 	// Update status.NameServers if needed
 	if !reflect.DeepEqual(hostIps, instance.Status.NameServers) {
 		oldNameServerListStr := ""
@@ -195,14 +207,15 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 			oldNameServerListStr = oldNameServerListStr + value + ":9876;"
 		}
 
-		share.NameServersStr = nameServerListStr[:len(nameServerListStr)-1]
-		reqLogger.Info("share.NameServersStr:" + share.NameServersStr)
+		newNameServerListStr = nameServerListStr[:len(nameServerListStr)-1]
+		reqLogger.Info("newNameServersStr:" + newNameServerListStr)
 
+		var isNameServersStrUpdated bool
 		if len(oldNameServerListStr) <= cons.MinIpListLength {
-			oldNameServerListStr = share.NameServersStr
-		} else if len(share.NameServersStr) > cons.MinIpListLength {
+			oldNameServerListStr = newNameServerListStr
+		} else if len(newNameServerListStr) > cons.MinIpListLength {
 			oldNameServerListStr = oldNameServerListStr[:len(oldNameServerListStr)-1]
-			share.IsNameServersStrUpdated = true
+			isNameServersStrUpdated = true
 		}
 		reqLogger.Info("oldNameServerListStr:" + oldNameServerListStr)
 
@@ -216,17 +229,40 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 		}
 
 		// use admin tool to update broker config
-		if share.IsNameServersStrUpdated && (len(oldNameServerListStr) > cons.MinIpListLength) && (len(share.NameServersStr) > cons.MinIpListLength) {
+		if isNameServersStrUpdated && (len(oldNameServerListStr) > cons.MinIpListLength) && (len(newNameServerListStr) > cons.MinIpListLength) {
+			// bash-4.4$ ./mqadmin clusterList -n 192.168.180.36:9876
+			// #Cluster Name     #Broker Name            #BID  #Addr                  #Version                #InTPS(LOAD)       #OutTPS(LOAD) #PCWait(ms) #Hour #SPACE
+			// broker            broker-0                0     192.168.180.40:10911   V4_5_0                   0.00(0,0ms)         0.00(0,0ms)          0 471030.34 -1.0000
+			// broker            broker-0                1     192.168.137.89:10911   V4_5_0                   0.00(0,0ms)         0.00(0,0ms)          0 471030.34 0.2673
+			clusterListCmd := exec.Command("sh", cons.AdminToolDir, cons.ClusterList, "-n", oldNameServerListStr)
+			clusterListOutput, err := clusterListCmd.Output()
+			if err != nil {
+				reqLogger.Error(err, "Get cluster list failed, command: "+cons.AdminToolDir+" "+cons.ClusterList+" -n "+oldNameServerListStr)
+				return reconcile.Result{Requeue: true}, err
+			}
+			// get cluster of output
+			clusterName := ""
+			for _, line := range strings.Split(string(clusterListOutput), "\n") {
+				if strings.HasPrefix(line, "#Cluster Name") {
+					continue
+				}
+				for _, f := range strings.Fields(line) {
+					clusterName = f
+					break
+				}
+			}
+			if clusterName == "" {
+				reqLogger.Error(err, "Get empty cluster name, command: "+cons.AdminToolDir+" "+cons.ClusterList+" -n "+oldNameServerListStr)
+				return reconcile.Result{Requeue: true}, err
+			}
+
 			mqAdmin := cons.AdminToolDir
 			subCmd := cons.UpdateBrokerConfig
 			key := cons.ParamNameServiceAddress
 
-			reqLogger.Info("share.GroupNum=broker.Spec.Size=" + strconv.Itoa(share.GroupNum))
-
-			clusterName := share.BrokerClusterName
 			reqLogger.Info("Updating config " + key + " of cluster" + clusterName)
-			command := mqAdmin + " " + subCmd + " -c " + clusterName + " -k " + key + " -n " + oldNameServerListStr + " -v " + share.NameServersStr
-			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldNameServerListStr, "-v", share.NameServersStr)
+			command := mqAdmin + " " + subCmd + " -c " + clusterName + " -k " + key + " -n " + oldNameServerListStr + " -v " + newNameServerListStr
+			cmd := exec.Command("sh", mqAdmin, subCmd, "-c", clusterName, "-k", key, "-n", oldNameServerListStr, "-v", newNameServerListStr)
 			output, err := cmd.Output()
 			if err != nil {
 				reqLogger.Error(err, "Update Broker config "+key+" failed of cluster "+clusterName+", command: "+command)
@@ -240,16 +276,6 @@ func (r *ReconcileNameService) updateNameServiceStatus(instance *rocketmqv1alpha
 	for i, value := range instance.Status.NameServers {
 		reqLogger.Info("NameServers IP " + strconv.Itoa(i) + ": " + value)
 	}
-
-	runningNameServerNum := getRunningNameServersNum(podList.Items)
-	if runningNameServerNum == instance.Spec.Size {
-		share.IsNameServersStrInitialized = true
-		share.NameServersStr = nameServerListStr // reassign if operator restarts
-	}
-
-	reqLogger.Info("Share variables", "GroupNum", share.GroupNum,
-		"NameServersStr", share.NameServersStr, "IsNameServersStrUpdated", share.IsNameServersStrUpdated,
-		"IsNameServersStrInitialized", share.IsNameServersStrInitialized, "BrokerClusterName", share.BrokerClusterName)
 
 	if requeue {
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil

@@ -1203,6 +1203,9 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                 type: object
+              rocketMqName:
+                description: RocketMqName is the name of the RocketMQ cluster.
+                type: string
               scalePodName:
                 description: The name of pod where the metadata from
                 type: string

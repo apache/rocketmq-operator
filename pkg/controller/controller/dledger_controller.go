@@ -29,7 +29,6 @@ import (
 
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/apache/rocketmq-operator/pkg/constants"
-	"github.com/apache/rocketmq-operator/pkg/share"
 	"github.com/apache/rocketmq-operator/pkg/tool"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -64,6 +63,19 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	err := mgr.GetCache().IndexField(context.TODO(), &rocketmqv1alpha1.Controller{}, rocketmqv1alpha1.ControllerRocketMqNameIndexKey,
+		func(rawObj client.Object) []string {
+			c, ok := rawObj.(*rocketmqv1alpha1.Controller)
+			if !ok {
+				return nil
+			}
+			return []string{c.Spec.RocketMqName + "-" + c.Namespace}
+		},
+	)
+	if err != nil {
+		return err
+	}
+
 	// Create a new controller
 	c, err := controller.New("dledger-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -224,8 +236,6 @@ func (r *ReconcileController) Reconcile(ctx context.Context, request reconcile.R
 			return reconcile.Result{}, err
 		}
 	}
-	share.ControllerAccessPoint = controllerSvcName + ":9878"
-
 	return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 }
 

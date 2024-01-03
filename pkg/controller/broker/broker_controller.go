@@ -136,16 +136,18 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 		return reconcile.Result{}, err
 	}
 
+	var groupNum int
 	if broker.Status.Size == 0 {
-		share.GroupNum = broker.Spec.Size
+		groupNum = broker.Spec.Size
 	} else {
-		share.GroupNum = broker.Status.Size
+		groupNum = broker.Status.Size
 	}
 
+	var nameServersStr string
 	if broker.Spec.NameServers == "" {
 		// wait for name server ready when create broker cluster if nameServers is omitted
 		for {
-			if share.IsNameServersStrInitialized {
+			if nameServersStr = share.GetNameServersStr(r.client, broker.Namespace, broker.Spec.RocketMqName); nameServersStr != "" {
 				break
 			} else {
 				log.Info("Broker Waiting for name server ready...")
@@ -153,24 +155,24 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 			}
 		}
 	} else {
-		share.NameServersStr = broker.Spec.NameServers
+		nameServersStr = broker.Spec.NameServers
 	}
 
 	if broker.Spec.ClusterMode == "" {
 		broker.Spec.ClusterMode = "STATIC"
 	}
 
-	if broker.Spec.ClusterMode == "CONTROLLER" && share.ControllerAccessPoint == "" {
+	controllerAccessPoint := r.getControllerAccessPoint(broker.Namespace, broker.Spec.RocketMqName)
+	if broker.Spec.ClusterMode == "CONTROLLER" && controllerAccessPoint == "" {
 		log.Info("Broker Waiting for Controller ready...")
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 	}
 
-	share.BrokerClusterName = broker.Name
 	replicaPerGroup := broker.Spec.ReplicaPerGroup
-	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(share.GroupNum) + ", replicaPerGroup=" + strconv.Itoa(replicaPerGroup))
-	for brokerGroupIndex := 0; brokerGroupIndex < share.GroupNum; brokerGroupIndex++ {
-		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerGroupIndex+1) + "/" + strconv.Itoa(share.GroupNum))
-		dep := r.getBrokerStatefulSet(broker, brokerGroupIndex, 0)
+	reqLogger.Info("brokerGroupNum=" + strconv.Itoa(groupNum) + ", replicaPerGroup=" + strconv.Itoa(replicaPerGroup))
+	for brokerGroupIndex := 0; brokerGroupIndex < groupNum; brokerGroupIndex++ {
+		reqLogger.Info("Check Broker cluster " + strconv.Itoa(brokerGroupIndex+1) + "/" + strconv.Itoa(groupNum))
+		dep := r.getBrokerStatefulSet(broker, brokerGroupIndex, 0, controllerAccessPoint, nameServersStr)
 		// Check if the statefulSet already exists, if not create a new one
 		found := &appsv1.StatefulSet{}
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
@@ -186,7 +188,7 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 
 		for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
 			reqLogger.Info("Check Replica Broker of cluster-" + strconv.Itoa(brokerGroupIndex) + " " + strconv.Itoa(replicaIndex) + "/" + strconv.Itoa(replicaPerGroup))
-			replicaDep := r.getBrokerStatefulSet(broker, brokerGroupIndex, replicaIndex)
+			replicaDep := r.getBrokerStatefulSet(broker, brokerGroupIndex, replicaIndex, controllerAccessPoint, nameServersStr)
 			err = r.client.Get(context.TODO(), types.NamespacedName{Name: replicaDep.Name, Namespace: replicaDep.Namespace}, found)
 			if err != nil && errors.IsNotFound(err) {
 				reqLogger.Info("Creating a new Replica Broker StatefulSet.", "StatefulSet.Namespace", replicaDep.Namespace, "StatefulSet.Name", replicaDep.Name)
@@ -202,19 +204,18 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 
 	// Check for name server scaling
 	if broker.Spec.AllowRestart {
-		// The following code will restart all brokers to update NAMESRV_ADDR env
-		if share.IsNameServersStrUpdated {
-			for brokerGroupIndex := 0; brokerGroupIndex < broker.Spec.Size; brokerGroupIndex++ {
-				brokerName := getBrokerName(broker, brokerGroupIndex)
-				// Update master broker
-				reqLogger.Info("Update Master Broker NAMESRV_ADDR of " + brokerName)
-				dep := r.getBrokerStatefulSet(broker, brokerGroupIndex, 0)
-				found := &appsv1.StatefulSet{}
-				err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
-				if err != nil {
-					reqLogger.Error(err, "Failed to get broker master StatefulSet of "+brokerName)
-				} else {
-					found.Spec.Template.Spec.Containers[0].Env[0].Value = share.NameServersStr
+		// The following code will restart all brokers to update NAMESRV_ADDR env if name server list is updated
+		for brokerGroupIndex := 0; brokerGroupIndex < broker.Spec.Size; brokerGroupIndex++ {
+			brokerName := getBrokerName(broker, brokerGroupIndex)
+			dep := r.getBrokerStatefulSet(broker, brokerGroupIndex, 0, controllerAccessPoint, nameServersStr)
+			found := &appsv1.StatefulSet{}
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, found)
+			if err != nil {
+				reqLogger.Error(err, "Failed to get broker master StatefulSet of "+brokerName)
+			} else {
+				// update if name server list is updated
+				if found.Spec.Template.Spec.Containers[0].Env[0].Value != nameServersStr {
+					found.Spec.Template.Spec.Containers[0].Env[0].Value = nameServersStr
 					err = r.client.Update(context.TODO(), found)
 					if err != nil {
 						reqLogger.Error(err, "Failed to update NAMESRV_ADDR of master broker "+brokerName, "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
@@ -223,18 +224,19 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 					}
 					time.Sleep(time.Duration(cons.RestartBrokerPodIntervalInSecond) * time.Second)
 				}
-				// Update replicas brokers
-				for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
-					reqLogger.Info("Update Replica Broker NAMESRV_ADDR of " + brokerName + " " + strconv.Itoa(replicaIndex) + "/" + strconv.Itoa(replicaPerGroup))
-					replicaDep := r.getBrokerStatefulSet(broker, brokerGroupIndex, replicaIndex)
-					replicaFound := &appsv1.StatefulSet{}
-					err = r.client.Get(context.TODO(), types.NamespacedName{Name: replicaDep.Name, Namespace: replicaDep.Namespace}, replicaFound)
-					if err != nil {
-						reqLogger.Error(err, "Failed to get broker replica StatefulSet of "+brokerName)
-					} else {
+			}
+			// Update replicas brokers
+			for replicaIndex := 1; replicaIndex <= replicaPerGroup; replicaIndex++ {
+				replicaDep := r.getBrokerStatefulSet(broker, brokerGroupIndex, replicaIndex, controllerAccessPoint, nameServersStr)
+				replicaFound := &appsv1.StatefulSet{}
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: replicaDep.Name, Namespace: replicaDep.Namespace}, replicaFound)
+				if err != nil {
+					reqLogger.Error(err, "Failed to get broker replica StatefulSet of "+brokerName)
+				} else {
+					if replicaFound.Spec.Template.Spec.Containers[0].Env[0].Value != nameServersStr {
 						for index := range replicaFound.Spec.Template.Spec.Containers[0].Env {
 							if cons.EnvNameServiceAddress == replicaFound.Spec.Template.Spec.Containers[0].Env[index].Name {
-								replicaFound.Spec.Template.Spec.Containers[0].Env[index].Value = share.NameServersStr
+								replicaFound.Spec.Template.Spec.Containers[0].Env[index].Value = nameServersStr
 								break
 							}
 						}
@@ -249,7 +251,6 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 				}
 			}
 		}
-		share.IsNameServersStrUpdated = false
 	}
 
 	// List the pods for this broker's statefulSet
@@ -347,6 +348,27 @@ func (r *ReconcileBroker) Reconcile(ctx context.Context, request reconcile.Reque
 	return reconcile.Result{Requeue: true, RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second}, nil
 }
 
+func (r *ReconcileBroker) getControllerAccessPoint(namespace string, rocketMqName string) string {
+	controllerList := &rocketmqv1alpha1.ControllerList{}
+	err := r.client.List(context.TODO(), controllerList, &client.MatchingFields{
+		rocketmqv1alpha1.ControllerRocketMqNameIndexKey: rocketMqName + "-" + namespace,
+	})
+	if err != nil {
+		log.Error(err, "Failed to list controller.", "Controller.Namespace", namespace, "Controller.Name", rocketMqName)
+		return ""
+	}
+	if len(controllerList.Items) != 1 {
+		return ""
+	}
+
+	controller := controllerList.Items[0]
+
+	if controller.Status.Size != controller.Spec.Size {
+		return ""
+	}
+	return tool.BuildSvcResourceName(controller.Name) + ":9878"
+}
+
 func getCopyMetadataJsonCommand(dir string, sourcePodName string, namespace string, k8s *tool.K8sClient) string {
 	cmdOpts := buildInputCommand(dir)
 	topicsJsonStr, err := exec(cmdOpts, sourcePodName, k8s, namespace)
@@ -412,7 +434,7 @@ func isReady(po corev1.Pod) bool {
 }
 
 // getBrokerStatefulSet returns a broker StatefulSet object
-func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) *appsv1.StatefulSet {
+func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int, controllerAccessPoint, nameServersStr string) *appsv1.StatefulSet {
 	ls := labelsForBroker(broker.Name)
 	var a int32 = 1
 	var c = &a
@@ -473,7 +495,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 						},
 						SecurityContext: getContainerSecurityContext(broker),
 						ImagePullPolicy: broker.Spec.ImagePullPolicy,
-						Env:             getENV(broker, replicaIndex, brokerGroupIndex),
+						Env:             getENV(broker, replicaIndex, brokerGroupIndex, controllerAccessPoint, nameServersStr),
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.BrokerVipContainerPort,
 							Name:          cons.BrokerVipContainerPortName,
@@ -512,10 +534,10 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 
 }
 
-func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex int) []corev1.EnvVar {
+func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex int, controllerAccessPoint, nameServersStr string) []corev1.EnvVar {
 	envs := []corev1.EnvVar{{
 		Name:  cons.EnvNameServiceAddress,
-		Value: share.NameServersStr,
+		Value: nameServersStr,
 	}, {
 		Name:  cons.EnvBrokerId,
 		Value: strconv.Itoa(replicaIndex),
@@ -528,7 +550,7 @@ func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex 
 	}}
 	if broker.Spec.ClusterMode == "CONTROLLER" {
 		envs = append(envs, corev1.EnvVar{Name: cons.EnvEnableControllerMode, Value: "true"})
-		envs = append(envs, corev1.EnvVar{Name: cons.EnvControllerAddr, Value: share.ControllerAccessPoint})
+		envs = append(envs, corev1.EnvVar{Name: cons.EnvControllerAddr, Value: controllerAccessPoint})
 	}
 	envs = append(envs, broker.Spec.Env...)
 	return envs

@@ -26,3 +26,7 @@ func BuildHeadlessSvcResourceName(name string) string {
 func BuildSvcResourceName(name string) string {
 	return fmt.Sprintf("%s-svc", name)
 }
+
+func LabelsForNameService(name string) map[string]string {
+	return map[string]string{"app": "name_service", "name_service_cr": name}
+}
