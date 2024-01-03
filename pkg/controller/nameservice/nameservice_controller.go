@@ -374,6 +374,7 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 						// Name must be lower case !
 						Name:            "name-service",
 						ImagePullPolicy: nameService.Spec.ImagePullPolicy,
+						Env:             nameService.Spec.Env,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: cons.NameServiceMainContainerPort,
 							Name:          cons.NameServiceMainContainerPortName,
