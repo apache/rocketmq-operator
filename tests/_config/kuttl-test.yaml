@@ -1,0 +1,7 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestSuite
+parallel: 1
+namespace: default
+timeout: 1200
+suppress:
+  - events
