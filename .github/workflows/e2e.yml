@@ -1,0 +1,66 @@
+name: E2E tests
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: ${{ matrix.testpath }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        testpath:
+          - ./tests/e2e/v1alpha1/setup/
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build Dockerfile
+      run: docker build . --file Dockerfile --tag rocketmq-operator:e2e
+
+    - name: Install Chainsaw
+      run: |
+        curl -L https://github.com/kyverno/chainsaw/releases/download/v0.1.2/chainsaw_linux_amd64.tar.gz -o chainsaw.tar.gz
+        tar -xzf chainsaw.tar.gz
+        sudo mv chainsaw /usr/local/bin/
+        chainsaw version
+
+    - name: Create k8s Kind Cluster
+      run: |
+        # install kubectl
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        
+        # install kind
+        curl -LO https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-linux-amd64
+        sudo chmod +x kind-linux-amd64
+        sudo mv kind-linux-amd64 /usr/local/bin/kind
+        kind version
+        
+        # create kind cluster
+        kind_node_image="kindest/node:v1.23.17"
+        echo "Kubernetes version: ${kind_node_image}"
+        kind create cluster --config tests/_config/kind-config.yaml 
+        kubectl version
+        kubectl get all --all-namespaces
+
+    - name: Load Docker image into Kind
+      run: | 
+        kubectl cluster-info --context kind-kind
+        kind load docker-image rocketmq-operator:e2e --name kind
+
+    - name: Install RocketMQ Operator
+      run: |
+        make deploy
+        kubectl set image deployment/rocketmq-operator manager=rocketmq-operator:e2e -n default
+
+    - name: Wait for RocketMQ Operator to be ready
+      run: |
+        kubectl wait --for=condition=available --timeout=300s deployment/rocketmq-operator -n default
+
+    - name: Run chainsaw test
+      run: chainsaw test --test-dir ${{ matrix.testpath }} --config tests/_config/chainsaw-configuration.yaml
