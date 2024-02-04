@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rocketmq-operator.fullname" . }}
+  labels:
+  {{- include "rocketmq-operator.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.rocketmqOperator.replicas }}
+  selector:
+    matchLabels:
+      name: rocketmq-operator
+    {{- include "rocketmq-operator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        name: rocketmq-operator
+      {{- include "rocketmq-operator.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - args: {{- toYaml .Values.rocketmqOperator.manager.args | nindent 8 }}
+        command:
+        - /manager
+        env:
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: {{ quote .Values.rocketmqOperator.manager.env.operatorName }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.rocketmqOperator.manager.image.repository }}:{{ .Values.rocketmqOperator.manager.image.tag
+          | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.rocketmqOperator.manager.imagePullPolicy }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources: {}
+        securityContext: {{- toYaml .Values.rocketmqOperator.manager.containerSecurityContext
+          | nindent 10 }}
+      serviceAccountName: {{ include "rocketmq-operator.fullname" . }}
+      terminationGracePeriodSeconds: 10
