@@ -172,4 +172,7 @@ const (
 
 	// EnvControllerAddr is the container environment variable name of Controller address in Broker
 	EnvControllerAddr = "controllerAddr"
+
+	// EnvPodIp is the container environment variable name of pod ip.
+	EnvPodIp = "POD_IP"
 )
