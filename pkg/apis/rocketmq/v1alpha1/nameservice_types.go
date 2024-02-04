@@ -47,6 +47,8 @@ type NameServiceSpec struct {
 	StorageMode string `json:"storageMode"`
 	// HostPath is the local path to store data
 	HostPath string `json:"hostPath"`
+	// Env defines custom env, e.g. JAVA_OPT_EXT
+	Env []corev1.EnvVar `json:"env,omitempty"`
 	// VolumeClaimTemplates defines the StorageClass
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates"`
 	// Pod Security Context
