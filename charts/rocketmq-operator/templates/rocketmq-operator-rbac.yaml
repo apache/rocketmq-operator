@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "rocketmq-operator.fullname" . }}-rocketmq-operator
+  name: {{ include "rocketmq-operator.fullname" . }}
   labels:
   {{- include "rocketmq-operator.labels" . | nindent 4 }}
 rules:
@@ -230,14 +230,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "rocketmq-operator.fullname" . }}-rocketmq-operator
+  name: {{ include "rocketmq-operator.fullname" . }}
   labels:
   {{- include "rocketmq-operator.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: '{{ include "rocketmq-operator.fullname" . }}-rocketmq-operator'
+  name: '{{ include "rocketmq-operator.fullname" . }}'
 subjects:
 - kind: ServiceAccount
-  name: '{{ include "rocketmq-operator.fullname" . }}-rocketmq-operator'
+  name: '{{ include "rocketmq-operator.fullname" . }}'
   namespace: '{{ .Release.Namespace }}'
