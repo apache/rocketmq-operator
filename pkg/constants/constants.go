@@ -52,6 +52,10 @@ const (
 	// BrokerConfigName is the name of mounted configuration file
 	BrokerConfigName = "broker-common.conf"
 
+	BrokerPlainAclConfigName = "plain_acl.yml"
+
+	BrokerPlainAclConfigPath = DataPath + "/rocketmq/broker/conf"
+
 	// UpdateBrokerConfig is update broker config command
 	UpdateBrokerConfig = "updateBrokerConfig"
 

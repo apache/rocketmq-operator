@@ -26,6 +26,24 @@ data:
     flushDiskType=ASYNC_FLUSH
     # set brokerRole to ASYNC_MASTER or SYNC_MASTER. DO NOT set to SLAVE because the replica instance will automatically be set!!!
     brokerRole=ASYNC_MASTER
+    # set aclEnable to true to enable ACL, and set plain_acl.yml to configure ACL
+    aclEnable=false
+
+  plain_acl.yml: |
+    globalWhiteRemoteAddresses:
+    accounts:
+      - accessKey: RocketMQ
+        secretKey: 12345678
+        whiteRemoteAddress:
+        admin: false
+        defaultTopicPerm: DENY
+        defaultGroupPerm: SUB
+        topicPerms:
+          - TopicTest=PUB
+        groupPerms:
+          # the group should convert to retry topic
+          - oms_consumer_group=DENY
+
 
 ---
 apiVersion: rocketmq.apache.org/v1alpha1
@@ -75,6 +93,13 @@ spec:
         items:
           - key: broker-common.conf
             path: broker-common.conf
+    # uncomment the following to enable ACL
+#    - name: plain-acl
+#      configMap:
+#        name: broker-config
+#        items:
+#          - key: plain_acl.yml
+#            path: plain_acl.yml
   # volumeClaimTemplates defines the storageClass
   volumeClaimTemplates:
     - metadata:
