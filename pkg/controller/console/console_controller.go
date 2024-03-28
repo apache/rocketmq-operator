@@ -161,14 +161,17 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
-	// Support console deployment scaling
-	if !reflect.DeepEqual(instance.Spec.ConsoleDeployment.Spec.Replicas, found.Spec.Replicas) {
+	// Support console deployment update
+	if !reflect.DeepEqual(instance.Spec.ConsoleDeployment.Spec.Replicas, found.Spec.Replicas) ||
+		!reflect.DeepEqual(instance.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources, found.Spec.Template.Spec.Containers[0].Resources) {
+
 		found.Spec.Replicas = instance.Spec.ConsoleDeployment.Spec.Replicas
+		found.Spec.Template.Spec.Containers[0].Resources = instance.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources
 		err = r.client.Update(context.TODO(), found)
 		if err != nil {
-			reqLogger.Error(err, "Failed to update console CR ", "Namespace", found.Namespace, "Name", found.Name)
+			reqLogger.Error(err, "Failed to update console CR", "Namespace", found.Namespace, "Name", found.Name)
 		} else {
-			reqLogger.Info("Successfully updated console CR ", "Namespace", found.Namespace, "Name", found.Name)
+			reqLogger.Info("Successfully updated console CR", "Namespace", found.Namespace, "Name", found.Name)
 		}
 	}
 
