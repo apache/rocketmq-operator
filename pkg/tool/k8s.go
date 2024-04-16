@@ -36,7 +36,7 @@ import (
 
 // K8sClient is a struct which contains the kubernetes.Interface and *rest.Config.
 type K8sClient struct {
-	// kubernetes.Interface should be used instead of kubernets.Inteface for unit test (mocking)
+	// kubernetes.Interface should be used instead of kubernetes.Interface for unit test (mocking)
 	ClientSet kubernetes.Interface
 	Config    *rest.Config
 }

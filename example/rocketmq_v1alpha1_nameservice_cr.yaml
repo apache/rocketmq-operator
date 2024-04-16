@@ -18,7 +18,7 @@ kind: NameService
 metadata:
   name: name-service
 spec:
-  # size is the the name service instance number of the name service cluster
+  # size is the name service instance number of the name service cluster
   size: 1
   # nameServiceImage is the customized docker image repo of the RocketMQ name service
   nameServiceImage: apacherocketmq/rocketmq-nameserver:4.5.0-alpine-operator-0.3.0
