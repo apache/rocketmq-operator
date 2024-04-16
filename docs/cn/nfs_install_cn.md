@@ -8,7 +8,7 @@
 
 1. 关闭防火墙(需要sudo权限)
 
-```
+```shell
 $ systemctl stop firewalld.service
 
 $ systemctl disable firewalld.service
@@ -16,26 +16,26 @@ $ systemctl disable firewalld.service
 
 2. 安装配置 NFS
 
-```
+```shell
 $ yum -y install nfs-utils rpcbind
 ```
 
 3. 设置共享目录的权限：
 
-```
+```shell
 $ chmod 755 /data/k8s/
 ```
 
 4. 配置 NFS，NFS 的默认配置文件在 ```/etc/exports``` 文件下，在该文件中添加下面的配置信息：
 
-```
+```shell
 $ vi /etc/exports
 /data/k8s  *(rw,sync,no_root_squash)
 ```
 
 5. 启动rpcbind服务
 
-```
+```shell
 $ systemctl start rpcbind.service
 
 $ systemctl enable rpcbind
@@ -49,7 +49,7 @@ Sep 16 10:27:19 master systemd[1]: Started RPC bind service.
 
 6. 启动 NFS 服务：
 
-```
+```shell
 $ systemctl start nfs.service
 
 $ systemctl enable nfs
@@ -63,7 +63,7 @@ Sep 16 10:28:01 master systemd[1]: Started NFS server and services.
 
 也可以通过以下命令确认：
 
-```
+```shell
 $ rpcinfo -p | grep nfs
     100003    3   tcp   2049  nfs
     100003    4   tcp   2049  nfs
@@ -81,7 +81,7 @@ $ rpcinfo -p | grep nfs
 
 1. 先关闭防火墙：
 
-```
+```shell
 $ systemctl stop firewalld.service
 
 $ systemctl disable firewalld.service
@@ -89,12 +89,12 @@ $ systemctl disable firewalld.service
 
 2. 安装 NFS 
 
-```
+```shell
 $ yum -y install nfs-utils rpcbind
 ```
 
 3. 与上面的方法一样，先启动 rpc、然后启动 NFS：
-```
+```shell
 $ systemctl start rpcbind.service 
 
 $ systemctl enable rpcbind.service 
@@ -106,7 +106,7 @@ $ systemctl enable nfs.service
 
 4. 客户端启动完成后，检查 NFS 是否有共享目录：
 
-```
+```shell
 $ showmount -e 192.168.130.32
 Export list for 192.168.130.32:
 /data/k8s *

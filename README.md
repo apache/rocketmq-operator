@@ -51,14 +51,14 @@ It is built using the [Operator SDK](https://github.com/operator-framework/opera
 ### Deploy RocketMQ Operator
 
 1. Clone the project on your Kubernetes cluster master node:
-```
+```shell
 $ git clone https://github.com/apache/rocketmq-operator.git
 $ cd rocketmq-operator
 ```
 
 2. To deploy the RocketMQ Operator on your Kubernetes cluster, please run the following command:
 
-```
+```shell
 $ make deploy
 ```
 
@@ -66,13 +66,13 @@ If you get error `rocketmq-operator/bin/controller-gen: No such file or director
 
 Or you can deploy the RocketMQ Operator by [helm](https://helm.sh/):
 
-```
+```shell
 $ helm install rocketmq-operator charts/rocketmq-operator
 ```
 
 3. Use command ```kubectl get pods``` to check the RocketMQ Operator deploy status like:
 
-```
+```shell
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
@@ -93,7 +93,7 @@ Before RocketMQ deployment, you may need to do some preparation steps for Rocket
 
 Currently we provide several options for your RocketMQ data persistence: ```EmptyDir```, ```HostPath``` and ```StorageClass```, which can be configured in CR files, for example in ```rocketmq_v1alpha1_nameservice_cr.yaml```:
 
-```
+```shell
 ...
  # storageMode can be EmptyDir, HostPath, StorageClass
   storageMode: HostPath
@@ -110,7 +110,7 @@ If you choose other storage modes, please refer to the following instructions to
 
 This storage mode means the RocketMQ data (including all the logs and store files) is stored in each host where the pod lies on. You need to create a directory on the host where you want the RocketMQ data to be stored. For example:
 
-```
+```shell
 $ mkdir /data/rocketmq/broker
 ```
 
@@ -123,29 +123,29 @@ If you choose StorageClass as the storage mode, you need to prepare the storage 
 1. Deploy NFS server and clients on your Kubernetes cluster. You can refer to [NFS deployment document](docs/en/nfs_install_en.md) for more details. Please make sure they are functional before you go to the next step. Here is a instruction on how to verify NFS service.
 
     1) On your NFS client node, check if NFS shared dir exists.
-    ```
+    ```shell
    $ showmount -e 192.168.130.32
    Export list for 192.168.130.32:
    /data/k8s * 
     ```
     2) On your NFS client node, create a test dir and mount it to the NFS shared dir (you may need sudo permission).
-    ```
+    ```shell
    $ mkdir -p   ~/test-nfc
    $ mount -t nfs 192.168.130.32:/data/k8s ~/test-nfc
     ```
     3) On your NFS client node, create a test file on the mounted test dir.
-    ```
+    ```shell
    $ touch ~/test-nfc/test.txt
     ```
    4) On your NFS server node, check the shared dir. If there exists the test file we created on the client node, it proves the NFS service is functional.
-   ```
+   ```shell
    $ ls -ls /data/k8s/
    total 4
    4 -rw-r--r--. 1 root root 4 Jul 10 21:50 test.txt
    ```
 
 2. Modify the following configurations of the ```deploy/storage/nfs-client.yaml``` file:
-``` 
+```yaml
 ...
             - name: NFS_SERVER
               value: 192.168.130.32
@@ -162,14 +162,14 @@ Replace ```192.168.130.32``` and ```/data/k8s``` with your true NFS server IP ad
  
 3. Create a NFS storage class for RocketMQ, run
 
-```
+```shell
 $ cd deploy/storage
 $ ./deploy-storage-class.sh
 ```
 
 4. If the storage class is successfully deployed, you can get the pod status like:
 
-```
+```shell
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          136m
@@ -181,7 +181,7 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 RocketMQ Operator provides several CRDs to allow users define their RocketMQ service component cluster, which includes the Name Server, Broker cluster, Console, etc.
 
 1. Check the file ```rocketmq_v1alpha1_rocketmq_cluster.yaml``` in the ```example``` directory which we put these CR together:
-```
+```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -345,7 +345,7 @@ The yaml defines the RocketMQ name server and broker cluster scale, the [ip:port
 
 1. Deploy the RocketMQ name service cluster by running:
 
-``` 
+```shell
 $ kubectl apply -f example/rocketmq_v1alpha1_rocketmq_cluster.yaml
 broker.rocketmq.apache.org/broker created
 nameservice.rocketmq.apache.org/name-service created
@@ -356,7 +356,7 @@ The name server cluster will be created first, after all name server cluster is 
 
 Check the status:
 
-```
+```shell
 $ kubectl get pods -owide
 NAME                                 READY   STATUS    RESTARTS   AGE    IP             NODE             NOMINATED NODE   READINESS GATES
 broker-0-master-0                    1/1     Running   0          71s    10.1.5.91      docker-desktop   <none>           <none>
@@ -371,13 +371,13 @@ Using the default yaml, we can see that there are 2 name-server Pods and 1 maste
 2. Apply Service and visit the RocketMQ Console.
 
 By default, we use nodePort service to expose the console service outside the k8s cluster:
-```
+```shell
 $ kubectl apply -f example/rocketmq_v1alpha1_cluster_service.yaml
 ```
 Then you can visit the RocketMQ Console (by default) by the URL ```any-k8s-node-IP:30000```, or ```localhost:30000``` if you are currently on the k8s node.
 
 3. If you are using storage class, check the PV and PVC status:
-```
+```shell
 $ kubectl get pvc
 NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS       AGE
 broker-storage-broker-0-master-0        Bound    pvc-7a74871b-c005-441a-bb15-8106566c9d19   8Gi        RWO            rocketmq-storage   78s
@@ -399,7 +399,7 @@ Congratulations! You have successfully deployed your RocketMQ cluster by RocketM
 
 #### Verify HostPath Storage
 Access on any node which contains the RocketMQ service pod, check the ```hostPath``` you configured, for example:
-```
+```shell
 $ ls /data/rocketmq/broker
 logs  store
 
@@ -412,7 +412,7 @@ $ cat /data/rocketmq/broker/logs/broker-1-replica-1/rocketmqlogs/broker.log
 #### Verify NFS storage
 Access the NFS server node of your cluster and verify whether the RocketMQ data is stored in your NFS data volume path:
 
-```
+```shell
 $ cd /data/k8s/
 
 $ ls
@@ -439,7 +439,7 @@ If you want to enlarge your name service cluster. Modify your name service CR fi
 > Notice: if your broker image version is 4.5.0 or earlier, you need to make sure that ```allowRestart: true``` is set in the broker CR file to enable rolling restart policy. If ```allowRestart: false```, configure it to ```allowRestart: true``` and run ```kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml``` to apply the new config.
 
 After configuring the ```size``` fields, simply run 
-```
+```shell
 kubectl apply -f example/rocketmq_v1alpha1_nameservice_cr.yaml 
 ```
 Then a new name service pod will be deployed and meanwhile the operator will inform all the brokers to update their name service list parameters, so they can register to the new name service.
@@ -454,7 +454,7 @@ It is often the case that with the development of your business, the old broker 
 1. Modify the ```size``` in the broker CR file to the number that you want the broker cluster scale will be, for example, from ```size: 1``` to ```size: 2```.
 
 2. Choose the source broker pod, from which the old metadata like topic and subscription information data will be transferred to the newly created brokers. The source broker pod field is 
-```
+```shell
 ...
 # scalePodName is broker-[broker group number]-master-0
   scalePodName: broker-0-master-0
@@ -462,7 +462,7 @@ It is often the case that with the development of your business, the old broker 
 ```
 
 3. Apply the new configurations:
-```
+```shell
 $ kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml
 ```
 Then a new broker group of pods will be deployed and meanwhile the operator will copy the metadata from the source broker pod to the newly created broker pods before the new brokers are stared, so the new brokers will reload previous topic and subscription information.
@@ -489,7 +489,7 @@ Usually the ```Topic Transfer``` process consists of 7 steps:
 
 The ```TopicTransfer``` CRD can help you do that. Simply configure the CR file ```example/rocketmq_v1alpha1_topictransfer_cr.yaml```:
 
-```
+```yaml
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: TopicTransfer
 metadata:
@@ -505,7 +505,7 @@ spec:
 
 Then apply the ```TopicTransfer``` resource:
 
-```
+```shell
 $ kubectl apply -f example/rocketmq_v1alpha1_topictransfer_cr.yaml
 ```
 
@@ -515,11 +515,11 @@ If the transfer process is failed, the operator will roll-back the transfer oper
 
 You can check the operator logs or consume progress status to monitor and verify the topic transfer process:
 
-```
+```shell
 $ kubectl logs -f [operator-pod-name] 
 ```
 
-```
+```shell
 $ sh bin/mqadmin consumerprogress -g [consumer-group] -n [name-server-ip]:9876
 ```
 
@@ -527,20 +527,20 @@ $ sh bin/mqadmin consumerprogress -g [consumer-group] -n [name-server-ip]:9876
 
 If you want to tear down the RocketMQ cluster, to remove the name server and broker clusters run
 
-```
+```shell
 $ kubectl delete -f example/rocketmq_v1alpha1_rocketmq_cluster.yaml
 $ kubectl delete -f example/rocketmq_v1alpha1_cluster_service.yaml
 ```
 
 to remove the RocketMQ Operator:
 
-```
+```shell
 $ ./purge-operator.sh
 ```
 
 to remove the storage class for RocketMQ:
 
-```
+```shell
 $ cd deploy/storage
 $ ./remove-storage-class.sh
 ```
@@ -579,12 +579,12 @@ RocketMQ-Operator is based on customized images of ```Broker``` and ```Name Serv
 
 You can also modify the ```DOCKERHUB_REPO``` variable in the scripts to push the newly build images to your own repository:
 
-```
+```shell
 $ cd images/alpine/broker
 $ ./build-broker-image.sh
 ```
 
-```
+```shell
 $ cd images/alpine/namesrv
 $ ./build-namesrv-image.sh
 ```

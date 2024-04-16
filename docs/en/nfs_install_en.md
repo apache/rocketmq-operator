@@ -8,7 +8,7 @@ Choose one of your nodes to install the NFS service, assuming our shared data di
 
 1. Turn off the firewall (requires sudo privileges)
 
-```
+```shell
 $ systemctl stop firewalld.service
 
 $ systemctl disable firewalld.service
@@ -16,26 +16,26 @@ $ systemctl disable firewalld.service
 
 2. Install and configure NFS
 
-```
+```shell
 $ yum -y install nfs-utils rpcbind
 ```
 
 3. Set permissions for the shared directory:
 
-```
+```shell
 $ chmod 755 /data/k8s/
 ```
 
 4. Configure NFS. The default configuration file for NFS is under ```/etc/exports```. Add the following configuration information to the file:
 
-```
+```shell
 $ vi /etc/exports
 /data/k8s  *(rw,sync,no_root_squash)
 ```
 
 5. Start rpcbind service:
 
-```
+```shell
 $ systemctl start rpcbind.service
 
 $ systemctl enable rpcbind
@@ -49,7 +49,7 @@ If you see the above output, the rpcbind is successfully started.
 
 6. Start NFS service:
 
-```
+```shell
 $ systemctl start nfs.service
 
 $ systemctl enable nfs
@@ -63,7 +63,7 @@ If you see the above output, the NFS server is successfully started.
 
 It can also be confirmed by the following command:
 
-```
+```shell
 $ rpcinfo -p | grep nfs
     100003    3   tcp   2049  nfs
     100003    4   tcp   2049  nfs
@@ -81,7 +81,7 @@ Install NFS on the other nodes of your Kubernetes cluster:
 
 1. Turn off the firewall first:
 
-```
+```shell
 $ systemctl stop firewalld.service
 
 $ systemctl disable firewalld.service
@@ -89,13 +89,13 @@ $ systemctl disable firewalld.service
 
 2. Install NFS 
 
-```
+```shell
 $ yum -y install nfs-utils rpcbind
 ```
 
 3. As with the above method, start rpc first, then start NFS:
 
-```
+```shell
 $ systemctl start rpcbind.service 
 
 $ systemctl enable rpcbind.service 
@@ -107,7 +107,7 @@ $ systemctl enable nfs.service
 
 4. After the client startup is complete, check if NFS has a shared directory:
 
-```
+```shell
 $ showmount -e 192.168.130.32
 Export list for 192.168.130.32:
 /data/k8s *

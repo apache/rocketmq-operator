@@ -34,20 +34,20 @@ RocketMQ Operator的作用是管理基于Kubernetes平台的RocketMQ服务集群
 ### 部署 RocketMQ Operator
 
 1. 克隆RocketMQ Operator项目到您的Kubernetes集群的master节点上：
-```
+```shell
 $ git clone https://github.com/apache/rocketmq-operator.git
 $ cd rocketmq-operator
 ```
 
 2. 运行以下安装脚本以在您的Kubernetes集群上部署RocketMQ Operator:
 
-```
+```shell
 $ ./install-operator.sh
 ```
 
 3. 使用命令 ```kubectl get pods``` 来检查RocketMQ Operator的部署状态，若部署成功将产生类似下面的输出:
 
-```
+```shell
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
@@ -61,7 +61,7 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 
 您可以通过在示例资源文件例如```rocketmq_v1alpha1_nameservice_cr.yaml```中配置来选择您想要的存储方式：
 
-```
+```shell
 ...
  # storageMode can be EmptyDir, HostPath, NFS
   storageMode: HostPath
@@ -78,7 +78,7 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          108s
 
 为了方便您的准备工作，我们提供一个脚本```deploy/storage/hostpath/prepare-host-path.sh```用来帮助您创建```HostPath```本地路径：
 
-```
+```shell
 $ cd deploy/storage/hostpath
 
 $ sudo su
@@ -99,29 +99,29 @@ Changed hostPath /data/rocketmq/broker uid to 3000, gid to 3000
 1. 在您的Kubernetes集群上部署好NFS服务端并在其他节点上部署好NFS客户端，部署方法可以参考[NFS部署文档](nfs_install_cn.md)。 请在下一步准备工作之前确保NFS服务工作正常，以下是一个简单的确认NFS工作正常的方法：
 
     1) 在您的NFS客户端节点上检查NFS共享路径是否存在：
-    ```
+    ```shell
    $ showmount -e 192.168.130.32
    Export list for 192.168.130.32:
    /data/k8s * 
     ```
     2) 在您的NFS客户端节点上创建一个测试路径，并将该路径挂载到NFS共享路径上(这一步您可能需要管理员权限)：
-    ```
+    ```shell
    $ mkdir -p   ~/test-nfc
    $ mount -t nfs 192.168.130.32:/data/k8s ~/test-nfc
     ```
     3) 在您的NFS客户端节点上，在上面的测试路径下创建一个测试文件：
-    ```
+    ```shell
    $ touch ~/test-nfc/test.txt
     ```
    4) 在您的NFS服务端节点上, 检查共享路径。 如果共享路径下存在您刚刚在NFS客户端节点上创建的测试文件，证明NFS是在正常工作的：
-   ```
+   ```shell
    $ ls -ls /data/k8s/
    total 4
    4 -rw-r--r--. 1 root root 4 Jul 10 21:50 test.txt
    ```
 
 2. 修改 ```deploy/storage/nfs-client.yaml``` 文件中的以下配置:
-``` 
+```yaml
 ...
             - name: NFS_SERVER
               value: 192.168.130.32
@@ -138,14 +138,14 @@ Changed hostPath /data/rocketmq/broker uid to 3000, gid to 3000
  
 3. 创建一个NFS StorageClass，运行：
 
-```
+```shell
 $ cd deploy/storage
 $ ./deploy-storage-class.sh
 ```
 
 4. 如果StorageClass创建并部署成功，您将可以通过以下命令获得类似如下集群pod状态：
 
-```
+```shell
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          136m
@@ -158,7 +158,7 @@ nfs-client-provisioner-7cf858f754-7vxmm   1/1     Running   0          136m
 RocketMQ Operator 提供多种自定义资源（CRD）用于让用户定义需要部署的RocketMQ服务组件集群的规模、从节点数等相关配置，服务组件集群包括Name Server集群以及Broker集群。
 
 1. 查看```example```路径下的 ```rocketmq_v1alpha1_nameservice_cr.yaml```NameService自定义资源示例配置文件, 例如:
-```
+```yaml
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: NameService
 metadata:
@@ -189,7 +189,7 @@ spec:
 它定义了RocketMQ Name Server 集群的规模（```size```）等。
 
 2. 检查```example```下的```rocketmq_v1alpha1_broker_cr.yaml``` Broker自定义资源示例文件, 例如:
-```
+```yaml
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: Broker
 metadata:
@@ -236,14 +236,14 @@ spec:
  
 1. 部署Name Server集群，运行命令:
 
-``` 
+```shell
 $ kubectl apply -f example/rocketmq_v1alpha1_nameservice_cr.yaml 
 nameservice.rocketmq.apache.org/name-service created
 ```
 
 检查当前Kubernetes集群pod状态:
 
-```
+```shell
 $ kubectl get pods -owide
 NAME                                      READY   STATUS    RESTARTS   AGE     IP               NODE        NOMINATED NODE   READINESS GATES
 name-service-0                            1/1     Running   0          3m18s   192.168.130.33   k2data-13   <none>           <none>
@@ -257,14 +257,14 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          5m53s   1
 
 2. 部署Broker集群，运行命令:
 
-```
+```shell
 $ kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml
 broker.rocketmq.apache.org/broker created 
 ```
 
 之后Broker集群的容器就会被自动创建好，最终查看集群pod状态会得到类似如下的输出：
 
-``` 
+```shell
 $ kubectl get pods -owide
 NAME                                      READY   STATUS    RESTARTS   AGE     IP               NODE        NOMINATED NODE   READINESS GATES
 broker-0-master-0                         1/1     Running   0          38s     10.244.4.18      k2data-11   <none>           <none>
@@ -277,7 +277,7 @@ rocketmq-operator-564b5d75d-jllzk         1/1     Running   0          8m42s   1
 ```
 
 3. 查看PV和PVC资源状态:
-```
+```shell
 $ kubectl get pvc
 NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS       AGE
 broker-storage-broker-0-master-0        Bound    pvc-7a74871b-c005-441a-bb15-8106566c9d19   8Gi        RWO            rocketmq-storage   78s
@@ -305,7 +305,7 @@ pvc-d7b76efe-384c-4f8d-9e8a-ebe209ba826c   8Gi        RWO            Delete     
 
 如果您选择的是```HostPath```的存储方式，您可以通过ssh访问任何一台部署了RocketMQ服务pod的节点，检查您在自定义资源声明文件中```hostPath```对应路径下的文件内容来确认数据存储，例如默认路径下类似如下输出：
 
-```
+```shell
 $ ls /data/rocketmq/broker
 logs  store
 
@@ -319,7 +319,7 @@ $ cat /data/rocketmq/broker/logs/broker-1-replica-1/rocketmqlogs/broker.log
 
 如果您选择的是```NFS```的存储方式，您可以通过ssh访问部署了NFS服务端的节点，并检查您配置的共享路径下的文件内容来确认数据存储，例如：
 
-```
+```shell
 $ cd /data/k8s/
 
 $ ls
@@ -348,7 +348,7 @@ $ cat default-broker-storage-broker-1-master-0-pvc-d7b76efe-384c-4f8d-9e8a-ebe20
 > 注意：如果您的Broker自定义资源声明文件中使用的镜像为4.5.0或更早的版本，您需要确保您的Broker自定义资源声明文件中设置了```allowRestart: true```，使得Broker可以通过滚动重启的方式来注册新扩容出来的Name Server，该过程不会影响集群对外的持续服务。如果```allowRestart: false```，请改为```allowRestart: true```并运行```kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml```以应用修改后的配置。
 
 在修改了```size```之后，只需简单地运行：
-```
+```shell
 kubectl apply -f example/rocketmq_v1alpha1_nameservice_cr.yaml 
 ```
 之后新的Name Server就会被自动部署出来，与此同时Operator会自动通知所有的Broker去更新他们的Name Server列表参数，使得他们可以注册新的Name Server服务。
@@ -363,7 +363,7 @@ kubectl apply -f example/rocketmq_v1alpha1_nameservice_cr.yaml
 1. 修改Broker自定义资源声明文件中的```size```配置为您希望的Broker集群规模，例如从```size: 1``` 修改为 ```size: 2```
 
 2. 配置源Broker pod，所谓源Broker是指把哪个pod上的Broker元数据（包括Topic信息和订阅信息）到新扩容出来的Broker。源Broker pod对应的配置项默认为：
-```
+```shell
 ...
 # scalePodName is broker-[broker group number]-master-0
   scalePodName: broker-0-master-0
@@ -372,7 +372,7 @@ kubectl apply -f example/rocketmq_v1alpha1_nameservice_cr.yaml
 表示将```broker-0-master```的元数据同步给所有新扩容出来的Broker。
 
 3. 应用修改后的Broker自定义资源声明文件:
-```
+```shell
 kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml
 ```
 之后Operator就会帮您自动创建出新扩容出的Broker组，并且在新扩容出来的Broker启动之前将元数据文件同步到每个新Broker上，因而新Broker启动之后会加载源Broker的元数据信息（包括Topic和订阅信息）。
@@ -398,7 +398,7 @@ kubectl apply -f example/rocketmq_v1alpha1_broker_cr.yaml
 
 通过Operator提供的```TopicTransfer```自定义资源可以帮助您自动完成Topic迁移的工作。只需简单地配置自定义资源声明文件```example/rocketmq_v1alpha1_topictransfer_cr.yaml```：
 
-```
+```yaml
 apiVersion: rocketmq.apache.org/v1alpha1
 kind: TopicTransfer
 metadata:
@@ -414,7 +414,7 @@ spec:
 
 然后应用 ```TopicTransfer``` 自定义资源:
 
-```
+```shell
 $ kubectl apply -f example/rocketmq_v1alpha1_topictransfer_cr.yaml
 ```
 
@@ -424,11 +424,11 @@ $ kubectl apply -f example/rocketmq_v1alpha1_topictransfer_cr.yaml
 
 您可以通过查看Operator日志或通过RocketMQ的Admin工具来检查和验证当前Topic迁移过程的状态：
 
-```
+```shell
 $ kubectl logs -f [operator-pod-name] 
 ```
 
-```
+```shell
 $ sh bin/mqadmin consumerprogress -g [consumer-group] -n [name-server-ip]:9876
 ```
 
@@ -436,25 +436,25 @@ $ sh bin/mqadmin consumerprogress -g [consumer-group] -n [name-server-ip]:9876
 
 如果您想要下线RocketMQ的Broker集群，运行：
 
-```
+```shell
 $ kubectl delete -f example/rocketmq_v1alpha1_broker_cr.yaml
 ```
 
 如果您想要下线RocketMQ的Name Server集群，运行：
 
-```
+```shell
 $ kubectl delete -f example/rocketmq_v1alpha1_nameservice_cr.yaml
 ```
 
 如果您想要清理整个RocketMQ集群以及Operator，运行：
 
-```
+```shell
 $ ./purge-operator.sh
 ```
 
 如果您想要清理RocketMQ的NFS StorageClass，运行：
 
-```
+```shell
 $ cd deploy/storage
 $ ./remove-storage-class.sh
 ```
