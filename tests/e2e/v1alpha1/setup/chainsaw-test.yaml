@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: rocketmq-cluster
+spec:
+  steps:
+  - name: Create RocketMQ Cluster
+    try:
+    - apply:
+        file: cluster.yaml
+    - assert:
+        file: ready-cluster.yaml
+    - assert:
+        file: ready-sts.yaml
+
+  - name: Sleep for five minutes
+    try:
+      - sleep:
+          duration: 5m
+
+  - name: Check Cluster by Name Server
+    try:
+      - script:
+          content: |
+            kubectl exec --namespace ${NAMESPACE} --container name-service name-service-0 -- ./mqadmin clusterList -n 127.0.0.1:9876 2>/dev/null | grep 'broker' | wc -l
+          check:
+            ($stdout=='2'): true

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: broker-0-master
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: broker
+      broker_cr: broker
+  template:
+    metadata:
+      labels:
+        app: broker
+        broker_cr: broker
+status:
+  readyReplicas: 1
+  replicas: 1
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: broker-0-replica-1
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: broker
+      broker_cr: broker
+  template:
+    metadata:
+      labels:
+        app: broker
+        broker_cr: broker
+status:
+  readyReplicas: 1
+  replicas: 1
