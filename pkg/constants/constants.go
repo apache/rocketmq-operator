@@ -46,8 +46,11 @@ const (
 	// SubscriptionGroupJsonDir is the directory of subscriptionGroup.json
 	SubscriptionGroupJsonDir = StoreConfigDir + "/subscriptionGroup.json"
 
-	// BrokerConfigDir is the directory of the mounted config file
+	// BrokerConfigPath is the directory of the mounted config file
 	BrokerConfigPath = DataPath + "/rocketmq/broker/conf"
+
+	// BrokerPlainAclConfigName is the name of mounted acl config file
+	BrokerPlainAclConfigName = "plain_acl.yml"
 
 	// BrokerConfigName is the name of mounted configuration file
 	BrokerConfigName = "broker-common.conf"
