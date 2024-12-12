@@ -20,6 +20,9 @@ package console
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"time"
+
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/apache/rocketmq-operator/pkg/constants"
 	"github.com/apache/rocketmq-operator/pkg/share"
@@ -29,7 +32,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -38,7 +40,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
 )
 
 var log = logf.Log.WithName("controller_console")
@@ -201,7 +202,8 @@ func newDeploymentForCR(cr *rocketmqv1alpha1.Console) *appsv1.Deployment {
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: cr.Spec.ConsoleDeployment.Spec.Template.ObjectMeta.Labels,
+					Labels:      cr.Spec.ConsoleDeployment.Spec.Template.ObjectMeta.Labels,
+					Annotations: cr.Spec.ConsoleDeployment.Spec.Template.ObjectMeta.Annotations,
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: cr.Spec.ConsoleDeployment.Spec.Template.Spec.ServiceAccountName,

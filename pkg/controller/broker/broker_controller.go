@@ -449,7 +449,8 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: ls,
+					Labels:      ls,
+					Annotations: broker.Spec.PodAnnotations,
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: broker.Spec.ServiceAccountName,

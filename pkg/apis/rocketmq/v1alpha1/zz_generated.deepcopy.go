@@ -114,6 +114,13 @@ func (in *BrokerSpec) DeepCopyInto(out *BrokerSpec) {
 		*out = new(v1.PodSecurityContext)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.PodAnnotations != nil {
+		in, out := &in.PodAnnotations, &out.PodAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.ContainerSecurityContext != nil {
 		in, out := &in.ContainerSecurityContext, &out.ContainerSecurityContext
 		*out = new(v1.SecurityContext)
@@ -347,6 +354,13 @@ func (in *ControllerSpec) DeepCopyInto(out *ControllerSpec) {
 		*out = new(v1.PodSecurityContext)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.PodAnnotations != nil {
+		in, out := &in.PodAnnotations, &out.PodAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.ContainerSecurityContext != nil {
 		in, out := &in.ContainerSecurityContext, &out.ContainerSecurityContext
 		*out = new(v1.SecurityContext)
@@ -471,6 +485,13 @@ func (in *NameServiceList) DeepCopyObject() runtime.Object {
 func (in *NameServiceSpec) DeepCopyInto(out *NameServiceSpec) {
 	*out = *in
 	in.Resources.DeepCopyInto(&out.Resources)
+	if in.Env != nil {
+		in, out := &in.Env, &out.Env
+		*out = make([]v1.EnvVar, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.VolumeClaimTemplates != nil {
 		in, out := &in.VolumeClaimTemplates, &out.VolumeClaimTemplates
 		*out = make([]v1.PersistentVolumeClaim, len(*in))
@@ -482,6 +503,13 @@ func (in *NameServiceSpec) DeepCopyInto(out *NameServiceSpec) {
 		in, out := &in.PodSecurityContext, &out.PodSecurityContext
 		*out = new(v1.PodSecurityContext)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.PodAnnotations != nil {
+		in, out := &in.PodAnnotations, &out.PodAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	if in.ContainerSecurityContext != nil {
 		in, out := &in.ContainerSecurityContext, &out.ContainerSecurityContext

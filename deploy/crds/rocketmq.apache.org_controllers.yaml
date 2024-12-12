@@ -1149,6 +1149,11 @@ spec:
                 description: NodeSelector is a selector which must be true for the
                   pod to fit on a node
                 type: object
+              podAnnotations:
+                additionalProperties:
+                  type: string
+                description: Pod Annotations
+                type: object
               priorityClassName:
                 description: PriorityClassName indicates the pod's priority
                 type: string
