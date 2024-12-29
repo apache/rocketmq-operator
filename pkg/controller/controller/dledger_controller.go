@@ -257,7 +257,8 @@ func (r *ReconcileController) getControllerStatefulSet(controller *rocketmqv1alp
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: ls,
+					Labels:      ls,
+					Annotations: controller.Spec.PodAnnotations,
 				},
 				Spec: corev1.PodSpec{
 
