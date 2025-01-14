@@ -54,6 +54,8 @@ type ControllerSpec struct {
 
 	// Pod Security Context
 	PodSecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
+	// Pod Annotations
+	PodAnnotations map[string]string `json:"podAnnotations,omitempty"`
 	// Container Security Context
 	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
 	// The secrets used to pull image from private registry

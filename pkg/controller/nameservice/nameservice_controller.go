@@ -20,13 +20,14 @@ package nameservice
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"os/exec"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 
 	rocketmqv1alpha1 "github.com/apache/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	cons "github.com/apache/rocketmq-operator/pkg/constants"
@@ -357,7 +358,8 @@ func (r *ReconcileNameService) statefulSetForNameService(nameService *rocketmqv1
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: ls,
+					Labels:      ls,
+					Annotations: nameService.Spec.PodAnnotations,
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: nameService.Spec.ServiceAccountName,
