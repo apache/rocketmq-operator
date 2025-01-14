@@ -186,7 +186,7 @@ sed -i "s/^controllerDLegerPeers.*$/controllerDLegerPeers=${controllerDLegerPeer
 
 sed -i "s/^controllerDLegerSelfId.*$/controllerDLegerSelfId=${controllerDLegerSelfId}/" ${ROCKETMQ_HOME}/conf/controller/controller.conf
 
-#perl not exists, sed can't process 
+#perl not exists, sed can't process
 #perl -pi -e "s|controllerStorePath.*$|controllerStorePath=${controllerStorePath}|g" ${ROCKETMQ_HOME}/conf/controller/controller.conf
 echo "" >> ${ROCKETMQ_HOME}/conf/controller/controller.conf
 echo "controllerStorePath=${controllerStorePath}" >> ${ROCKETMQ_HOME}/conf/controller/controller.conf
