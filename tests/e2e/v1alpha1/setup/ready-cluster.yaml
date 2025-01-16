@@ -1,0 +1,10 @@
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: Broker
+metadata:
+  name: broker
+  namespace: default
+status:
+  nodes:
+    - broker-0-master-0
+    - broker-0-replica-1-0
+  size: 1
