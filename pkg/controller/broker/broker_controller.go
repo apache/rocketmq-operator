@@ -485,19 +485,7 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 							ContainerPort: cons.BrokerHighAvailabilityContainerPort,
 							Name:          cons.BrokerHighAvailabilityContainerPortName,
 						}},
-						VolumeMounts: []corev1.VolumeMount{{
-							MountPath: cons.LogMountPath,
-							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.LogSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
-						}, {
-							MountPath: cons.StoreMountPath,
-							Name:      broker.Spec.VolumeClaimTemplates[0].Name,
-							SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
-						}, {
-							MountPath: cons.BrokerConfigPath + "/" + cons.BrokerConfigName,
-							Name:      broker.Spec.Volumes[0].Name,
-							SubPath:   cons.BrokerConfigName,
-						}},
+						VolumeMounts: getVolumeMounts(broker, brokerGroupIndex, replicaIndex),
 					}},
 					Volumes:         getVolumes(broker),
 					SecurityContext: getPodSecurityContext(broker),
@@ -511,6 +499,30 @@ func (r *ReconcileBroker) getBrokerStatefulSet(broker *rocketmqv1alpha1.Broker, 
 
 	return dep
 
+}
+
+func getVolumeMounts(broker *rocketmqv1alpha1.Broker, brokerGroupIndex int, replicaIndex int) []corev1.VolumeMount {
+	mounts := []corev1.VolumeMount{{
+		MountPath: cons.LogMountPath,
+		Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+		SubPath:   cons.LogSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
+	}, {
+		MountPath: cons.StoreMountPath,
+		Name:      broker.Spec.VolumeClaimTemplates[0].Name,
+		SubPath:   cons.StoreSubPathName + getPathSuffix(broker, brokerGroupIndex, replicaIndex),
+	}, {
+		MountPath: cons.BrokerConfigPath + "/" + cons.BrokerConfigName,
+		Name:      broker.Spec.Volumes[0].Name,
+		SubPath:   cons.BrokerConfigName,
+	}}
+	if len(broker.Spec.Volumes) > 1 && broker.Spec.Volumes[1].Name == "plain-acl" {
+		mounts = append(mounts, corev1.VolumeMount{
+			MountPath: cons.BrokerPlainAclConfigPath + "/" + cons.BrokerPlainAclConfigName,
+			Name:      broker.Spec.Volumes[1].Name,
+			SubPath:   cons.BrokerPlainAclConfigName,
+		})
+	}
+	return mounts
 }
 
 func getENV(broker *rocketmqv1alpha1.Broker, replicaIndex int, brokerGroupIndex int) []corev1.EnvVar {
