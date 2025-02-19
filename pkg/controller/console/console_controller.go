@@ -156,18 +156,14 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 			return reconcile.Result{}, err
 		}
 
-		// created successfully - don't requeue
-		return reconcile.Result{}, nil
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second,
+		}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
-	}
-
-	// Support console deployment update
-	if !reflect.DeepEqual(instance.Spec.ConsoleDeployment.Spec.Replicas, found.Spec.Replicas) ||
-		!reflect.DeepEqual(instance.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources, found.Spec.Template.Spec.Containers[0].Resources) {
-
-		found.Spec.Replicas = instance.Spec.ConsoleDeployment.Spec.Replicas
-		found.Spec.Template.Spec.Containers[0].Resources = instance.Spec.ConsoleDeployment.Spec.Template.Spec.Containers[0].Resources
+	} else if !reflect.DeepEqual(consoleDeployment.Spec, found.Spec) {
+		found.Spec = *consoleDeployment.Spec.DeepCopy()
 		err = r.client.Update(context.TODO(), found)
 		if err != nil {
 			reqLogger.Error(err, "Failed to update console CR", "Namespace", found.Namespace, "Name", found.Name)
@@ -176,11 +172,10 @@ func (r *ReconcileConsole) Reconcile(ctx context.Context, request reconcile.Requ
 		}
 	}
 
-	// TODO: update console if name server address changes
-
-	// CR already exists - don't requeue
-	reqLogger.Info("Skip reconcile: RocketMQ Console Deployment already exists", "Namespace", found.Namespace, "Name", found.Name)
-	return reconcile.Result{}, nil
+	return reconcile.Result{
+		Requeue:      true,
+		RequeueAfter: time.Duration(cons.RequeueIntervalInSecond) * time.Second,
+	}, nil
 }
 
 // newDeploymentForCR returns a deployment pod with modifying the ENV
